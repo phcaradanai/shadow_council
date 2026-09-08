@@ -1,0 +1,35 @@
+{
+  "name": "shadow-council",
+  "private": true,
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=22.0.0 <23"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build:domain && npm run build:application && npm run build:protocol && npm run build:server && npm run build:web",
+    "build:domain": "tsc -p packages/domain/tsconfig.json",
+    "build:application": "tsc -p packages/application/tsconfig.json",
+    "build:protocol": "tsc -p packages/protocol/tsconfig.json",
+    "build:server": "tsc -p apps/server/tsconfig.json",
+    "build:web": "tsc -p apps/web/tsconfig.json",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "test:domain": "vitest run packages/domain/src/**/*.test.ts",
+    "test:application": "vitest run packages/application/src/**/*.test.ts",
+    "lint": "npm run typecheck",
+    "format:check": "prettier --check package.json tsconfig.json tsconfig.base.json vitest.config.ts .prettierrc.json packages apps scripts",
+    "architecture:check": "node scripts/check-architecture.mjs",
+    "size:check": "node scripts/check-size.mjs",
+    "start:server": "node apps/server/dist/main.js"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.2",
+    "prettier": "3.4.2",
+    "typescript": "5.7.3",
+    "vitest": "2.1.9"
+  }
+}

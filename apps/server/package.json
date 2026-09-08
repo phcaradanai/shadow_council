@@ -1,0 +1,11 @@
+{
+  "name": "@shadow-council/server",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@shadow-council/application": "0.1.0",
+    "@shadow-council/domain": "0.1.0",
+    "@shadow-council/protocol": "0.1.0"
+  }
+}
