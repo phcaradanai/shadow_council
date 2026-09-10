@@ -1,4 +1,5 @@
 import type { WireMatchView, WirePlayerView } from "@shadow-council/protocol";
+import { t } from "../i18n/index.js";
 
 const escapeHtml = (value: string): string =>
   value
@@ -59,11 +60,21 @@ export const renderPlayerCard = (
     .join(" ");
 
   const badges = [
-    isSelf ? '<span class="badge badge--self">YOU</span>' : "",
-    isActive ? '<span class="badge badge--active">ACTIVE</span>' : "",
-    isTarget ? '<span class="badge badge--target">TARGET</span>' : "",
-    isEliminated ? '<span class="badge badge--eliminated">ELIMINATED</span>' : "",
-    isOffline ? '<span class="badge badge--offline">OFFLINE</span>' : "",
+    isSelf ? `<span class="badge badge--self" data-badge="self">${t("common.you")}</span>` : "",
+    isActive
+      ? `<span class="badge badge--active" data-badge="active">${t("player.badgeActive")}</span>`
+      : "",
+    isTarget
+      ? `<span class="badge badge--target" data-badge="target">${t("player.badgeTarget")}</span>`
+      : "",
+    isEliminated
+      ? `<span class="badge badge--eliminated" data-badge="eliminated">${t(
+          "player.badgeEliminated",
+        )}</span>`
+      : "",
+    isOffline
+      ? `<span class="badge badge--offline" data-badge="offline">${t("common.offline")}</span>`
+      : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -76,15 +87,15 @@ export const renderPlayerCard = (
       </header>
 
       <div class="player-card__stats">
-        <div class="stat-row">
-          <span class="stat-label">Influence (Survival):</span>
-          <span class="stat-value" aria-label="${player.influence} of 3 influence">
+        <div class="stat-row" data-stat="influence">
+          <span class="stat-label">${t("player.influenceLabel")}</span>
+          <span class="stat-value" aria-label="${t("player.influenceAria", { current: player.influence, max: 3 })}">
             ${renderInfluencePips(player.influence)} <span class="stat-num">(${player.influence}/3)</span>
           </span>
         </div>
-        <div class="stat-row">
-          <span class="stat-label">Power (Energy):</span>
-          <span class="stat-value" aria-label="${player.power} of 3 power">
+        <div class="stat-row" data-stat="power">
+          <span class="stat-label">${t("player.powerLabel")}</span>
+          <span class="stat-value" aria-label="${t("player.powerAria", { current: player.power, max: 3 })}">
             ${renderPowerPips(player.power)} <span class="stat-num">(${player.power}/3)</span>
           </span>
         </div>
@@ -96,7 +107,7 @@ export const renderPlayerCard = (
 export const renderPlayerGrid = (match: WireMatchView, viewerId: string): string => {
   return `
     <section class="players-section" aria-label="Player Roster">
-      <h2 class="section-title">The Council (${match.players.filter((p) => !p.eliminated).length} Alive)</h2>
+      <h2 class="section-title">${t("player.aliveCount", { count: match.players.filter((p) => !p.eliminated).length })}</h2>
       <div class="players-grid">
         ${match.players.map((player) => renderPlayerCard(player, match, viewerId)).join("")}
       </div>

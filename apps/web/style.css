@@ -21,6 +21,10 @@
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
+    "Leelawadee UI",
+    "Noto Sans Thai",
+    "Thonburi",
+    Tahoma,
     Roboto,
     sans-serif;
   font-size: 16px;
@@ -107,6 +111,37 @@ h4 {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.lang-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lang-btn:hover {
+  color: var(--text-main);
+}
+
+.lang-btn.btn--primary {
+  background: var(--color-primary);
+  color: #fff;
 }
 
 /* Cards & Containers */

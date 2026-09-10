@@ -6,9 +6,16 @@ export interface PlayerSession {
   name: string;
 }
 
-export const createPlayer = async (browser: Browser, name: string): Promise<PlayerSession> => {
+export const createPlayer = async (
+  browser: Browser,
+  name: string,
+  locale: "th" | "en" = "en",
+): Promise<PlayerSession> => {
   const context = await browser.newContext();
   const page = await context.newPage();
+  await page.addInitScript((loc) => {
+    window.localStorage.setItem("shadow-council.locale", loc);
+  }, locale);
   await page.goto("/");
   await page.waitForSelector("#app");
   return { context, page, name };
@@ -86,9 +93,7 @@ export const getPlayerStat = async (
   stat: "influence" | "power",
 ): Promise<number> => {
   const card = page.locator(`#player-${playerId}`);
-  const statRow = card.locator(
-    `.stat-row:has-text("${stat === "influence" ? "Influence" : "Power"}")`,
-  );
+  const statRow = card.locator(`.stat-row[data-stat="${stat}"]`);
   const text = await statRow.locator(".stat-num").textContent();
   const match = text?.match(/\((\d+)\/3\)/);
   if (!match || !match[1]) throw new Error(`Could not parse ${stat} from ${text}`);

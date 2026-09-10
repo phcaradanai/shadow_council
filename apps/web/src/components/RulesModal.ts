@@ -1,58 +1,60 @@
+import { t } from "../i18n/index.js";
+
 export const renderRulesModal = (): string => {
   return `
     <div id="rules-modal" class="modal" hidden role="dialog" aria-labelledby="rules-modal-title" aria-modal="true">
       <div class="modal__backdrop" id="rules-backdrop"></div>
       <div class="modal__dialog">
         <header class="modal__header">
-          <h2 id="rules-modal-title" class="modal__title">📜 Shadow Council — Rules in 60 Seconds</h2>
-          <button type="button" class="modal__close" id="rules-close" aria-label="Close rules">✕</button>
+          <h2 id="rules-modal-title" class="modal__title">${t("rules.title")}</h2>
+          <button type="button" class="modal__close" id="rules-close" aria-label="${t("rules.closeAria")}">✕</button>
         </header>
         <div class="modal__body">
           <section class="rule-block">
-            <h3>Goal of the Game</h3>
-            <p>You begin with <strong>3 Influence</strong> and <strong>2 Power</strong>. If your Influence drops to 0, you are eliminated. <strong>The last surviving player wins!</strong></p>
+            <h3>${t("rules.goalTitle")}</h3>
+            <p>${t("rules.goalDesc")}</p>
           </section>
 
           <section class="rule-block">
-            <h3>On Your Turn: Choose an Action</h3>
+            <h3>${t("rules.turnTitle")}</h3>
             <ul>
-              <li><strong>⚡ Recover:</strong> Gain 1 Power (up to 3 max) and end your turn.</li>
-              <li><strong>⚔️ Strike:</strong> Threaten a chosen living opponent. Privately choose your commitment:
+              <li><strong>⚡ ${t("action.recoverTitle")}:</strong> ${t("rules.recoverRule")}</li>
+              <li><strong>⚔️ ${t("action.strikeTitle")}:</strong> ${t("rules.strikeRule")}
                 <ul>
-                  <li><strong>🎭 Bluff (0 Power):</strong> Free threat. If they yield or guard, you deal damage without spending energy. But if Challenged, YOU lose 1 Influence!</li>
-                  <li><strong>🗡️ Genuine (1 Power):</strong> Costs 1 Power. If they Challenge, they suffer a devastating <strong>2 Influence loss</strong>!</li>
+                  <li><strong>🎭 ${t("action.bluffTitle")}:</strong> ${t("rules.bluffSubRule")}</li>
+                  <li><strong>🗡️ ${t("action.genuineTitle")}:</strong> ${t("rules.genuineSubRule")}</li>
                 </ul>
               </li>
             </ul>
           </section>
 
           <section class="rule-block">
-            <h3>Under Attack: Target's Reaction</h3>
-            <p>The commitment is secret until you react. Choose wisely:</p>
+            <h3>${t("rules.reactionTitle")}</h3>
+            <p>${t("rules.reactionDesc")}</p>
             <div class="rule-table-wrapper">
               <table class="rule-table">
                 <thead>
                   <tr>
-                    <th>Reaction</th>
-                    <th>If Attacker Bluffed (0 Power)</th>
-                    <th>If Attacker Was Genuine (1 Power)</th>
+                    <th>${t("rules.tableHeaderReaction")}</th>
+                    <th>${t("rules.tableHeaderBluff")}</th>
+                    <th>${t("rules.tableHeaderGenuine")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td><strong>🛡️ Guard</strong><br/><small>(Costs 1 Power)</small></td>
-                    <td>Both safe. Target spent 1 Power.</td>
-                    <td>Both safe. Both spent 1 Power.</td>
+                    <td><strong>${t("rules.tableGuardName")}</strong><br/><small>${t("rules.tableGuardCost")}</small></td>
+                    <td>${t("rules.tableGuardBluff")}</td>
+                    <td>${t("rules.tableGuardGenuine")}</td>
                   </tr>
                   <tr>
-                    <td><strong>👁️ Challenge</strong><br/><small>(Free)</small></td>
-                    <td><strong class="text-success">Bluff Caught!</strong> Attacker loses 1 Influence. Target unharmed.</td>
-                    <td><strong class="text-danger">Counter-Strike!</strong> Target loses <strong>2 Influence</strong>!</td>
+                    <td><strong>${t("rules.tableChallengeName")}</strong><br/><small>${t("rules.tableChallengeCost")}</small></td>
+                    <td>${t("rules.tableChallengeBluff")}</td>
+                    <td>${t("rules.tableChallengeGenuine")}</td>
                   </tr>
                   <tr>
-                    <td><strong>🏳️ Yield</strong><br/><small>(Free)</small></td>
-                    <td>Target loses 1 Influence. Attacker spent 0.</td>
-                    <td>Target loses 1 Influence. Attacker spent 1.</td>
+                    <td><strong>${t("rules.tableYieldName")}</strong><br/><small>${t("rules.tableYieldCost")}</small></td>
+                    <td>${t("rules.tableYieldBluff")}</td>
+                    <td>${t("rules.tableYieldGenuine")}</td>
                   </tr>
                 </tbody>
               </table>
@@ -60,7 +62,7 @@ export const renderRulesModal = (): string => {
           </section>
         </div>
         <footer class="modal__footer">
-          <button type="button" class="btn btn--primary" id="rules-got-it">Got it, let's play</button>
+          <button type="button" class="btn btn--primary" id="rules-got-it">${t("rules.gotIt")}</button>
         </footer>
       </div>
     </div>

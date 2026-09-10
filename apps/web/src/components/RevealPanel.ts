@@ -1,4 +1,5 @@
 import type { WireDomainEvent, WirePlayerView } from "@shadow-council/protocol";
+import { t } from "../i18n/index.js";
 
 const escapeHtml = (value: string): string =>
   value
@@ -14,7 +15,6 @@ export const renderRevealPanel = (
   const revealedEvent = events.find((e) => e.type === "ActionRevealed");
   const resolvedEvent = events.find((e) => e.type === "AttackResolved");
   const reactionEvent = events.find((e) => e.type === "ReactionCommitted");
-  const bluffSucceededEvent = events.find((e) => e.type === "BluffSucceeded");
   const eliminatedEvents = events.filter((e) => e.type === "PlayerEliminated");
 
   if (!revealedEvent || !resolvedEvent) return "";
@@ -23,77 +23,117 @@ export const renderRevealPanel = (
   const attackerName = playerMap.get(String(revealedEvent.attackerId)) ?? "Attacker";
   const targetName = playerMap.get(String(revealedEvent.targetId)) ?? "Target";
   const isGenuine = revealedEvent.genuine === true || revealedEvent.funding === 1;
-  const reaction = String(resolvedEvent.reaction ?? reactionEvent?.choice ?? "yield").toUpperCase();
+  const rawReaction = String(
+    resolvedEvent.reaction ?? reactionEvent?.choice ?? "yield",
+  ).toLowerCase();
+  const reactionLabel =
+    rawReaction === "guard"
+      ? t("reaction.guardTitle")
+      : rawReaction === "challenge"
+        ? t("reaction.challengeTitle")
+        : t("reaction.yieldTitle");
   const timedOut = reactionEvent?.timedOut === true;
+  const timeoutText = timedOut ? t("log.timeoutSuffix") : "";
 
   let verdictHeadline = "";
   let verdictClass = "";
+  let verdictOutcome = "";
   let verdictSummary = "";
 
-  if (reaction === "GUARD") {
+  if (rawReaction === "guard") {
     if (isGenuine) {
-      verdictHeadline = "🛡️ ATTACK BLOCKED!";
+      verdictHeadline = t("reveal.attackBlockedTitle");
       verdictClass = "reveal-card--blocked";
-      verdictSummary = `${attackerName} attacked genuinely, but ${targetName} spent 1 Power to Guard safely. Neither lost Influence!`;
+      verdictOutcome = "attack-blocked";
+      verdictSummary = t("reveal.attackBlockedSummary", {
+        attacker: escapeHtml(attackerName),
+        target: escapeHtml(targetName),
+      });
     } else {
-      verdictHeadline = "🎭 BLUFF INDUCED GUARD!";
+      verdictHeadline = t("reveal.bluffInducedGuardTitle");
       verdictClass = "reveal-card--bluff-safe";
-      verdictSummary = `${attackerName} was bluffing! ${targetName} spent 1 Power guarding against an empty threat.`;
+      verdictOutcome = "bluff-safe";
+      verdictSummary = t("reveal.bluffInducedGuardSummary", {
+        attacker: escapeHtml(attackerName),
+        target: escapeHtml(targetName),
+      });
     }
-  } else if (reaction === "CHALLENGE") {
+  } else if (rawReaction === "challenge") {
     if (isGenuine) {
-      verdictHeadline = "💥 CHALLENGE CRUSHED!";
+      verdictHeadline = t("reveal.challengeCrushedTitle");
       verdictClass = "reveal-card--punished";
-      verdictSummary = `${attackerName}'s Strike was 100% GENUINE! ${targetName} challenged in vain and suffers 2 Influence damage!`;
+      verdictOutcome = "challenge-crushed";
+      verdictSummary = t("reveal.challengeCrushedSummary", {
+        attacker: escapeHtml(attackerName),
+        target: escapeHtml(targetName),
+      });
     } else {
-      verdictHeadline = "🚨 BLUFF CAUGHT!";
+      verdictHeadline = t("reveal.bluffCaughtTitle");
       verdictClass = "reveal-card--caught";
-      verdictSummary = `BLUFF EXPOSED! ${attackerName} faked the strike. ${targetName}'s challenge succeeded! ${attackerName} loses 1 Influence!`;
+      verdictOutcome = "bluff-caught";
+      verdictSummary = t("reveal.bluffCaughtSummary", {
+        attacker: escapeHtml(attackerName),
+        target: escapeHtml(targetName),
+      });
     }
   } else {
     // YIELD
     if (isGenuine) {
-      verdictHeadline = "🗡️ STRIKE LANDED!";
+      verdictHeadline = t("reveal.strikeLandedTitle");
       verdictClass = "reveal-card--yielded";
-      verdictSummary = `${targetName} yielded ${timedOut ? "(Timeout)" : ""} to ${attackerName}'s genuine Strike. ${targetName} takes 1 Influence damage.`;
+      verdictOutcome = "strike-landed";
+      verdictSummary = t("reveal.strikeLandedSummary", {
+        attacker: escapeHtml(attackerName),
+        target: escapeHtml(targetName),
+        timedOut: timeoutText,
+      });
     } else {
-      verdictHeadline = "🃏 BLUFF SUCCEEDED!";
+      verdictHeadline = t("reveal.bluffSucceededTitle");
       verdictClass = "reveal-card--bluff-won";
-      verdictSummary = `${attackerName} stole an Influence point with a pure bluff! ${targetName} yielded ${timedOut ? "(Timeout)" : ""}.`;
+      verdictOutcome = "bluff-succeeded";
+      verdictSummary = t("reveal.bluffSucceededSummary", {
+        attacker: escapeHtml(attackerName),
+        target: escapeHtml(targetName),
+        timedOut: timeoutText,
+      });
     }
   }
 
   const eliminationsHtml =
     eliminatedEvents.length > 0
-      ? `<div class="reveal-card__elimination">☠️ ${eliminatedEvents
-          .map((e) => escapeHtml(playerMap.get(String(e.playerId)) ?? "A player"))
-          .join(", ")} has been ELIMINATED!</div>`
+      ? `<div class="reveal-card__elimination">${eliminatedEvents
+          .map((e) =>
+            t("reveal.eliminatedNotice", {
+              player: escapeHtml(playerMap.get(String(e.playerId)) ?? "Player"),
+            }),
+          )
+          .join(", ")}</div>`
       : "";
 
   return `
-    <section class="reveal-section" aria-live="assertive" aria-label="Resolution Outcome">
-      <div class="reveal-card ${verdictClass}">
+    <section class="reveal-section" aria-live="assertive" aria-label="${t("reveal.eyebrow")}">
+      <div class="reveal-card ${verdictClass}" data-outcome="${verdictOutcome}">
         <div class="reveal-card__header">
-          <span class="reveal-card__eyebrow">Clash Resolution</span>
+          <span class="reveal-card__eyebrow">${t("reveal.eyebrow")}</span>
           <h3 class="reveal-card__title">${verdictHeadline}</h3>
         </div>
 
         <div class="reveal-timeline">
           <div class="timeline-step">
-            <span class="timeline-step__label">1. Threat</span>
-            <span class="timeline-step__val"><strong>${escapeHtml(attackerName)}</strong> struck at <strong>${escapeHtml(targetName)}</strong></span>
+            <span class="timeline-step__label">${t("reveal.stepThreat")}</span>
+            <span class="timeline-step__val">${t("reveal.stepThreatDesc", { attacker: escapeHtml(attackerName), target: escapeHtml(targetName) })}</span>
           </div>
           <div class="timeline-step">
-            <span class="timeline-step__label">2. Reaction</span>
-            <span class="timeline-step__val"><strong>${escapeHtml(targetName)}</strong> chose <strong>${reaction}</strong></span>
+            <span class="timeline-step__label">${t("reveal.stepReaction")}</span>
+            <span class="timeline-step__val">${t("reveal.stepReactionDesc", { target: escapeHtml(targetName), reaction: reactionLabel })}</span>
           </div>
           <div class="timeline-step">
-            <span class="timeline-step__label">3. Truth Revealed</span>
-            <span class="timeline-step__val"><strong>${isGenuine ? "🗡️ GENUINE (1 Power)" : "🎭 BLUFF (0 Power)"}</strong></span>
+            <span class="timeline-step__label">${t("reveal.stepTruth")}</span>
+            <span class="timeline-step__val"><strong>${isGenuine ? t("reveal.valGenuine") : t("reveal.valBluff")}</strong></span>
           </div>
         </div>
 
-        <p class="reveal-card__summary">${escapeHtml(verdictSummary)}</p>
+        <p class="reveal-card__summary">${verdictSummary}</p>
         ${eliminationsHtml}
       </div>
     </section>

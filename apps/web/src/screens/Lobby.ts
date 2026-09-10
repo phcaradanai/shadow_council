@@ -1,6 +1,7 @@
 import type { WireRoomView } from "@shadow-council/protocol";
 import { sounds } from "../presentation/sound.js";
 import { renderRulesModal, attachRulesModalListeners } from "../components/RulesModal.js";
+import { t, getLocale, renderLanguageSwitcher, getLocalizedErrorMessage } from "../i18n/index.js";
 
 const escapeHtml = (value: string): string =>
   value
@@ -31,37 +32,38 @@ export const renderLobbyScreen = (
     <div class="screen screen--lobby">
       <header class="app-header">
         <div class="app-header__brand">
-          <h1 class="app-title">LOBBY</h1>
-          <p class="app-subtitle">Assembling the Shadow Council</p>
+          <h1 class="app-title">${t("lobby.title")}</h1>
+          <p class="app-subtitle">${t("lobby.subtitle")}</p>
         </div>
         <div class="app-header__actions">
-          <button type="button" class="btn btn--icon" id="btn-sound-toggle" aria-label="${isMuted ? "Unmute sound" : "Mute sound"}">
+          ${renderLanguageSwitcher(getLocale())}
+          <button type="button" class="btn btn--icon" id="btn-sound-toggle" aria-label="${isMuted ? t("common.soundUnmute") : t("common.soundMute")}">
             ${isMuted ? "🔇" : "🔊"}
           </button>
           <button type="button" class="btn btn--secondary btn--sm" id="btn-rules-open">
-            📜 Rules
+            📜 ${t("common.rules")}
           </button>
           <button type="button" class="btn btn--danger btn--sm" id="btn-leave-room" ${isSubmitting ? "disabled" : ""}>
-            Leave Room
+            ${t("common.leave")}
           </button>
         </div>
       </header>
 
-      ${errorMessage ? `<div class="alert alert--error" role="alert"><span class="alert__icon">⚠️</span> ${escapeHtml(errorMessage)}</div>` : ""}
+      ${errorMessage ? `<div class="alert alert--error" role="alert"><span class="alert__icon">⚠️</span> ${escapeHtml(getLocalizedErrorMessage(errorMessage))}</div>` : ""}
 
       <section class="card room-code-card">
         <div class="room-code-display">
-          <span class="room-code-label">Room Code:</span>
+          <span class="room-code-label">${t("lobby.roomCodeLabel")}:</span>
           <strong class="room-code-value" id="room-code-text">${escapeHtml(room.roomCode)}</strong>
-          <button type="button" class="btn btn--secondary btn--sm" id="btn-copy-code" aria-label="Copy room code">
-            📋 Copy Code
+          <button type="button" class="btn btn--secondary btn--sm" id="btn-copy-code" aria-label="${t("lobby.copyCode")}">
+            📋 ${t("lobby.copyCode")}
           </button>
         </div>
-        <p class="room-code-hint">Share this code with other players (2–6 players supported). Need at least 2 players to begin.</p>
+        <p class="room-code-hint">${t("lobby.codeHint")}</p>
       </section>
 
       <section class="card roster-card">
-        <h2 class="card__title">Connected Members (${connectedMembers.length} / 6)</h2>
+        <h2 class="card__title">${t("lobby.rosterTitle", { count: connectedMembers.length })}</h2>
         <div class="roster-grid">
           ${room.members
             .map((member) => {
@@ -73,9 +75,9 @@ export const renderLobbyScreen = (
                   <div class="roster-item__info">
                     <span class="roster-item__name">${escapeHtml(member.displayName)}</span>
                     <div class="roster-item__badges">
-                      ${isSelf ? '<span class="badge badge--self">YOU</span>' : ""}
-                      ${isMemberHost ? '<span class="badge badge--host">HOST</span>' : ""}
-                      ${member.connected ? '<span class="badge badge--online">ONLINE</span>' : '<span class="badge badge--offline">OFFLINE</span>'}
+                      ${isSelf ? `<span class="badge badge--self" data-badge="self">${t("common.you")}</span>` : ""}
+                      ${isMemberHost ? `<span class="badge badge--host" data-badge="host">${t("common.host")}</span>` : ""}
+                      ${member.connected ? `<span class="badge badge--online" data-badge="online">${t("common.online")}</span>` : `<span class="badge badge--offline" data-badge="offline">${t("common.offline")}</span>`}
                     </div>
                   </div>
                 </div>
@@ -92,17 +94,17 @@ export const renderLobbyScreen = (
               <button type="button" id="btn-start" class="btn btn--primary btn--large btn--block" ${!canStart || isSubmitting ? "disabled" : ""}>
                 ${
                   !canStart
-                    ? "Waiting for at least 2 connected players..."
+                    ? t("lobby.waitingMinPlayers")
                     : isSubmitting
-                      ? "Starting Match..."
-                      : "⚔️ Start Match"
+                      ? t("lobby.startingMatch")
+                      : `⚔️ ${t("lobby.startMatch")}`
                 }
               </button>
             `
             : `
               <div class="waiting-box">
                 <span class="waiting-spinner">⏳</span>
-                <span>Waiting for the host to begin the match...</span>
+                <span>${t("lobby.waitingHost")}</span>
               </div>
             `
         }
@@ -126,9 +128,9 @@ export const renderLobbyScreen = (
     sounds.click();
     void navigator.clipboard.writeText(room.roomCode).then(() => {
       if (copyBtn) {
-        copyBtn.textContent = "✓ Copied!";
+        copyBtn.textContent = `✓ ${t("lobby.copiedCode")}`;
         setTimeout(() => {
-          if (copyBtn) copyBtn.textContent = "📋 Copy Code";
+          if (copyBtn) copyBtn.textContent = `📋 ${t("lobby.copyCode")}`;
         }, 2000);
       }
     });

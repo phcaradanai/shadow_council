@@ -1,6 +1,7 @@
 import type { WireMatchView, WireRoomView } from "@shadow-council/protocol";
 import { sounds } from "../presentation/sound.js";
 import { renderRulesModal, attachRulesModalListeners } from "../components/RulesModal.js";
+import { t, getLocale, renderLanguageSwitcher, getLocalizedErrorMessage } from "../i18n/index.js";
 
 const escapeHtml = (value: string): string =>
   value
@@ -40,34 +41,35 @@ export const renderResultScreen = (
     <div class="screen screen--result">
       <header class="app-header">
         <div class="app-header__brand">
-          <h1 class="app-title">SHADOW COUNCIL</h1>
-          <p class="app-subtitle">Match Concluded · Final Decree</p>
+          <h1 class="app-title">${t("common.title")}</h1>
+          <p class="app-subtitle">${t("result.subtitle")}</p>
         </div>
         <div class="app-header__actions">
-          <button type="button" class="btn btn--icon" id="btn-sound-toggle" aria-label="${isMuted ? "Unmute sound" : "Mute sound"}">
+          ${renderLanguageSwitcher(getLocale())}
+          <button type="button" class="btn btn--icon" id="btn-sound-toggle" aria-label="${isMuted ? t("common.soundUnmute") : t("common.soundMute")}">
             ${isMuted ? "🔇" : "🔊"}
           </button>
           <button type="button" class="btn btn--secondary btn--sm" id="btn-rules-open">
-            📜 Rules
+            📜 ${t("common.rules")}
           </button>
           <button type="button" class="btn btn--danger btn--sm" id="btn-leave-room" ${isSubmitting ? "disabled" : ""}>
-            Leave Room
+            ${t("common.leave")}
           </button>
         </div>
       </header>
 
-      ${errorMessage ? `<div class="alert alert--error" role="alert"><span class="alert__icon">⚠️</span> ${escapeHtml(errorMessage)}</div>` : ""}
+      ${errorMessage ? `<div class="alert alert--error" role="alert"><span class="alert__icon">⚠️</span> ${escapeHtml(getLocalizedErrorMessage(errorMessage))}</div>` : ""}
 
-      <section class="card result-banner ${isWinner ? "result-banner--victory" : ""}">
+      <section class="card result-banner ${isWinner ? "result-banner--victory" : ""}" data-outcome="${isWinner ? "victory" : "defeat"}">
         <div class="result-trophy">${isWinner ? "🏆" : "👑"}</div>
-        <h2 class="result-headline">${isWinner ? "VICTORY IS YOURS!" : `${escapeHtml(winnerName)} PREVAILS!`}</h2>
+        <h2 class="result-headline">${isWinner ? t("result.victoryTitle") : t("result.defeatTitle", { winner: escapeHtml(winnerName) })}</h2>
         <p class="result-subline">
-          ${isWinner ? "You out-bluffed, survived every strike, and stand as the supreme authority." : `${escapeHtml(winnerName)} eliminated all rivals and claimed the throne of the Shadow Council.`}
+          ${isWinner ? t("result.victoryDesc") : t("result.defeatDesc", { winner: escapeHtml(winnerName) })}
         </p>
       </section>
 
       <section class="card result-roster-card">
-        <h3 class="card__title">Final Council Standings</h3>
+        <h3 class="card__title">${t("result.standingsTitle")}</h3>
         <div class="result-roster">
           ${match.players
             .map((player) => {
@@ -76,13 +78,13 @@ export const renderResultScreen = (
               return `
                 <div class="result-row ${won ? "result-row--winner" : "result-row--eliminated"}">
                   <div class="result-row__player">
-                    <span class="result-row__rank">${won ? "👑 WINNER" : "☠️ ELIMINATED"}</span>
+                    <span class="result-row__rank">${won ? t("result.rankWinner") : t("result.rankEliminated")}</span>
                     <strong class="result-row__name">${escapeHtml(player.displayName)}</strong>
-                    ${self ? '<span class="badge badge--self">YOU</span>' : ""}
+                    ${self ? `<span class="badge badge--self" data-badge="self">${t("common.you")}</span>` : ""}
                   </div>
                   <div class="result-row__stats">
-                    <span>Influence: <strong>${player.influence}/3</strong></span>
-                    <span>Power: <strong>${player.power}/3</strong></span>
+                    <span>${t("player.influenceLabel")} <strong>${player.influence}/3</strong></span>
+                    <span>${t("player.powerLabel")} <strong>${player.power}/3</strong></span>
                   </div>
                 </div>
               `;
@@ -96,13 +98,13 @@ export const renderResultScreen = (
           isHost
             ? `
               <button type="button" id="btn-rematch" class="btn btn--primary btn--large btn--block" ${isSubmitting ? "disabled" : ""}>
-                ${isSubmitting ? "Resetting to Lobby..." : "🔄 Play Again (Return to Lobby)"}
+                ${isSubmitting ? t("result.resettingLobby") : t("result.playAgain")}
               </button>
             `
             : `
               <div class="waiting-box">
                 <span class="waiting-spinner">⏳</span>
-                <span>Waiting for host to initiate Play Again...</span>
+                <span>${t("result.waitingHostPlayAgain")}</span>
               </div>
             `
         }

@@ -1,5 +1,6 @@
 import { sounds } from "../presentation/sound.js";
 import { renderRulesModal, attachRulesModalListeners } from "../components/RulesModal.js";
+import { t, getLocale, renderLanguageSwitcher, getLocalizedErrorMessage } from "../i18n/index.js";
 
 const escapeHtml = (value: string): string =>
   value
@@ -25,35 +26,36 @@ export const renderHomeScreen = (
     <div class="screen screen--home">
       <header class="app-header">
         <div class="app-header__brand">
-          <h1 class="app-title">SHADOW COUNCIL</h1>
-          <p class="app-subtitle">A Social Bluff & Deduction Game of Concealed Strikes</p>
+          <h1 class="app-title">${t("common.title")}</h1>
+          <p class="app-subtitle">${t("common.subtitle")}</p>
         </div>
         <div class="app-header__actions">
-          <button type="button" class="btn btn--icon" id="btn-sound-toggle" aria-label="${isMuted ? "Unmute sound" : "Mute sound"}">
+          ${renderLanguageSwitcher(getLocale())}
+          <button type="button" class="btn btn--icon" id="btn-sound-toggle" aria-label="${isMuted ? t("common.soundUnmute") : t("common.soundMute")}">
             ${isMuted ? "🔇" : "🔊"}
           </button>
           <button type="button" class="btn btn--secondary btn--sm" id="btn-rules-open">
-            📜 How to Play
+            📜 ${t("common.rules")}
           </button>
         </div>
       </header>
 
-      ${errorMessage ? `<div class="alert alert--error" role="alert"><span class="alert__icon">⚠️</span> ${escapeHtml(errorMessage)}</div>` : ""}
+      ${errorMessage ? `<div class="alert alert--error" role="alert"><span class="alert__icon">⚠️</span> ${escapeHtml(getLocalizedErrorMessage(errorMessage))}</div>` : ""}
 
       <main class="home-grid">
         <!-- Create Room Card -->
         <section class="card home-card">
-          <h2 class="card__title">Create a Council</h2>
-          <p class="card__desc">Start a new private match room as host. Share the room code with friends.</p>
+          <h2 class="card__title">${t("home.createTitle")}</h2>
+          <p class="card__desc">${t("home.createDesc")}</p>
           <form id="form-create" class="form-vertical">
             <div class="form-group">
-              <label for="create-name" class="form-label">Your Display Name</label>
+              <label for="create-name" class="form-label">${t("home.createNameLabel")}</label>
               <input
                 id="create-name"
                 name="name"
                 type="text"
                 class="form-input"
-                placeholder="e.g. Master Corvus"
+                placeholder="${t("home.createNamePlaceholder")}"
                 required
                 maxlength="32"
                 autofocus
@@ -61,66 +63,66 @@ export const renderHomeScreen = (
               />
             </div>
             <button type="submit" class="btn btn--primary btn--block" ${isSubmitting ? "disabled" : ""}>
-              ${isSubmitting ? "Creating..." : "Create Room"}
+              ${isSubmitting ? t("home.creatingButton") : t("home.createButton")}
             </button>
           </form>
         </section>
 
         <!-- Join Room Card -->
         <section class="card home-card">
-          <h2 class="card__title">Join a Council</h2>
-          <p class="card__desc">Enter a room code provided by your match host to take your seat.</p>
+          <h2 class="card__title">${t("home.joinTitle")}</h2>
+          <p class="card__desc">${t("home.joinDesc")}</p>
           <form id="form-join" class="form-vertical">
             <div class="form-group">
-              <label for="join-code" class="form-label">Room Code</label>
+              <label for="join-code" class="form-label">${t("home.joinCodeLabel")}</label>
               <input
                 id="join-code"
                 name="code"
                 type="text"
                 class="form-input form-input--code"
-                placeholder="e.g. AB12CD"
+                placeholder="${t("home.joinCodePlaceholder")}"
                 required
                 maxlength="16"
                 ${isSubmitting ? "disabled" : ""}
               />
             </div>
             <div class="form-group">
-              <label for="join-name" class="form-label">Your Display Name</label>
+              <label for="join-name" class="form-label">${t("home.joinNameLabel")}</label>
               <input
                 id="join-name"
                 name="name"
                 type="text"
                 class="form-input"
-                placeholder="e.g. Lady Vespera"
+                placeholder="${t("home.joinNamePlaceholder")}"
                 required
                 maxlength="32"
                 ${isSubmitting ? "disabled" : ""}
               />
             </div>
             <button type="submit" class="btn btn--secondary btn--block" ${isSubmitting ? "disabled" : ""}>
-              ${isSubmitting ? "Joining..." : "Join Room"}
+              ${isSubmitting ? t("home.joiningButton") : t("home.joinButton")}
             </button>
           </form>
         </section>
       </main>
 
       <section class="home-quick-rules">
-        <h3 class="quick-rules__title">Quick Summary</h3>
+        <h3 class="quick-rules__title">${t("home.quickSummaryTitle")}</h3>
         <div class="quick-rules__grid">
           <div class="quick-rule-item">
             <span class="quick-rule-item__icon">🎭</span>
-            <strong>Bluff or Attack</strong>
-            <p>Declare a Strike against an opponent. Spend 1 Power on a genuine blow, or pay 0 to bluff!</p>
+            <strong>${t("home.quickBluffTitle")}</strong>
+            <p>${t("home.quickBluffDesc")}</p>
           </div>
           <div class="quick-rule-item">
             <span class="quick-rule-item__icon">🛡️</span>
-            <strong>Tactical Reactions</strong>
-            <p>Target can Guard (1 Power), Challenge the bluff (free), or Yield (free, -1 Inf).</p>
+            <strong>${t("home.quickReactionTitle")}</strong>
+            <p>${t("home.quickReactionDesc")}</p>
           </div>
           <div class="quick-rule-item">
             <span class="quick-rule-item__icon">👑</span>
-            <strong>Last One Standing</strong>
-            <p>Start with 3 Influence. Zero influence eliminates you. Sole survivor takes the Council!</p>
+            <strong>${t("home.quickSurvivorTitle")}</strong>
+            <p>${t("home.quickSurvivorDesc")}</p>
           </div>
         </div>
       </section>

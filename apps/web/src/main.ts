@@ -5,9 +5,27 @@ import { renderHomeScreen } from "./screens/Home.js";
 import { renderLobbyScreen } from "./screens/Lobby.js";
 import { renderGameScreen } from "./screens/Game.js";
 import { renderResultScreen } from "./screens/Result.js";
+import {
+  getLocale,
+  setLocale,
+  subscribeLocale,
+  getLocalizedErrorMessage,
+  type Locale,
+} from "./i18n/index.js";
 
 const appRoot = document.querySelector<HTMLDivElement>("#app");
 if (!appRoot) throw new Error("#app root container missing from DOM");
+
+document.documentElement.lang = getLocale();
+
+// Delegated click listener for language switcher buttons across all screens
+appRoot.addEventListener("click", (e) => {
+  const target = (e.target as HTMLElement | null)?.closest<HTMLButtonElement>(".lang-btn");
+  if (target && target.dataset.lang) {
+    const nextLang = target.dataset.lang as "th" | "en";
+    setLocale(nextLang);
+  }
+});
 
 let cleanupTicker: (() => void) | undefined;
 
@@ -26,9 +44,10 @@ const handleAsync = async (action: () => Promise<void>): Promise<void> => {
   try {
     await action();
   } catch (err) {
-    const msg =
+    const code = err instanceof ApiError ? err.code : undefined;
+    const rawMsg =
       err instanceof ApiError ? err.message : err instanceof Error ? err.message : "Request failed";
-    session.setError(msg);
+    session.setError(getLocalizedErrorMessage(code, rawMsg));
   }
 };
 
@@ -179,8 +198,12 @@ const renderApp = (state: SessionState): void => {
   );
 };
 
-// Subscribe UI to store
+// Subscribe UI to store and locale
 session.subscribe((state) => renderApp(state));
+subscribeLocale((locale: Locale) => {
+  document.documentElement.lang = locale;
+  renderApp(session.getState());
+});
 
 // Auto-reconnect on boot if roomCode exists
 const initSession = async (): Promise<void> => {

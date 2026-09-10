@@ -1,4 +1,5 @@
 import type { WireDomainEvent, WirePlayerView } from "@shadow-council/protocol";
+import { t } from "../i18n/index.js";
 
 const escapeHtml = (value: string): string =>
   value
@@ -7,28 +8,62 @@ const escapeHtml = (value: string): string =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 
+const formatReactionChoice = (choice: unknown): string => {
+  const c = String(choice ?? "yield").toLowerCase();
+  if (c === "guard") return t("rules.tableGuardName");
+  if (c === "challenge") return t("rules.tableChallengeName");
+  if (c === "yield") return t("rules.tableYieldName");
+  return escapeHtml(c.toUpperCase());
+};
+
 const formatEvent = (event: WireDomainEvent, playerMap: Map<string, string>): string => {
   const getName = (id: unknown) => playerMap.get(String(id)) ?? String(id ?? "Player");
 
   switch (event.type) {
     case "ActionCommitted":
-      return `⚔️ <strong>${escapeHtml(getName(event.attackerId))}</strong> claimed Strike on <strong>${escapeHtml(getName(event.targetId))}</strong> (commitment hidden).`;
+      return t("log.actionCommitted", {
+        attacker: escapeHtml(getName(event.attackerId)),
+        target: escapeHtml(getName(event.targetId)),
+      });
     case "ReactionCommitted":
-      return `🛡️ <strong>${escapeHtml(getName(event.targetId))}</strong> locked reaction: <strong>${escapeHtml(String(event.choice ?? "yield")).toUpperCase()}</strong>${event.timedOut ? " (by timeout)" : ""}.`;
-    case "ActionRevealed":
-      return `👁️ Reveal: <strong>${escapeHtml(getName(event.attackerId))}</strong>'s Strike was <strong>${event.genuine ? "GENUINE (1 Power)" : "a BLUFF (0 Power)"}</strong>.`;
+      return t("log.reactionCommitted", {
+        target: escapeHtml(getName(event.targetId)),
+        choice: formatReactionChoice(event.choice),
+        timeout: event.timedOut ? t("log.timeoutSuffix") : "",
+      });
+    case "ActionRevealed": {
+      const truth = event.genuine ? t("reveal.valGenuine") : t("reveal.valBluff");
+      return t("log.actionRevealed", {
+        attacker: escapeHtml(getName(event.attackerId)),
+        truth,
+      });
+    }
     case "BluffSucceeded":
-      return `🃏 Bluff succeeded: <strong>${escapeHtml(getName(event.attackerId))}</strong> won the bluff against <strong>${escapeHtml(getName(event.targetId))}</strong>!`;
+      return t("log.bluffSucceeded", {
+        attacker: escapeHtml(getName(event.attackerId)),
+        target: escapeHtml(getName(event.targetId)),
+      });
     case "PowerRecovered":
-      return `⚡ <strong>${escapeHtml(getName(event.playerId))}</strong> recovered +1 Power (now ${event.power ?? "?"}).`;
+      return t("log.powerRecovered", {
+        player: escapeHtml(getName(event.playerId)),
+        power: String(event.power ?? "?"),
+      });
     case "TurnPassed":
-      return `⌛ <strong>${escapeHtml(getName(event.playerId))}</strong>'s turn timed out (passed).`;
+      return t("log.turnPassed", {
+        player: escapeHtml(getName(event.playerId)),
+      });
     case "PlayerEliminated":
-      return `☠️ <strong>${escapeHtml(getName(event.playerId))}</strong> has been eliminated!`;
+      return t("log.playerEliminated", {
+        player: escapeHtml(getName(event.playerId)),
+      });
     case "RoundStarted":
-      return `🔄 Round ${event.round ?? "?"} began.`;
+      return t("log.roundStarted", {
+        round: String(event.round ?? "?"),
+      });
     case "VictoryAchieved":
-      return `👑 <strong>${escapeHtml(getName(event.winnerId))}</strong> has achieved victory!`;
+      return t("log.victoryAchieved", {
+        winner: escapeHtml(getName(event.winnerId)),
+      });
     default:
       return escapeHtml(event.type);
   }
@@ -42,9 +77,9 @@ export const renderEventLog = (
   const playerMap = new Map(players.map((p) => [p.playerId, p.displayName]));
 
   return `
-    <section class="event-log" aria-label="Game Chronicle">
+    <section class="event-log" aria-label="${t("log.title")}">
       <details class="event-log__details" open>
-        <summary class="event-log__summary">📜 Chronicle (Recent Events)</summary>
+        <summary class="event-log__summary">${t("log.title")}</summary>
         <ol class="event-log__list">
           ${events.map((e) => `<li class="event-log__item">${formatEvent(e, playerMap)}</li>`).join("")}
         </ol>

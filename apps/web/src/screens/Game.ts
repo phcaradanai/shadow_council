@@ -8,6 +8,7 @@ import { renderReactionControls } from "../components/ReactionPanel.js";
 import { renderRevealPanel } from "../components/RevealPanel.js";
 import { renderEventLog } from "../components/EventLog.js";
 import { renderRulesModal, attachRulesModalListeners } from "../components/RulesModal.js";
+import { t, getLocale, renderLanguageSwitcher, getLocalizedErrorMessage } from "../i18n/index.js";
 
 const escapeHtml = (value: string): string =>
   value
@@ -42,29 +43,30 @@ export const renderGameScreen = (
       <!-- Header -->
       <header class="app-header">
         <div class="app-header__brand">
-          <h1 class="app-title">SHADOW COUNCIL</h1>
+          <h1 class="app-title">${t("common.title")}</h1>
           <div class="app-header__meta">
-            <span class="meta-tag">Room: <strong>${escapeHtml(room.roomCode)}</strong></span>
-            <span class="meta-tag">Round <strong>${match.round}</strong></span>
+            <span class="meta-tag">${t("game.room")} <strong>${escapeHtml(room.roomCode)}</strong></span>
+            <span class="meta-tag">${t("game.round")} <strong>${match.round}</strong></span>
             <span class="meta-tag meta-tag--conn ${connectionStatus !== "connected" ? "meta-tag--warning" : ""}">
-              ${connectionStatus === "connected" ? "● Connected" : connectionStatus === "connecting" ? "◌ Reconnecting..." : "○ Offline"}
+              ${connectionStatus === "connected" ? t("game.connected") : connectionStatus === "connecting" ? t("game.reconnecting") : t("game.offline")}
             </span>
           </div>
         </div>
         <div class="app-header__actions">
-          <button type="button" class="btn btn--icon" id="btn-sound-toggle" aria-label="${isMuted ? "Unmute sound" : "Mute sound"}">
+          ${renderLanguageSwitcher(getLocale())}
+          <button type="button" class="btn btn--icon" id="btn-sound-toggle" aria-label="${isMuted ? t("common.soundUnmute") : t("common.soundMute")}">
             ${isMuted ? "🔇" : "🔊"}
           </button>
           <button type="button" class="btn btn--secondary btn--sm" id="btn-rules-open">
-            📜 Rules
+            📜 ${t("common.rules")}
           </button>
           <button type="button" class="btn btn--danger btn--sm" id="btn-leave-room" ${isSubmitting ? "disabled" : ""}>
-            Leave
+            ${t("common.leave")}
           </button>
         </div>
       </header>
 
-      ${errorMessage ? `<div class="alert alert--error" role="alert"><span class="alert__icon">⚠️</span> ${escapeHtml(errorMessage)}</div>` : ""}
+      ${errorMessage ? `<div class="alert alert--error" role="alert"><span class="alert__icon">⚠️</span> ${escapeHtml(getLocalizedErrorMessage(errorMessage))}</div>` : ""}
 
       <!-- Primary Decision & Status Area -->
       <main class="game-main">

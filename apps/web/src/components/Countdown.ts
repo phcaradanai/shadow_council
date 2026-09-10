@@ -1,3 +1,5 @@
+import { t } from "../i18n/index.js";
+
 export const renderCountdown = (deadlineAt?: number): string => {
   if (deadlineAt === undefined) return "";
   const remainingMs = Math.max(0, deadlineAt - Date.now());
@@ -8,7 +10,7 @@ export const renderCountdown = (deadlineAt?: number): string => {
     <div class="countdown ${urgentClass}" data-deadline="${deadlineAt}" aria-live="off" role="timer" aria-label="${seconds} seconds remaining">
       <div class="countdown__indicator">
         <span class="countdown__icon">⏳</span>
-        <span class="countdown__text">Time remaining: <strong class="countdown__seconds">${seconds}s</strong></span>
+        <span class="countdown__text">${t("game.countdownRemaining")}: <strong class="countdown__seconds">${seconds}s</strong></span>
       </div>
       <div class="countdown__bar-bg">
         <div class="countdown__bar-fill" style="width: ${Math.min(100, (seconds / 45) * 100)}%;"></div>
