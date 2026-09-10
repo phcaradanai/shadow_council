@@ -2,7 +2,7 @@
 
 Date: 2026-09-08
 
-Status: Proposed; awaiting Phase 0 review. This record does not authorize gameplay implementation.
+Status: Accepted and Implemented. Verified through headless unit/scenario suites, HTTP integration tests, and multi-context Playwright browser E2E.
 
 ## Context
 

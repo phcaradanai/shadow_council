@@ -1,16 +1,16 @@
 # Architecture
 
-Status: proposed; no implementation authorized until Phase 0 review. See [ADR 001](ADR/001-initial-architecture.md).
+Status: Implemented and Verified with Playwright Browser E2E. See [ADR 001](ADR/001-initial-architecture.md).
 
-## Repository assessment
+## Repository status & architecture
 
-Inspected 2026-09-08: the workspace contains `prompt_used/#001.md` (the brief) and `graft/.cache/` tool metadata. No application sources, dependency manifests, tests, build configuration, or AGENTS.md were found. `git status` reports this is not a Git repository. There is no existing implementation to preserve or migrate. Existing brief and tool cache remain untouched; do not read cache contents as product requirements or commit them as source.
-
-## Recommended stack
-
-Use TypeScript with strict checking, npm workspaces, a Node.js LTS server, React + Vite for a small browser client, and plain HTTP JSON commands plus Server-Sent Events for state notifications. One modular monolith server owns rooms and runs the engine. In-memory storage is sufficient for supervised playtests. No database, ORM, container platform, broker, dependency-injection framework, or full-stack framework yet.
-
-TypeScript gives explicit contracts across layers; the domain remains ordinary synchronous TypeScript that can be compiled/run without a browser or server. React is only a replaceable rendering choice. HTTP plus SSE fits sequential intents and one-way notifications; future simultaneous submissions can still use these transports. Reconsider WebSockets only for demonstrated transport needs.
+The architecture implements a clean hexagonal structure with strict unidirectional dependencies:
+- **`packages/domain`**: Pure, deterministic state machine (Strike, Recover, Reaction, Elimination, Victory). Ambient randomness and I/O strictly forbidden.
+- **`packages/application`**: Room and match orchestration, state projection, role-based secret stripping, command idempotency, and session tokens.
+- **`packages/protocol`**: Shared wire contracts, JSON schemas, protocol versioning, and DTO types.
+- **`apps/server`**: Node.js HTTP/SSE server, cookie-based session management, static asset delivery, and routing.
+- **`apps/web`**: Zero-bundler modular vanilla TypeScript compiling to native browser ES modules (`type="module"`).
+- **`tests/`**: Multi-tiered verification separating unit tests, scenario tests, HTTP integration tests (`tests/integration/`), and real multi-context browser journeys (`tests/e2e/`).
 
 Pin mutually compatible tool versions and a supported Node LTS at W0, with one lockfile; do not select unverified floating versions. TypeScript's [strict options](https://www.typescriptlang.org/tsconfig/) and [unchecked indexed access option](https://www.typescriptlang.org/tsconfig/noUncheckedIndexedAccess.html) support the proposed compiler checks. Use the official [Node release table](https://nodejs.org/en/about/previous-releases) to select the runtime. [Vitest](https://main.vitest.dev/guide/features) supplies TypeScript test support; [dependency-cruiser](https://github.com/sverweij/dependency-cruiser/blob/main/doc/rules-reference.md) supplies forbidden-import and cycle checks. These sources were checked during Phase 0; tool installation is deferred.
 

@@ -3,7 +3,15 @@ import path from "node:path";
 
 const root = process.cwd();
 const sourceExtensions = new Set([".ts", ".tsx", ".js", ".mjs", ".cjs"]);
-const ignored = new Set(["node_modules", "dist", "coverage", ".git", "graft"]);
+const ignored = new Set([
+  "node_modules",
+  "dist",
+  "coverage",
+  ".git",
+  "graft",
+  "playwright-report",
+  "test-results",
+]);
 
 async function filesIn(directory) {
   const entries = await fs.readdir(directory, { withFileTypes: true });
@@ -35,7 +43,8 @@ const resolveRelative = (from, specifier) => {
 
 const graph = new Map();
 for (const file of sourceFiles) {
-  if (file.endsWith(".test.ts")) continue;
+  const rel = path.relative(root, file).replaceAll(path.sep, "/");
+  if (rel.endsWith(".test.ts") || rel.endsWith(".spec.ts") || rel.startsWith("tests/")) continue;
   const source = await fs.readFile(file, "utf8");
   const dependencies = [];
   for (const match of source.matchAll(/(?:from\s+|import\s*\(\s*)["']([^"']+)["']/g)) {
@@ -72,7 +81,12 @@ for (const cycle of cyclePaths) violations.push(`dependency cycle: ${cycle}`);
 
 for (const file of await filesIn(root)) {
   const relative = path.relative(root, file).replaceAll(path.sep, "/");
-  if (relative.endsWith(".test.ts")) continue;
+  if (
+    relative.endsWith(".test.ts") ||
+    relative.endsWith(".spec.ts") ||
+    relative.startsWith("tests/")
+  )
+    continue;
   const source = await fs.readFile(file, "utf8");
   const isDomain = relative.startsWith("packages/domain/src/");
   const isApplication = relative.startsWith("packages/application/src/");

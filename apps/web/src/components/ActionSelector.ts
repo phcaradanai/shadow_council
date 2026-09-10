@@ -45,6 +45,7 @@ export const renderActionControls = (
             <div class="form-group">
               <label for="strike-target" class="form-label">Choose Target:</label>
               <select id="strike-target" name="targetId" class="form-select" required ${isSubmitting ? "disabled" : ""}>
+                <option value="" disabled selected>Select an opponent...</option>
                 ${targets
                   .map(
                     (t) =>
@@ -58,7 +59,7 @@ export const renderActionControls = (
               <legend class="form-legend">Secret Commitment (Concealed from others):</legend>
               <div class="funding-options">
                 <label class="radio-card">
-                  <input type="radio" name="funding" value="0" checked ${isSubmitting ? "disabled" : ""} />
+                  <input type="radio" name="funding" value="0" ${isSubmitting ? "disabled" : ""} />
                   <div class="radio-card__content">
                     <span class="radio-card__title">🎭 Bluff (0 Power)</span>
                     <span class="radio-card__desc">Free threat. Deals 1 Influence if they yield or guard. If Challenged, YOU lose 1 Influence!</span>
@@ -75,7 +76,7 @@ export const renderActionControls = (
               </div>
             </fieldset>
 
-            <button type="submit" id="btn-strike" class="btn btn--primary btn--large" ${isSubmitting ? "disabled" : ""}>
+            <button type="submit" id="btn-strike" class="btn btn--primary btn--large" disabled>
               ${isSubmitting ? "Committing Strike..." : "⚔️ Declare Strike"}
             </button>
           </form>

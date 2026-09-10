@@ -106,20 +106,37 @@ export const renderGameScreen = (
     callbacks.onLeaveRoom();
   });
 
-  // Strike form submit
+  // Strike form validation and submit
   const strikeForm = container.querySelector<HTMLFormElement>("#strike-form");
-  strikeForm?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    if (isSubmitting) return;
-    const fd = new FormData(strikeForm);
-    const targetId = String(fd.get("targetId") ?? "");
-    const fundingVal = Number(fd.get("funding") ?? "0");
-    const funding = fundingVal === 1 ? 1 : 0;
-    if (targetId) {
+  if (strikeForm) {
+    const updateStrikeButtonState = () => {
+      const submitBtn = strikeForm.querySelector<HTMLButtonElement>("#btn-strike");
+      if (!submitBtn) return;
+      const targetSelect = strikeForm.querySelector<HTMLSelectElement>("#strike-target");
+      const targetValue = targetSelect?.value ?? "";
+      const fundingRadio = strikeForm.querySelector<HTMLInputElement>(
+        'input[name="funding"]:checked',
+      );
+      const canSubmit = Boolean(targetValue && fundingRadio && !isSubmitting);
+      submitBtn.disabled = !canSubmit;
+    };
+
+    strikeForm.addEventListener("change", updateStrikeButtonState);
+    strikeForm.addEventListener("input", updateStrikeButtonState);
+    updateStrikeButtonState();
+
+    strikeForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (isSubmitting) return;
+      const fd = new FormData(strikeForm);
+      const targetId = String(fd.get("targetId") ?? "");
+      const fundingVal = fd.get("funding");
+      if (!targetId || fundingVal === null) return;
+      const funding = Number(fundingVal) === 1 ? 1 : 0;
       sounds.threat();
       callbacks.onStrike(targetId, funding);
-    }
-  });
+    });
+  }
 
   // Recover click
   const recoverBtn = container.querySelector<HTMLButtonElement>("#btn-recover");

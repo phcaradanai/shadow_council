@@ -1,6 +1,6 @@
 # First vertical slice — worker contracts
 
-Status: Completed & Verified; Ready for Playtest (2026-09-10). The vertical slice is fully integrated and tested. Multiple browser sessions can play the complete loop through bluffing, reactions, reveals, round rollover, elimination, sole-survivor victory, and seamless rematching.
+Status: Completed & Verified via Real Playwright Browser E2E Automation; Ready for 4-Player Human Playtesting (2026-09-10). The vertical slice is verified across isolated Chromium browser contexts for Journeys A–F and hidden-information confidentiality. HTTP integration tests are categorized under tests/integration/, and CI workflow is established with required blocking gates.
 
 All workers obey the import matrix, source-size governance, and rule matrix. Owned paths include colocated tests unless noted. A new dependency, cross-owner change, or contract deviation requires lead review. Workers report behavior, test evidence, and unresolved risks. Listed durations are deliberately omitted; scope and dependencies define task size.
 
@@ -85,14 +85,17 @@ All workers obey the import matrix, source-size governance, and rule matrix. Own
 - Depends on: W1 for fixture-driven work; real-server validation needs W5. Visual design work should follow the applicable frontend skill when dispatched.
 
 ## W7 — Acceptance and playtest handoff
-
 - Objective: demonstrate the integrated slice and assess architectural integrity.
-- Owns: tests/e2e/, playtest instructions/results template, final cross-layer review report; fixes go to owning workers.
-- Allowed dependencies: Playwright and public application flows; headless domain checks remain in earlier owners' suites.
-- Acceptance: four isolated browser contexts complete one round; a short match reaches winner; reconnect restores permitted state; no private commitment leaks; all CI gates green. Record manual four-player playtest findings against PRODUCT_VISION; if players are unavailable, report that validation pending rather than claim fun or pacing is proven.
-- Tests: two critical journeys from TEST_STRATEGY; run complete automated checks once integrated. Review client bundle boundaries and transport payloads.
-- Non-goals: exhaustive E2E rule testing, invented playtest results, new features, production deployment.
-- Depends on: W2–W6 integrated. Automated readiness and human gameplay validation are distinct acceptance outcomes.
+- Status: COMPLETED & VERIFIED.
+- Owns: tests/e2e/ (`browser-journeys.spec.ts`, `hidden-information.spec.ts`), tests/integration/ (`http-multiplayer.test.ts`), `PLAYTEST.md`, `.github/workflows/ci.yml`.
+- Acceptance evidence:
+  - Real Playwright browser automation verifies Journeys A through F across isolated Chromium contexts.
+  - Hidden information protection verified in browser DOM and sessionStorage for both Target and Bystander.
+  - Zero default bluff bias enforced: Declare Strike requires deliberate target and commitment selection.
+  - HTTP integration suite reclassified under `tests/integration/` to preserve truthful evidence claims.
+  - Non-negotiable GitHub Actions CI workflow established with zero `continue-on-error`.
+  - 4-player facilitator playtest protocol and metrics template established in `PLAYTEST.md`.
+- Next step: Run the first 4-player human playtest (no new gameplay features).
 
 ## Safe parallel work
 

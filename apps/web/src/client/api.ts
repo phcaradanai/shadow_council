@@ -1,11 +1,12 @@
-import {
-  PROTOCOL_VERSION,
-  type CommandEnvelope,
-  type WireIntent,
-  type WireMatchView,
-  type WireRoomView,
-  type WireDomainEvent,
+import type {
+  CommandEnvelope,
+  WireDomainEvent,
+  WireIntent,
+  WireMatchView,
+  WireRoomView,
 } from "@shadow-council/protocol";
+
+export const PROTOCOL_VERSION = "1" as const;
 
 export interface SessionResponse {
   readonly room: WireRoomView;

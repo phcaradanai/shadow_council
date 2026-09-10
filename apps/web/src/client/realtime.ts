@@ -16,6 +16,7 @@ export type StatusHandler = (status: "connected" | "connecting" | "disconnected"
 export class RealtimeClient {
   private source: EventSource | undefined;
   private seenEventIds = new Set<string>();
+  private currentMatchId: string | undefined;
   private lastRevision = -1;
   private retryTimeout: number | undefined;
 
@@ -39,6 +40,13 @@ export class RealtimeClient {
     source.onmessage = (messageEvent) => {
       try {
         const payload = JSON.parse(messageEvent.data as string) as WireNotification;
+        const incomingMatchId = payload.match?.matchId;
+        if (this.currentMatchId !== incomingMatchId) {
+          this.currentMatchId = incomingMatchId;
+          this.lastRevision = -1;
+          this.seenEventIds.clear();
+        }
+
         const incomingRevision = payload.match?.revision ?? -1;
         if (incomingRevision >= 0 && incomingRevision < this.lastRevision) {
           return;
@@ -75,6 +83,7 @@ export class RealtimeClient {
   }
 
   resetRevisionTracking(): void {
+    this.currentMatchId = undefined;
     this.lastRevision = -1;
     this.seenEventIds.clear();
   }

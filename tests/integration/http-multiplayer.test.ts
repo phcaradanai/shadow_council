@@ -4,8 +4,8 @@ import { createApplicationServer } from "../../apps/server/src/main.js";
 const json = async (res: Response): Promise<Record<string, unknown>> =>
   (await res.json()) as Record<string, unknown>;
 
-describe("Multiplayer E2E Journey", () => {
-  it("4 players: Create, Join, Bluff Caught, Genuine Guard, Elimination, Winner, and Rematch", async () => {
+describe("Multiplayer HTTP Integration Journey", () => {
+  it("4 players via HTTP API: Create, Join, Bluff Caught, Genuine Guard, Elimination, Winner, and Rematch", async () => {
     const server = createApplicationServer();
     await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", () => resolve()));
     const address = server.address();
