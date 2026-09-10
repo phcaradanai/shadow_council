@@ -14,6 +14,11 @@ export interface RoomMemberRecord {
 
 export type RoomStatus = "LOBBY" | "PLAYING" | "FINISHED";
 
+export interface RoomGameSettings {
+  readonly turnTimerEnabled: boolean;
+  readonly turnTimeSeconds?: number;
+}
+
 export interface RoomRecord {
   readonly roomId: string;
   readonly roomCode: string;
@@ -21,6 +26,7 @@ export interface RoomRecord {
   readonly members: readonly RoomMemberRecord[];
   readonly status: RoomStatus;
   readonly matchId?: MatchId;
+  readonly settings: RoomGameSettings;
 }
 
 export interface DeadlineRecord {
@@ -47,6 +53,7 @@ export interface CommandReceipt {
 
 export interface StoredMatch {
   readonly state: MatchState;
+  readonly settings: RoomGameSettings;
   readonly deadline?: DeadlineRecord;
   readonly journal: readonly CommandJournalEntry[];
   readonly receipts: readonly CommandReceipt[];

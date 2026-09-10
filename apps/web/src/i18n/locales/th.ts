@@ -52,6 +52,14 @@ export const th: TranslationDictionary = {
   "lobby.waitingMinPlayers": "กำลังรอผู้เล่นอย่างน้อย 2 คน...",
   "lobby.startMatch": "⚔️ เริ่มการประลอง",
   "lobby.startingMatch": "กำลังเริ่มเกม...",
+  "lobby.settingsTitle": "การตั้งค่าการประลอง",
+  "lobby.timerLabel": "เวลาต่อเทิร์น:",
+  "lobby.timerEnabled": "จำกัดเวลาต่อเทิร์น",
+  "lobby.timerDisabled": "ไม่จำกัดเวลา",
+  "lobby.timerDuration": "ระยะเวลาต่อเทิร์น:",
+  "lobby.timerSeconds": "{seconds} วินาที",
+  "lobby.noTimeLimit": "ไม่จำกัดเวลา",
+  "lobby.settingsHostOnly": "เฉพาะหัวหน้าห้องเท่านั้นที่สามารถปรับแต่งการตั้งค่าได้",
 
   // Game Header & Conn
   "game.room": "ห้อง:",
@@ -60,6 +68,7 @@ export const th: TranslationDictionary = {
   "game.reconnecting": "◌ กำลังเชื่อมต่อใหม่...",
   "game.offline": "○ ออฟไลน์",
   "game.countdownRemaining": "เวลาที่เหลือ:",
+  "game.noTimeLimit": "ไม่จำกัดเวลา",
 
   // Turn Indicators
   "game.turnYourTurn": "ตาของคุณ",
@@ -91,6 +100,8 @@ export const th: TranslationDictionary = {
   "player.influenceAria": "อิทธิพล {current} จาก 3",
   "player.powerLabel": "พลัง (พลังงาน):",
   "player.powerAria": "พลัง {current} จาก 3",
+  "player.powerPrivate": "(ส่วนตัว)",
+  "player.powerUnknownAria": "พลังของคู่ต่อสู้ถูกซ่อนไว้",
   "player.badgeActive": "กำลังเล่น",
   "player.badgeTarget": "เป้าหมาย",
   "player.badgeEliminated": "ถูกกำจัด",
@@ -183,7 +194,7 @@ export const th: TranslationDictionary = {
     "👁️ เปิดเผย: การโจมตีของ <strong>{attacker}</strong> คือ <strong>{truth}</strong>",
   "log.bluffSucceeded":
     "🃏 บลัฟสำเร็จ: <strong>{attacker}</strong> ชนะการบลัฟใส่ <strong>{target}</strong>!",
-  "log.powerRecovered": "⚡ <strong>{player}</strong> ฟื้นฟู +1 พลัง (ปัจจุบันมี {power})",
+  "log.powerRecovered": "⚡ <strong>{player}</strong> ฟื้นฟู +1 พลัง",
   "log.turnPassed": "⌛ ตาของ <strong>{player}</strong> หมดเวลา (ผ่านตาเดิน)",
   "log.playerEliminated": "☠️ <strong>{player}</strong> ถูกกำจัดแล้ว!",
   "log.roundStarted": "🔄 เริ่มรอบที่ {round}",
@@ -210,6 +221,8 @@ export const th: TranslationDictionary = {
   "rules.goalTitle": "เป้าหมายของเกม",
   "rules.goalDesc":
     "คุณเริ่มต้นด้วย <strong>3 อิทธิพล</strong> และ <strong>2 พลัง</strong> หากอิทธิพลของคุณลดลงเหลือ 0 คุณจะถูกกำจัด <strong>ผู้เล่นคนสุดท้ายที่รอดชีวิตคือผู้ชนะ!</strong>",
+  "rules.powerPrivacyRule":
+    "🔒 <strong>พลังเป็นข้อมูลลับ:</strong> คุณจะมองเห็นเฉพาะพลังคงเหลือของตนเองเท่านั้น พลังของคู่ต่อสู้จะถูกซ่อนไว้",
   "rules.turnTitle": "ในตาของคุณ: เลือกการกระทำ",
   "rules.recoverRule": "เพิ่ม 1 พลัง (สูงสุด 3 แต้ม) และจบตาเดินของคุณ",
   "rules.strikeRule": "คุกคามคู่ต่อสู้ที่ยังรอดชีวิตหนึ่งคน เลือกระดับการลงมือลับๆ:",
@@ -249,5 +262,6 @@ export const th: TranslationDictionary = {
   "error.InvalidIntent": "การกระทำไม่ถูกต้องตามสถานะเกมในปัจจุบัน",
   "error.InvalidDisplayName": "ชื่อที่ใช้แสดงไม่ถูกต้อง",
   "error.InvalidCommandId": "รหัสคำสั่งไม่ถูกต้อง",
+  "error.InvalidSettings": "การตั้งค่าห้องไม่ถูกต้อง",
   "error.InternalError": "เซิร์ฟเวอร์เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
 };

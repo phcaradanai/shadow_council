@@ -6,13 +6,13 @@ Status: proposed contracts; implementation task W1 freezes exact exported TypeSc
 
 | Model | Owner | Contents |
 | --- | --- | --- |
-| Room | Application | Room ID/code, host seat, ordered members, lobby/playing/finished status, current match ID. Connection presence is session metadata. |
+| Room | Application | Room ID/code, host seat, room settings (`turnTimerEnabled`, `turnTimeSeconds`), ordered members, lobby/playing/finished status, current match ID. Connection presence is session metadata. |
 | Membership | Application | Opaque credential association to room/PlayerId; never gameplay state. |
 | MatchState | Domain | Match ID, rules version, revision, phase, players, fixed seat order, round number, turn queue/cursor, phase token, random state. |
 | PlayerState | Domain | PlayerId, Influence, Power. Alive is derived from Influence; no independent mutable alive flag. |
 | PendingStrike | Domain | Attacker, target, funding 0 or 1; only present in REACTION. |
-| MatchView | Application contract | Whitelisted public match fields plus only the requesting member's private pending choice and legal intent descriptions. |
-| StoredMatch | Application | Domain state plus active deadline metadata, accepted command journal, and command deduplication receipts. |
+| MatchView | Application contract | Whitelisted public match fields plus only the requesting member's private pending choice, private Power balance (opponents' Power is omitted/undefined), and legal intent descriptions. |
+| StoredMatch | Application | Domain state plus active deadline metadata, snapshotted room game settings, accepted command journal, and command deduplication receipts. |
 
 Use distinct opaque IDs, readonly structures, integer balances, and discriminated unions. ACTIVE_TURN carries active player/queue; REACTION carries PendingStrike; FINISHED carries winner. Avoid an object with many optional phase-dependent fields. JSON-safe data only; no class instances, Date objects, sockets, or callbacks in state.
 
@@ -28,9 +28,9 @@ Commands:
 - `React(actorId, choice: guard | challenge | yield)` in REACTION.
 - `ExpirePhase(phaseToken)` is application-only; domain validates the current token and applies Pass/Yield. It contains no wall-clock reading.
 
-Client commands omit trusted actor identity; application supplies actorId from membership. Never accept damage, balances, truth verdicts, winner IDs, or complete state as client intent. Room operations (CreateRoom, JoinRoom, LeaveRoom in lobby, StartMatch, GetView, Reconnect) are application use cases, not match commands. Host departure in lobby transfers ownership to the earliest remaining member; empty rooms may be removed. Started rosters are frozen. No mid-match joining or seat replacement.
+Client commands omit trusted actor identity; application supplies actorId from membership. Never accept damage, balances, truth verdicts, winner IDs, or complete state as client intent. Room operations (CreateRoom, JoinRoom, UpdateSettings, LeaveRoom in lobby, StartMatch, GetView, Reconnect) are application use cases, not match commands. Host departure in lobby transfers ownership to the earliest remaining member; empty rooms may be removed. Started rosters are frozen. No mid-match joining or seat replacement.
 
-Typed errors include WrongPhase, NotYourTurn, InvalidTarget, InvalidFunding, InsufficientPower, PowerAtCap, and StalePhase. Transport errors such as Unauthenticated, StaleRevision, and CommandIdConflict belong to application/protocol, not game rules.
+Typed errors include WrongPhase, NotYourTurn, InvalidTarget, InvalidFunding, InsufficientPower, PowerAtCap, and StalePhase. Transport errors such as Unauthenticated, StaleRevision, InvalidSettings, NotHost, and CommandIdConflict belong to application/protocol, not game rules.
 
 ## Events and visibility
 
@@ -42,12 +42,12 @@ All events have a stable `(matchId, revision, ordinal)` identity. Do not stamp d
 | ActionCommitted | Public attacker, target, action kind; omit funding. |
 | ReactionCommitted | Public target and reaction choice; followed immediately by reveal/resolution. |
 | ActionRevealed | Public attacker, target, funding, derived genuine/bluff verdict. |
-| AttackResolved | Public costs, Influence losses, and resulting balances from resolution. |
+| AttackResolved | Public costs, Influence losses; resulting Power is projected privately per viewer. |
 | BluffSucceeded | Public attacker, target, outcome guard/yield; no extra mechanical effect. |
-| PowerRecovered, TurnPassed | Public affected player and resulting Power or timeout reason. |
+| PowerRecovered, TurnPassed | Public affected player; resulting Power is projected privately per viewer, or timeout reason. |
 | PlayerEliminated, TurnEnded, RoundEnded, VictoryAchieved | Public affected player/turn/round/winner. |
 
-Pending funding is available to its owner through private view projection, not a broadcast event. Domain events are in-memory values returned with the transition; application stores/delivers them after commit. No message broker or event-sourced persistence. Private command journals are never client logs or analytics input.
+Pending funding and opponent Power balances are protected by view projection (`projectMatchView`, `projectEventsForViewer`), not domain filtering. Domain produces authoritative transitions with full state; the application layer masks opponent Power (`power?: undefined`) and secret commitments before delivery across HTTP snapshots, SSE streams, and event logs.
 
 ## Determinism and invariants
 

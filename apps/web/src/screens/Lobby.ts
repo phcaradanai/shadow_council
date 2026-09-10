@@ -13,6 +13,7 @@ const escapeHtml = (value: string): string =>
 export interface LobbyCallbacks {
   onStartMatch: () => void;
   onLeaveRoom: () => void;
+  onUpdateSettings?: (settings: { turnTimerEnabled: boolean; turnTimeSeconds?: number }) => void;
 }
 
 export const renderLobbyScreen = (
@@ -60,6 +61,63 @@ export const renderLobbyScreen = (
           </button>
         </div>
         <p class="room-code-hint">${t("lobby.codeHint")}</p>
+      </section>
+
+      <section class="card settings-card" aria-label="${t("lobby.settingsTitle")}">
+        <h2 class="card__title">⚙️ ${t("lobby.settingsTitle")}</h2>
+        <div class="settings-grid">
+          <div class="setting-item">
+            <span class="setting-label">
+              ${t("lobby.timerLabel")}
+            </span>
+            ${
+              isHost
+                ? `
+                  <div class="setting-control">
+                    <label class="toggle-switch" for="setting-timer-toggle">
+                      <input type="checkbox" id="setting-timer-toggle" ${room.settings.turnTimerEnabled ? "checked" : ""} ${isSubmitting ? "disabled" : ""} />
+                      <span class="toggle-slider"></span>
+                    </label>
+                    <span id="timer-status-text" class="setting-status">
+                      ${room.settings.turnTimerEnabled ? t("lobby.timerEnabled") : t("lobby.timerDisabled")}
+                    </span>
+                  </div>
+                `
+                : `
+                  <div class="setting-value">
+                    <span class="badge ${room.settings.turnTimerEnabled ? "badge--active" : "badge--secondary"}">
+                      ${room.settings.turnTimerEnabled ? t("lobby.timerEnabled") : t("lobby.timerDisabled")}
+                    </span>
+                  </div>
+                `
+            }
+          </div>
+
+          <div class="setting-item" id="duration-setting-row" style="${room.settings.turnTimerEnabled ? "" : "display: none;"}">
+            <label class="setting-label" for="setting-duration-select">
+              ${t("lobby.timerDuration")}
+            </label>
+            ${
+              isHost
+                ? `
+                  <select id="setting-duration-select" class="form-select setting-select" ${isSubmitting ? "disabled" : ""}>
+                    ${[30, 45, 60, 90]
+                      .map(
+                        (sec) =>
+                          `<option value="${sec}" ${(room.settings.turnTimeSeconds ?? 45) === sec ? "selected" : ""}>${t("lobby.timerSeconds", { seconds: sec })}</option>`,
+                      )
+                      .join("")}
+                  </select>
+                `
+                : `
+                  <div class="setting-value">
+                    <strong>${t("lobby.timerSeconds", { seconds: room.settings.turnTimeSeconds ?? 45 })}</strong>
+                  </div>
+                `
+            }
+          </div>
+        </div>
+        ${!isHost ? `<p class="settings-hint">${t("lobby.settingsHostOnly")}</p>` : ""}
       </section>
 
       <section class="card roster-card">
@@ -133,6 +191,37 @@ export const renderLobbyScreen = (
           if (copyBtn) copyBtn.textContent = `📋 ${t("lobby.copyCode")}`;
         }, 2000);
       }
+    });
+  });
+
+  const timerToggle = container.querySelector<HTMLInputElement>("#setting-timer-toggle");
+  const durationSelect = container.querySelector<HTMLSelectElement>("#setting-duration-select");
+  const durationRow = container.querySelector<HTMLElement>("#duration-setting-row");
+  const timerStatusText = container.querySelector<HTMLElement>("#timer-status-text");
+
+  timerToggle?.addEventListener("change", () => {
+    sounds.click();
+    const enabled = timerToggle.checked;
+    if (durationRow) durationRow.style.display = enabled ? "" : "none";
+    if (timerStatusText) {
+      timerStatusText.textContent = enabled ? t("lobby.timerEnabled") : t("lobby.timerDisabled");
+    }
+    const duration = durationSelect
+      ? Number(durationSelect.value)
+      : (room.settings.turnTimeSeconds ?? 45);
+    callbacks.onUpdateSettings?.({
+      turnTimerEnabled: enabled,
+      turnTimeSeconds: duration,
+    });
+  });
+
+  durationSelect?.addEventListener("change", () => {
+    sounds.click();
+    const enabled = timerToggle ? timerToggle.checked : room.settings.turnTimerEnabled;
+    const duration = Number(durationSelect.value);
+    callbacks.onUpdateSettings?.({
+      turnTimerEnabled: enabled,
+      turnTimeSeconds: duration,
     });
   });
 

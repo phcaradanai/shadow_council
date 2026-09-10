@@ -20,7 +20,7 @@ import {
   type SubmitIntentResult,
 } from "../contracts.js";
 import type { ApplicationPorts, MembershipRecord, RoomRecord, StoredMatch } from "../ports.js";
-import { projectMatchView, projectRoomView } from "../views/projection.js";
+import { projectEventsForViewer, projectMatchView, projectRoomView } from "../views/projection.js";
 
 export class MatchCoordinator {
   private readonly roomReceipts = new Map<string, StartMatchResult>();
@@ -93,11 +93,12 @@ export class MatchCoordinator {
     );
     if (!created.ok) throw applicationError("RoomNotReady", created.error.message);
     const initialDeadline = deadlineFor(
-      { state: created.value.state, journal: [], receipts: [] },
+      { state: created.value.state, settings: room.settings, journal: [], receipts: [] },
       this.ports.clock.now(),
     );
     const stored: StoredMatch = {
       state: created.value.state,
+      settings: room.settings,
       journal: [],
       receipts: [],
       ...(initialDeadline === undefined ? {} : { deadline: initialDeadline }),
@@ -113,7 +114,7 @@ export class MatchCoordinator {
         membership.playerId,
         stored.deadline?.deadlineAt,
       ),
-      events: created.value.events,
+      events: projectEventsForViewer(created.value.events, membership.playerId),
     };
     if (receiptKey !== undefined) this.roomReceipts.set(receiptKey, result);
     return { result, nextRoom, stored };
@@ -159,7 +160,7 @@ export class MatchCoordinator {
             membership.playerId,
             stored.deadline?.deadlineAt,
           ),
-          events: existing.events,
+          events: projectEventsForViewer(existing.events, membership.playerId),
           revision: existing.revision,
           duplicate: true,
         },
@@ -192,11 +193,17 @@ export class MatchCoordinator {
     }
 
     const nextDeadline = deadlineFor(
-      { state: result.value.state, journal: stored.journal, receipts: stored.receipts },
+      {
+        state: result.value.state,
+        settings: stored.settings,
+        journal: stored.journal,
+        receipts: stored.receipts,
+      },
       this.ports.clock.now(),
     );
     const updated: StoredMatch = {
       state: result.value.state,
+      settings: stored.settings,
       journal: [
         ...stored.journal,
         {
@@ -231,7 +238,7 @@ export class MatchCoordinator {
           membership.playerId,
           updated.deadline?.deadlineAt,
         ),
-        events: result.value.events,
+        events: projectEventsForViewer(result.value.events, membership.playerId),
         revision: updated.state.revision,
         duplicate: false,
       },
@@ -260,11 +267,17 @@ export class MatchCoordinator {
     if (phase.kind === "FINISHED") return undefined;
     const actorId = phase.kind === "REACTION" ? phase.pendingStrike.targetId : phase.activePlayerId;
     const nextDeadline = deadlineFor(
-      { state: result.value.state, journal: stored.journal, receipts: stored.receipts },
+      {
+        state: result.value.state,
+        settings: stored.settings,
+        journal: stored.journal,
+        receipts: stored.receipts,
+      },
       this.ports.clock.now(),
     );
     const updated: StoredMatch = {
       state: result.value.state,
+      settings: stored.settings,
       journal: [
         ...stored.journal,
         {

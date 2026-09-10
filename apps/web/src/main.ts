@@ -97,6 +97,11 @@ const renderApp = (state: SessionState): void => {
             const res = await api.startMatch(room.roomCode, commandId);
             session.updateFromNotification(res.room, res.match, res.events);
           }),
+        onUpdateSettings: (settings) =>
+          void handleAsync(async () => {
+            const res = await api.updateSettings(room.roomCode, settings);
+            session.updateFromNotification(res.room, undefined, []);
+          }),
         onLeaveRoom: () =>
           void handleAsync(async () => {
             await api.leaveRoom(room.roomCode).catch(() => ({ room: null }));

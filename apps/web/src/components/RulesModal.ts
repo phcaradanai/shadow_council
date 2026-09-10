@@ -13,6 +13,7 @@ export const renderRulesModal = (): string => {
           <section class="rule-block">
             <h3>${t("rules.goalTitle")}</h3>
             <p>${t("rules.goalDesc")}</p>
+            <p>${t("rules.powerPrivacyRule")}</p>
           </section>
 
           <section class="rule-block">

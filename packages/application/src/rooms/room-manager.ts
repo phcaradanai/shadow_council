@@ -1,8 +1,10 @@
 import { applicationError } from "../errors.js";
 import type { ApplicationEvent } from "../events.js";
 import {
+  DEFAULT_ROOM_SETTINGS,
   MAX_ROOM_MEMBERS,
   validateDisplayName,
+  validateRoomGameSettings,
   type CreateRoomResult,
   type JoinRoomResult,
   type RematchResult,
@@ -51,6 +53,7 @@ export class RoomManager {
       hostPlayerId: playerId,
       members: [{ playerId, displayName: name, connected: true }],
       status: "LOBBY",
+      settings: DEFAULT_ROOM_SETTINGS,
     };
     this.ports.rooms.save(room);
     this.ports.memberships.save({ token: credential, roomCode, playerId });
@@ -175,6 +178,31 @@ export class RoomManager {
     return {
       room: nextRoom,
       result: { room: projectRoomView(nextRoom) },
+    };
+  }
+
+  updateSettings(
+    roomCode: string,
+    credential: string,
+    rawSettings: unknown,
+  ): { readonly room: RoomRecord; readonly roomView: RoomView } {
+    const membership = this.requireMembership(roomCode, credential);
+    const room = this.requireRoom(roomCode);
+    if (room.status !== "LOBBY") {
+      throw applicationError("RoomNotReady", "Settings can only be changed in the lobby.");
+    }
+    if (room.hostPlayerId !== membership.playerId) {
+      throw applicationError("NotHost", "Only the host may update room settings.");
+    }
+    const settings = validateRoomGameSettings(rawSettings);
+    const nextRoom: RoomRecord = {
+      ...room,
+      settings,
+    };
+    this.ports.rooms.save(nextRoom);
+    return {
+      room: nextRoom,
+      roomView: projectRoomView(nextRoom),
     };
   }
 }

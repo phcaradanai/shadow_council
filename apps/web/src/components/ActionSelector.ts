@@ -50,7 +50,7 @@ export const renderActionControls = (
                 ${targets
                   .map(
                     (tPlayer) =>
-                      `<option value="${escapeHtml(tPlayer.playerId)}">${escapeHtml(tPlayer.displayName)} (◆${tPlayer.influence} ⚡${tPlayer.power})</option>`,
+                      `<option value="${escapeHtml(tPlayer.playerId)}">${escapeHtml(tPlayer.displayName)} (◆${tPlayer.influence})</option>`,
                   )
                   .join("")}
               </select>

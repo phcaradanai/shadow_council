@@ -129,3 +129,20 @@ export const findActivePlayer = async (
   }
   throw new Error("Could not find active player with .turn-banner--your-turn");
 };
+
+export const configureRoomTurnTimer = async (
+  host: PlayerSession,
+  enabled: boolean,
+  seconds?: number,
+): Promise<void> => {
+  const toggle = host.page.locator("#setting-timer-toggle");
+  const isChecked = await toggle.isChecked();
+  if (isChecked !== enabled) {
+    await host.page.locator('label[for="setting-timer-toggle"]').click();
+  }
+  if (enabled && seconds !== undefined) {
+    const select = host.page.locator("#setting-duration-select");
+    await expect(select).toBeVisible();
+    await select.selectOption(String(seconds));
+  }
+};

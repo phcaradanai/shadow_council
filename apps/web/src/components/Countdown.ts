@@ -1,7 +1,16 @@
 import { t } from "../i18n/index.js";
 
 export const renderCountdown = (deadlineAt?: number): string => {
-  if (deadlineAt === undefined) return "";
+  if (deadlineAt === undefined) {
+    return `
+      <div class="countdown countdown--no-limit" aria-live="off" role="status">
+        <div class="countdown__indicator">
+          <span class="countdown__icon">⏱️</span>
+          <span class="countdown__text">${t("game.noTimeLimit")}</span>
+        </div>
+      </div>
+    `;
+  }
   const remainingMs = Math.max(0, deadlineAt - Date.now());
   const seconds = Math.ceil(remainingMs / 1000);
   const urgentClass = seconds <= 5 ? "countdown--urgent" : "";

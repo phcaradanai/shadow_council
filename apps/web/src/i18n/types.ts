@@ -47,6 +47,14 @@ export type TranslationKey =
   | "lobby.waitingMinPlayers"
   | "lobby.startMatch"
   | "lobby.startingMatch"
+  | "lobby.settingsTitle"
+  | "lobby.timerLabel"
+  | "lobby.timerEnabled"
+  | "lobby.timerDisabled"
+  | "lobby.timerDuration"
+  | "lobby.timerSeconds"
+  | "lobby.noTimeLimit"
+  | "lobby.settingsHostOnly"
   // Game Header & Conn
   | "game.room"
   | "game.round"
@@ -54,6 +62,7 @@ export type TranslationKey =
   | "game.reconnecting"
   | "game.offline"
   | "game.countdownRemaining"
+  | "game.noTimeLimit"
   // Turn Indicators
   | "game.turnYourTurn"
   | "game.turnChooseAction"
@@ -79,6 +88,8 @@ export type TranslationKey =
   | "player.influenceAria"
   | "player.powerLabel"
   | "player.powerAria"
+  | "player.powerPrivate"
+  | "player.powerUnknownAria"
   | "player.badgeActive"
   | "player.badgeTarget"
   | "player.badgeEliminated"
@@ -173,6 +184,7 @@ export type TranslationKey =
   | "rules.closeAria"
   | "rules.goalTitle"
   | "rules.goalDesc"
+  | "rules.powerPrivacyRule"
   | "rules.turnTitle"
   | "rules.recoverRule"
   | "rules.strikeRule"
@@ -209,6 +221,7 @@ export type TranslationKey =
   | "error.InvalidIntent"
   | "error.InvalidDisplayName"
   | "error.InvalidCommandId"
+  | "error.InvalidSettings"
   | "error.InternalError";
 
 export type TranslationDictionary = Record<TranslationKey, string>;

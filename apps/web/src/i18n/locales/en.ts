@@ -53,6 +53,14 @@ export const en: TranslationDictionary = {
   "lobby.waitingMinPlayers": "Waiting for at least 2 connected players...",
   "lobby.startMatch": "⚔️ Start Match",
   "lobby.startingMatch": "Starting Match...",
+  "lobby.settingsTitle": "Match Settings",
+  "lobby.timerLabel": "Turn Timer:",
+  "lobby.timerEnabled": "Turn Timer Enabled",
+  "lobby.timerDisabled": "No Time Limit",
+  "lobby.timerDuration": "Turn Duration:",
+  "lobby.timerSeconds": "{seconds}s",
+  "lobby.noTimeLimit": "No Time Limit",
+  "lobby.settingsHostOnly": "Only the host can modify room settings.",
 
   // Game Header & Conn
   "game.room": "Room:",
@@ -61,6 +69,7 @@ export const en: TranslationDictionary = {
   "game.reconnecting": "◌ Reconnecting...",
   "game.offline": "○ Offline",
   "game.countdownRemaining": "Time remaining:",
+  "game.noTimeLimit": "No Time Limit",
 
   // Turn Indicators
   "game.turnYourTurn": "YOUR TURN",
@@ -92,6 +101,8 @@ export const en: TranslationDictionary = {
   "player.influenceAria": "{current} of 3 influence",
   "player.powerLabel": "Power (Energy):",
   "player.powerAria": "{current} of 3 power",
+  "player.powerPrivate": "(Private)",
+  "player.powerUnknownAria": "Opponent power is hidden",
   "player.badgeActive": "ACTIVE",
   "player.badgeTarget": "TARGET",
   "player.badgeEliminated": "ELIMINATED",
@@ -184,7 +195,7 @@ export const en: TranslationDictionary = {
     "👁️ Reveal: <strong>{attacker}</strong>'s Strike was <strong>{truth}</strong>.",
   "log.bluffSucceeded":
     "🃏 Bluff succeeded: <strong>{attacker}</strong> won the bluff against <strong>{target}</strong>!",
-  "log.powerRecovered": "⚡ <strong>{player}</strong> recovered +1 Power (now {power}).",
+  "log.powerRecovered": "⚡ <strong>{player}</strong> recovered +1 Power.",
   "log.turnPassed": "⌛ <strong>{player}</strong>'s turn timed out (passed).",
   "log.playerEliminated": "☠️ <strong>{player}</strong> has been eliminated!",
   "log.roundStarted": "🔄 Round {round} began.",
@@ -212,6 +223,8 @@ export const en: TranslationDictionary = {
   "rules.goalTitle": "Goal of the Game",
   "rules.goalDesc":
     "You begin with <strong>3 Influence</strong> and <strong>2 Power</strong>. If your Influence drops to 0, you are eliminated. <strong>The last surviving player wins!</strong>",
+  "rules.powerPrivacyRule":
+    "🔒 <strong>Power is Private:</strong> You can only see your own Power reserves. Opponent Power is hidden.",
   "rules.turnTitle": "On Your Turn: Choose an Action",
   "rules.recoverRule": "Gain 1 Power (up to 3 max) and end your turn.",
   "rules.strikeRule": "Threaten a chosen living opponent. Privately choose your commitment:",
@@ -251,5 +264,6 @@ export const en: TranslationDictionary = {
   "error.InvalidIntent": "Action is not valid in the current game state.",
   "error.InvalidDisplayName": "Display name is invalid.",
   "error.InvalidCommandId": "Command ID format is invalid.",
+  "error.InvalidSettings": "Invalid room settings.",
   "error.InternalError": "The server encountered an error. Please try again.",
 };

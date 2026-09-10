@@ -84,7 +84,7 @@ export const renderResultScreen = (
                   </div>
                   <div class="result-row__stats">
                     <span>${t("player.influenceLabel")} <strong>${player.influence}/3</strong></span>
-                    <span>${t("player.powerLabel")} <strong>${player.power}/3</strong></span>
+                    <span>${t("player.powerLabel")} <strong>${player.power !== undefined ? `${player.power}/3` : "🔒 ?"}</strong></span>
                   </div>
                 </div>
               `;

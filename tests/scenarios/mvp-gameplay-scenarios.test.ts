@@ -66,12 +66,15 @@ describe("MVP Gameplay Scenarios", () => {
     // Verify events and outcome
     expect(resolved.events.map((e) => e.type)).toContain("BluffSucceeded");
     expect(resolved.events.map((e) => e.type)).toContain("ActionRevealed");
-    const attackerState = resolved.match.players.find((p) => p.playerId === attackerId)!;
     const targetState = resolved.match.players.find((p) => p.playerId === targetId)!;
-    expect(attackerState.influence).toBe(3);
-    expect(attackerState.power).toBe(2); // cost 0
     expect(targetState.influence).toBe(2); // took 1 damage
     expect(targetState.power).toBe(2); // yield is free
+    expect(resolved.match.players.find((p) => p.playerId === attackerId)?.power).toBeUndefined(); // private
+
+    const attackerView = await app.getView(activeTurn.roomCode, attackerCred);
+    const attackerState = attackerView.match!.players.find((p) => p.playerId === attackerId)!;
+    expect(attackerState.influence).toBe(3);
+    expect(attackerState.power).toBe(2); // cost 0
     expect(resolved.match.phase.kind).toBe("ACTIVE_TURN");
   });
 
@@ -111,12 +114,15 @@ describe("MVP Gameplay Scenarios", () => {
     });
 
     // Attacker caught: loses 1 influence
-    const attackerState = resolved.match.players.find((p) => p.playerId === attackerId)!;
     const targetState = resolved.match.players.find((p) => p.playerId === targetId)!;
-    expect(attackerState.influence).toBe(2);
-    expect(attackerState.power).toBe(2);
     expect(targetState.influence).toBe(3);
     expect(targetState.power).toBe(2);
+    expect(resolved.match.players.find((p) => p.playerId === attackerId)?.power).toBeUndefined(); // private
+
+    const attackerView = await app.getView(activeTurn.roomCode, attackerCred);
+    const attackerState = attackerView.match!.players.find((p) => p.playerId === attackerId)!;
+    expect(attackerState.influence).toBe(2);
+    expect(attackerState.power).toBe(2);
     expect(resolved.events.map((e) => e.type)).not.toContain("BluffSucceeded");
   });
 
@@ -155,12 +161,15 @@ describe("MVP Gameplay Scenarios", () => {
       intent: { type: "REACT", choice: "challenge" },
     });
 
-    const attackerState = resolved.match.players.find((p) => p.playerId === attackerId)!;
     const targetState = resolved.match.players.find((p) => p.playerId === targetId)!;
-    expect(attackerState.power).toBe(1); // spent 1 power
-    expect(attackerState.influence).toBe(3);
     expect(targetState.influence).toBe(1); // took 2 influence damage
     expect(targetState.power).toBe(2);
+    expect(resolved.match.players.find((p) => p.playerId === attackerId)?.power).toBeUndefined(); // private
+
+    const attackerView = await app.getView(activeTurn.roomCode, attackerCred);
+    const attackerState = attackerView.match!.players.find((p) => p.playerId === attackerId)!;
+    expect(attackerState.power).toBe(1); // spent 1 power
+    expect(attackerState.influence).toBe(3);
   });
 
   it("Scenario D: Match completion to winner", async () => {

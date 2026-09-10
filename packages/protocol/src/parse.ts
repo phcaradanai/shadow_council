@@ -6,6 +6,7 @@ import {
   type ParseResult,
   type RematchBody,
   type StartMatchBody,
+  type UpdateSettingsBody,
   type WireIntent,
 } from "./types.js";
 
@@ -68,6 +69,36 @@ export const parseStartMatchBody = (value: unknown): ParseResult<StartMatchBody>
 
 export const parseRematchBody = (value: unknown): ParseResult<RematchBody> =>
   parseStartMatchBody(value);
+
+export const parseUpdateSettingsBody = (value: unknown): ParseResult<UpdateSettingsBody> => {
+  if (!isRecord(value))
+    return { ok: false, error: { code: "InvalidPayload", message: "JSON object required." } };
+  if (typeof value.turnTimerEnabled !== "boolean") {
+    return {
+      ok: false,
+      error: { code: "InvalidPayload", message: "turnTimerEnabled must be a boolean." },
+    };
+  }
+  if (value.turnTimeSeconds !== undefined) {
+    if (
+      typeof value.turnTimeSeconds !== "number" ||
+      !Number.isInteger(value.turnTimeSeconds) ||
+      value.turnTimeSeconds <= 0
+    ) {
+      return {
+        ok: false,
+        error: { code: "InvalidPayload", message: "turnTimeSeconds must be a positive integer." },
+      };
+    }
+  }
+  return {
+    ok: true,
+    value: {
+      turnTimerEnabled: value.turnTimerEnabled,
+      ...(value.turnTimeSeconds !== undefined ? { turnTimeSeconds: value.turnTimeSeconds } : {}),
+    },
+  };
+};
 
 const parseIntent = (value: unknown): ParseResult<WireIntent> => {
   if (!isRecord(value))

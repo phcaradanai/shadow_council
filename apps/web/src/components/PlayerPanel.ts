@@ -95,9 +95,15 @@ export const renderPlayerCard = (
         </div>
         <div class="stat-row" data-stat="power">
           <span class="stat-label">${t("player.powerLabel")}</span>
-          <span class="stat-value" aria-label="${t("player.powerAria", { current: player.power, max: 3 })}">
-            ${renderPowerPips(player.power)} <span class="stat-num">(${player.power}/3)</span>
-          </span>
+          ${
+            player.power !== undefined
+              ? `<span class="stat-value" aria-label="${t("player.powerAria", { current: player.power, max: 3 })}">
+            ${renderPowerPips(player.power)} <span class="stat-num">(${player.power}/3)</span> <span class="stat-note">${t("player.powerPrivate")}</span>
+          </span>`
+              : `<span class="stat-value stat-value--private" aria-label="${t("player.powerUnknownAria")}">
+            <span class="power-hidden">🔒 ?</span>
+          </span>`
+          }
         </div>
       </div>
     </article>

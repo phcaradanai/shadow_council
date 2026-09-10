@@ -13,7 +13,8 @@ export type ApplicationErrorCode =
   | "StalePhase"
   | "CommandIdConflict"
   | "InvalidIntent"
-  | "InvalidCommandId";
+  | "InvalidCommandId"
+  | "InvalidSettings";
 
 export class ApplicationError extends Error {
   readonly code: ApplicationErrorCode;

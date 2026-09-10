@@ -4,14 +4,14 @@ import {
   type MatchState,
   type PlayerId,
 } from "@shadow-council/domain";
-import type { RoomRecord } from "../ports.js";
+import type { RoomGameSettings, RoomRecord } from "../ports.js";
 import type { ApplicationEvent } from "../events.js";
 
 export interface PublicPlayerView {
   readonly playerId: PlayerId;
   readonly displayName: string;
   readonly influence: number;
-  readonly power: number;
+  readonly power?: number;
   readonly eliminated: boolean;
   readonly connected: boolean;
 }
@@ -58,6 +58,7 @@ export interface RoomView {
     readonly connected: boolean;
   }[];
   readonly matchId?: string;
+  readonly settings: RoomGameSettings;
 }
 
 export interface ApplicationNotification {
@@ -76,6 +77,7 @@ export const projectRoomView = (room: RoomRecord): RoomView => ({
     displayName,
     connected,
   })),
+  settings: room.settings,
   ...(room.matchId === undefined ? {} : { matchId: room.matchId }),
 });
 
@@ -92,7 +94,7 @@ export const projectMatchView = (
       playerId: player.playerId,
       displayName: member?.displayName ?? "Player",
       influence: player.influence,
-      power: player.power,
+      ...(player.playerId === viewerPlayerId ? { power: player.power } : {}),
       eliminated: player.influence <= 0,
       connected: member?.connected ?? false,
     };
@@ -131,4 +133,31 @@ export const projectMatchView = (
     phase: phaseView,
     legalIntents: legalIntentsFor(state, viewerPlayerId),
   };
+};
+
+export const projectEventsForViewer = <T extends ApplicationEvent>(
+  events: readonly T[],
+  viewerPlayerId: PlayerId,
+): readonly T[] => {
+  return events.map((event) => {
+    const ev = event as ApplicationEvent;
+    if (ev.type === "PowerRecovered") {
+      if (ev.playerId !== viewerPlayerId) {
+        const { power: _omitted, ...rest } = ev;
+        return rest as unknown as T;
+      }
+    } else if (ev.type === "AttackResolved") {
+      let result = { ...ev };
+      if (ev.attackerId !== viewerPlayerId) {
+        const { attackerPower: _omitted, ...rest } = result;
+        result = rest as typeof result;
+      }
+      if (ev.targetId !== viewerPlayerId) {
+        const { targetPower: _omitted, ...rest } = result;
+        result = rest as typeof result;
+      }
+      return result as unknown as T;
+    }
+    return event;
+  });
 };

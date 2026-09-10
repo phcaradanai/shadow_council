@@ -11,4 +11,12 @@ export type RoomApplicationEvent =
   | { readonly type: "PlayerLeft"; readonly roomCode: string; readonly playerId: PlayerId }
   | { readonly type: "HostChanged"; readonly roomCode: string; readonly hostPlayerId: PlayerId };
 
-export type ApplicationEvent = DomainEvent | RoomApplicationEvent;
+export type ApplicationDomainEvent =
+  | Exclude<DomainEvent, { type: "PowerRecovered" | "AttackResolved" }>
+  | (Omit<Extract<DomainEvent, { type: "PowerRecovered" }>, "power"> & { readonly power?: number })
+  | (Omit<Extract<DomainEvent, { type: "AttackResolved" }>, "attackerPower" | "targetPower"> & {
+      readonly attackerPower?: number;
+      readonly targetPower?: number;
+    });
+
+export type ApplicationEvent = ApplicationDomainEvent | RoomApplicationEvent;

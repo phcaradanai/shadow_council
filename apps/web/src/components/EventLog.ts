@@ -46,7 +46,6 @@ const formatEvent = (event: WireDomainEvent, playerMap: Map<string, string>): st
     case "PowerRecovered":
       return t("log.powerRecovered", {
         player: escapeHtml(getName(event.playerId)),
-        power: String(event.power ?? "?"),
       });
     case "TurnPassed":
       return t("log.turnPassed", {

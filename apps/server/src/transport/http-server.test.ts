@@ -117,4 +117,70 @@ describe("HTTP vertical slice", () => {
       );
     }
   });
+
+  it("handles room turn timer settings configuration and authorization over HTTP", async () => {
+    const server = createHttpServer(createServerApplication());
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", () => resolve()));
+    const address = server.address();
+    if (address === null || typeof address === "string") throw new Error("server did not bind");
+    const base = `http://127.0.0.1:${address.port}`;
+    try {
+      const createdResponse = await fetch(`${base}/rooms`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ displayName: "Host" }),
+      });
+      const created = await json(createdResponse);
+      const hostCookie = createdResponse.headers.get("set-cookie")!;
+      const room = created.room as { roomCode: string; settings: { turnTimerEnabled: boolean } };
+      expect(room.settings.turnTimerEnabled).toBe(true);
+
+      const guestResponse = await fetch(`${base}/rooms/${room.roomCode}/join`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ displayName: "Guest" }),
+      });
+      const guestCookie = guestResponse.headers.get("set-cookie")!;
+
+      // Guest cannot update settings -> 403
+      const guestUpdate = await fetch(`${base}/rooms/${room.roomCode}/settings`, {
+        method: "POST",
+        headers: { cookie: guestCookie, "content-type": "application/json" },
+        body: JSON.stringify({ turnTimerEnabled: false }),
+      });
+      expect(guestUpdate.status).toBe(403);
+
+      // Malformed body -> 400
+      const malformed = await fetch(`${base}/rooms/${room.roomCode}/settings`, {
+        method: "POST",
+        headers: { cookie: hostCookie, "content-type": "application/json" },
+        body: JSON.stringify({ turnTimerEnabled: "invalid" }),
+      });
+      expect(malformed.status).toBe(400);
+
+      // Disallowed duration -> 422
+      const disallowedDuration = await fetch(`${base}/rooms/${room.roomCode}/settings`, {
+        method: "POST",
+        headers: { cookie: hostCookie, "content-type": "application/json" },
+        body: JSON.stringify({ turnTimerEnabled: true, turnTimeSeconds: 50 }),
+      });
+      expect(disallowedDuration.status).toBe(422);
+
+      // Host updates settings -> 200
+      const hostUpdate = await fetch(`${base}/rooms/${room.roomCode}/settings`, {
+        method: "POST",
+        headers: { cookie: hostCookie, "content-type": "application/json" },
+        body: JSON.stringify({ turnTimerEnabled: false }),
+      });
+      expect(hostUpdate.status).toBe(200);
+      const hostUpdated = await json(hostUpdate);
+      expect(
+        (hostUpdated.room as { settings: { turnTimerEnabled: boolean } }).settings.turnTimerEnabled,
+      ).toBe(false);
+    } finally {
+      await new Promise<void>((resolve, reject) =>
+        server.close((error) => (error === undefined ? resolve() : reject(error))),
+      );
+    }
+  });
 });

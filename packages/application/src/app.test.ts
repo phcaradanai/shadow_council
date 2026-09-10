@@ -78,7 +78,14 @@ describe("application room and match flow", () => {
     expect(host.room.status).toBe("LOBBY");
     expect(guest.room.members).toHaveLength(2);
     expect(started.match.viewerPlayerId).toBe(host.playerId);
-    expect(hostView.players).toEqual(guestView.players);
+    const hostAri = hostView.players.find((p) => p.playerId === host.playerId);
+    const hostBo = hostView.players.find((p) => p.playerId === guest.playerId);
+    const guestAri = guestView.players.find((p) => p.playerId === host.playerId);
+    const guestBo = guestView.players.find((p) => p.playerId === guest.playerId);
+    expect(hostAri?.power).toBe(2);
+    expect(hostBo?.power).toBeUndefined();
+    expect(guestAri?.power).toBeUndefined();
+    expect(guestBo?.power).toBe(2);
     expect(hostView.matchId).toBe(guestView.matchId);
     expect(JSON.stringify(hostView)).not.toMatch(/randomState|seed|credential|journal/);
     expect(JSON.stringify(guestView)).not.toMatch(/randomState|seed|credential|journal/);
@@ -341,5 +348,128 @@ describe("application room and match flow", () => {
     expect(newMatch.match.status).toBe("PLAYING");
     expect(newMatch.match.round).toBe(1);
     expect(newMatch.match.matchId).not.toBe(hostView.matchId);
+  });
+
+  it("allows host to configure room turn timer and enforces authorization", async () => {
+    const app = makeApplication();
+    const host = await app.createRoom({ displayName: "Host" });
+    const guest = await app.joinRoom(host.room.roomCode, { displayName: "Guest" });
+
+    // Initial default settings
+    expect(host.room.settings).toEqual({ turnTimerEnabled: true, turnTimeSeconds: 45 });
+
+    // Guest cannot update settings
+    await expect(
+      app.updateSettings(host.room.roomCode, guest.credential, { turnTimerEnabled: false }),
+    ).rejects.toMatchObject({ code: "NotHost" });
+
+    // Host updates settings to disabled
+    const updated = await app.updateSettings(host.room.roomCode, host.credential, {
+      turnTimerEnabled: false,
+    });
+    expect(updated.settings).toEqual({ turnTimerEnabled: false, turnTimeSeconds: 45 });
+
+    // Host updates duration to 60s
+    const updated60 = await app.updateSettings(host.room.roomCode, host.credential, {
+      turnTimerEnabled: true,
+      turnTimeSeconds: 60,
+    });
+    expect(updated60.settings).toEqual({ turnTimerEnabled: true, turnTimeSeconds: 60 });
+
+    // Invalid duration rejected
+    await expect(
+      app.updateSettings(host.room.roomCode, host.credential, {
+        turnTimerEnabled: true,
+        turnTimeSeconds: 50,
+      }),
+    ).rejects.toMatchObject({ code: "InvalidSettings" });
+  });
+
+  it("applies turn timer enabled/disabled to match deadlines and preserves across rematch", async () => {
+    const app = makeApplication();
+    const host = await app.createRoom({ displayName: "Host" });
+    await app.joinRoom(host.room.roomCode, { displayName: "Guest" });
+
+    // Disable timer before start
+    await app.updateSettings(host.room.roomCode, host.credential, { turnTimerEnabled: false });
+
+    // Start match
+    const started = await app.startMatch(host.room.roomCode, host.credential);
+    expect(started.room.settings.turnTimerEnabled).toBe(false);
+    expect((started.match.phase as { deadlineAt?: number }).deadlineAt).toBeUndefined();
+
+    // Cannot update settings during match
+    await expect(
+      app.updateSettings(host.room.roomCode, host.credential, { turnTimerEnabled: true }),
+    ).rejects.toMatchObject({ code: "RoomNotReady" });
+  });
+
+  it("hides opponent power in 3-player match projections and event streams", async () => {
+    const app = makeApplication();
+    const p1 = await app.createRoom({ displayName: "P1" });
+    const p2 = await app.joinRoom(p1.room.roomCode, { displayName: "P2" });
+    const p3 = await app.joinRoom(p1.room.roomCode, { displayName: "P3" });
+
+    await app.startMatch(p1.room.roomCode, p1.credential);
+    const v1 = await app.getView(p1.room.roomCode, p1.credential);
+    const v2 = await app.getView(p1.room.roomCode, p2.credential);
+    const v3 = await app.getView(p1.room.roomCode, p3.credential);
+
+    // P1 sees only P1's power
+    const v1_p1 = v1.match!.players.find((p) => p.playerId === p1.playerId);
+    const v1_p2 = v1.match!.players.find((p) => p.playerId === p2.playerId);
+    const v1_p3 = v1.match!.players.find((p) => p.playerId === p3.playerId);
+    expect(v1_p1?.power).toBe(2);
+    expect(v1_p2?.power).toBeUndefined();
+    expect(v1_p3?.power).toBeUndefined();
+
+    // P2 sees only P2's power
+    const v2_p1 = v2.match!.players.find((p) => p.playerId === p1.playerId);
+    const v2_p2 = v2.match!.players.find((p) => p.playerId === p2.playerId);
+    const v2_p3 = v2.match!.players.find((p) => p.playerId === p3.playerId);
+    expect(v2_p1?.power).toBeUndefined();
+    expect(v2_p2?.power).toBe(2);
+    expect(v2_p3?.power).toBeUndefined();
+
+    // P3 sees only P3's power
+    const v3_p1 = v3.match!.players.find((p) => p.playerId === p1.playerId);
+    const v3_p2 = v3.match!.players.find((p) => p.playerId === p2.playerId);
+    const v3_p3 = v3.match!.players.find((p) => p.playerId === p3.playerId);
+    expect(v3_p1?.power).toBeUndefined();
+    expect(v3_p2?.power).toBeUndefined();
+    expect(v3_p3?.power).toBe(2);
+
+    // Subscriber notifications for P2 and P3 must not leak recovered power of other players
+    let p2NotifiedEvents: readonly any[] = [];
+    await app.subscribe(p1.room.roomCode, p2.credential, (n) => {
+      p2NotifiedEvents = n.events;
+    });
+
+    const activeId = v1.match!.phase.kind === "ACTIVE_TURN" ? v1.match!.phase.activePlayerId : "";
+    const activeCred =
+      activeId === p1.playerId
+        ? p1.credential
+        : activeId === p2.playerId
+          ? p2.credential
+          : p3.credential;
+
+    const recoverRes = await submit(
+      app,
+      p1.room.roomCode,
+      activeCred,
+      "rec-1",
+      v1.match!.revision,
+      (v1.match!.phase as { phaseToken: string }).phaseToken,
+      asMatchId(v1.match!.matchId),
+      { type: "RECOVER" },
+    );
+
+    const recEvent = recoverRes.events.find((e) => e.type === "PowerRecovered");
+    if (activeId === p1.playerId) {
+      expect(recEvent).toHaveProperty("power");
+      const p2RecEvent = p2NotifiedEvents.find((e) => e.type === "PowerRecovered");
+      expect(p2RecEvent).toBeDefined();
+      expect((p2RecEvent as any).power).toBeUndefined();
+    }
   });
 });

@@ -91,4 +91,57 @@ test.describe("Browser E2E: Hidden Information Protection", () => {
     expect(bystanderStorage).not.toContain("pendingFunding");
     expect(bystanderStorage).not.toContain("funding");
   });
+
+  test("Opponent Power is strictly hidden from DOM, client storage, and target options", async ({
+    browser,
+  }) => {
+    player1 = await createPlayer(browser, "Alice");
+    player2 = await createPlayer(browser, "Bob");
+    player3 = await createPlayer(browser, "Carol");
+
+    const roomCode = await createRoom(player1);
+    await joinRoom(player2, roomCode);
+    await joinRoom(player3, roomCode);
+
+    await startMatch(player1);
+    await player1.page.waitForSelector(".screen--game");
+    await player2.page.waitForSelector(".screen--game");
+    await player3.page.waitForSelector(".screen--game");
+
+    // Check Player 1's view:
+    // 1. Player 1 can see own power with (Private) label
+    const p1OwnCard = player1.page.locator(".player-card--self");
+    await expect(p1OwnCard).toBeVisible();
+    await expect(p1OwnCard.locator('.stat-row[data-stat="power"] .stat-num')).toContainText(
+      "(2/3)",
+    );
+    await expect(p1OwnCard.locator('.stat-row[data-stat="power"] .stat-note')).toContainText(
+      "(Private)",
+    );
+
+    // 2. Opponents' cards have hidden power indicator
+    const opponentCards = player1.page.locator(".player-card:not(.player-card--self)");
+    expect(await opponentCards.count()).toBe(2);
+
+    for (let i = 0; i < 2; i++) {
+      const oppCard = opponentCards.nth(i);
+      const powerStat = oppCard.locator('.stat-row[data-stat="power"]');
+      const hiddenValue = powerStat.locator(".stat-value--private");
+      await expect(hiddenValue).toBeVisible();
+      await expect(hiddenValue).toHaveAttribute("aria-label", "Opponent power is hidden");
+      await expect(hiddenValue.locator(".power-hidden")).toHaveText("🔒 ?");
+    }
+
+    // 3. Find active player and verify Strike target options do not show opponent power
+    const { active } = await findActivePlayer([player1, player2, player3]);
+    const targetOptions = active.page.locator("#strike-target option:not([value=''])");
+    const optionTexts = await targetOptions.allTextContents();
+    expect(optionTexts.length).toBeGreaterThan(0);
+    for (const text of optionTexts) {
+      // Target option should have Influence (◆) but never Power (⚡)
+      expect(text).toContain("◆");
+      expect(text).not.toContain("⚡");
+      expect(text).not.toMatch(/⚡\s*\d+/);
+    }
+  });
 });

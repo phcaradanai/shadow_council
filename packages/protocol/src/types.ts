@@ -16,6 +16,16 @@ export interface RematchBody {
   readonly commandId?: string;
 }
 
+export interface WireRoomSettings {
+  readonly turnTimerEnabled: boolean;
+  readonly turnTimeSeconds?: number;
+}
+
+export interface UpdateSettingsBody {
+  readonly turnTimerEnabled: boolean;
+  readonly turnTimeSeconds?: number;
+}
+
 export type WireIntent =
   | { readonly type: "STRIKE"; readonly targetId: string; readonly funding: 0 | 1 }
   | { readonly type: "RECOVER" }
@@ -58,6 +68,7 @@ export interface WireRoomView {
   readonly hostPlayerId: string;
   readonly members: readonly WireRoomMemberView[];
   readonly matchId?: string;
+  readonly settings: WireRoomSettings;
 }
 
 export type WireLegalIntent =
@@ -91,7 +102,7 @@ export interface WirePlayerView {
   readonly playerId: string;
   readonly displayName: string;
   readonly influence: number;
-  readonly power: number;
+  readonly power?: number;
   readonly eliminated: boolean;
   readonly connected: boolean;
 }

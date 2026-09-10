@@ -11,6 +11,7 @@ import type {
 } from "./contracts.js";
 import type { ApplicationPorts, RoomRecord } from "./ports.js";
 import {
+  projectEventsForViewer,
   projectMatchView,
   projectRoomView,
   type ApplicationNotification,
@@ -86,6 +87,14 @@ export class GameApplication {
       const { room, result } = this.roomManager.rematch(roomCode, credential);
       this.notify(roomCode, [], room);
       return result;
+    });
+  }
+
+  async updateSettings(roomCode: string, credential: string, settings: unknown): Promise<RoomView> {
+    return this.enqueue(roomCode, () => {
+      const { room, roomView } = this.roomManager.updateSettings(roomCode, credential, settings);
+      this.notify(roomCode, [], room);
+      return roomView;
     });
   }
 
@@ -197,8 +206,13 @@ export class GameApplication {
         stored === undefined
           ? undefined
           : projectMatchView(room, stored.state, membership.playerId, stored.deadline?.deadlineAt);
+      const projectedEvents = projectEventsForViewer(events, membership.playerId);
       try {
-        subscriber({ room: roomView, ...(match === undefined ? {} : { match }), events });
+        subscriber({
+          room: roomView,
+          ...(match === undefined ? {} : { match }),
+          events: projectedEvents,
+        });
       } catch {
         // A disconnected subscriber does not affect the committed match.
       }

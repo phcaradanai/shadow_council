@@ -4,6 +4,7 @@ import {
   parseCreateRoomBody,
   parseRematchBody,
   parseStartMatchBody,
+  parseUpdateSettingsBody,
   PROTOCOL_VERSION,
 } from "./index.js";
 
@@ -63,5 +64,38 @@ describe("wire protocol", () => {
       value: { commandId: "rematch-1" },
     });
     expect(parseRematchBody({ commandId: "" })).toMatchObject({ ok: false });
+  });
+
+  it("parses valid room settings", () => {
+    expect(parseUpdateSettingsBody({ turnTimerEnabled: true, turnTimeSeconds: 45 })).toEqual({
+      ok: true,
+      value: { turnTimerEnabled: true, turnTimeSeconds: 45 },
+    });
+    expect(parseUpdateSettingsBody({ turnTimerEnabled: false })).toEqual({
+      ok: true,
+      value: { turnTimerEnabled: false },
+    });
+  });
+
+  it("rejects invalid room settings", () => {
+    expect(parseUpdateSettingsBody(null)).toMatchObject({ ok: false });
+    expect(parseUpdateSettingsBody({})).toMatchObject({ ok: false });
+    expect(parseUpdateSettingsBody({ turnTimerEnabled: "true" })).toMatchObject({ ok: false });
+    expect(parseUpdateSettingsBody({ turnTimerEnabled: true, turnTimeSeconds: -5 })).toMatchObject({
+      ok: false,
+    });
+    expect(parseUpdateSettingsBody({ turnTimerEnabled: true, turnTimeSeconds: 0 })).toMatchObject({
+      ok: false,
+    });
+    expect(
+      parseUpdateSettingsBody({ turnTimerEnabled: true, turnTimeSeconds: 30.5 }),
+    ).toMatchObject({
+      ok: false,
+    });
+    expect(
+      parseUpdateSettingsBody({ turnTimerEnabled: true, turnTimeSeconds: "45" }),
+    ).toMatchObject({
+      ok: false,
+    });
   });
 });

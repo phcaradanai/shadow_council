@@ -1,4 +1,4 @@
-﻿# Shadow Council — Localization Architecture & Glossary
+# Shadow Council — Localization Architecture & Glossary
 
 This document details the internationalization (i18n) and Thai localization system implemented for **Shadow Council**.
 
@@ -72,6 +72,11 @@ The following translations have been established and applied uniformly across th
 | **The Council (Alive)** | **สภาเงา (ผู้รอดชีวิต)**  | Roster header tracking living players.                                                                                 |
 | **Host**                | **หัวหน้าห้อง**           | Room creator badge.                                                                                                    |
 | **You**                 | **คุณ**                   | Self badge.                                                                                                            |
+| **Match Settings**      | **การตั้งค่าการประลอง**   | Lobby settings card header for configuring game rules.                                                                 |
+| **Turn Timer**          | **เวลาต่อเทิร์น**         | Toggle label for limited decision windows.                                                                             |
+| **No Time Limit**       | **ไม่จำกัดเวลา**          | In-game countdown and lobby status when turn timer is disabled.                                                        |
+| **(Private)**           | **(ส่วนตัว)**             | Badge on player's own power stat indicating only they can see it.                                                      |
+| **Opponent power hidden** | **พลังของคู่ต่อสู้ถูกซ่อนไว้** | Accessibility label and tooltip for hidden opponent power indicator (`🔒 ?`).                                       |
 
 ---
 

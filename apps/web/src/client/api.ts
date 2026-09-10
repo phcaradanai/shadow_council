@@ -3,6 +3,7 @@ import type {
   WireDomainEvent,
   WireIntent,
   WireMatchView,
+  WireRoomSettings,
   WireRoomView,
 } from "@shadow-council/protocol";
 
@@ -94,6 +95,19 @@ export const api = {
       {
         method: "POST",
         body: JSON.stringify(commandId !== undefined ? { commandId } : {}),
+      },
+    );
+  },
+
+  async updateSettings(
+    roomCode: string,
+    settings: WireRoomSettings,
+  ): Promise<{ readonly room: WireRoomView }> {
+    return requestJson<{ readonly room: WireRoomView }>(
+      `/rooms/${encodeURIComponent(roomCode)}/settings`,
+      {
+        method: "POST",
+        body: JSON.stringify(settings),
       },
     );
   },

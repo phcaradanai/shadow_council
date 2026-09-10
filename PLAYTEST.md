@@ -9,9 +9,10 @@ This document defines the official playtest protocol, facilitator procedure, obs
 Validate that the core social bluff and concealed strike loop creates genuine tension, clear deductions, and decisive agency in a live 4-player multiplayer environment across actual web browsers.
 
 **MVP Ruleset in Effect (Frozen)**:
-- **Players**: 4 players in a single match room.
-- **Starting Stats**: 3 Influence, 2 Power per player.
-- **Max Power**: 3 Power.
+- **Players**: 4 players in a single match room (2–6 supported).
+- **Starting Stats**: 3 Influence (public), 2 Power per player (private).
+- **Max Power**: 3 Power. Opponents' Power is hidden (`🔒 ?`); only own Power is visible.
+- **Turn Timer**: Configurable in Lobby by host (Enabled: 30s, 45s default, 60s, 90s; or Disabled: No Time Limit).
 - **Turn Actions**:
   - `Strike (Target, Funding)`: Funding = `0` (Bluff) or `1` (Genuine, requires $\ge 1$ Power).
   - `Recover`: $+1$ Power (capped at 3).
@@ -43,8 +44,12 @@ Validate that the core social bluff and concealed strike loop creates genuine te
    - Players 2, 3, and 4 navigate to `http://<host-ip>:3000`.
    - Enter the room code and their distinct display names.
    - Click **Join Room**.
-3. **Lobby Confirmation**:
+3. **Lobby Confirmation & Match Settings**:
    - Confirm all 4 players appear in the lobby roster as **ONLINE**.
+   - Host reviews the **⚙️ Match Settings** card in the Lobby:
+     - Toggle turn timer (Enabled / Disabled).
+     - Select turn duration (e.g. 45s for standard play, 60s/90s for relaxed play, or Disabled for untimed deliberate play).
+     - Non-host players confirm settings update in real-time.
    - Facilitator announces: *"Review the 📜 Rules modal before we begin."*
    - Host clicks **⚔️ Start Match**.
 4. **Active Play Observation**:
@@ -53,7 +58,7 @@ Validate that the core social bluff and concealed strike loop creates genuine te
 5. **Post-Match Rematch**:
    - When the match concludes, observe the **Final Council Standings** screen.
    - Host clicks **🔄 Play Again (Return to Lobby)**.
-   - Confirm all 4 players transition back to the lobby with seats intact.
+   - Confirm all 4 players transition back to the lobby with seats and settings intact.
    - Host starts Match 2.
 
 ---

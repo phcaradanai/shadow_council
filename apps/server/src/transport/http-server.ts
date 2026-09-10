@@ -16,6 +16,7 @@ import {
   parseJoinRoomBody,
   parseRematchBody,
   parseStartMatchBody,
+  parseUpdateSettingsBody,
   PROTOCOL_VERSION,
   type CommandEnvelope,
   type WireIntent,
@@ -55,7 +56,8 @@ const safeError = (
               ? 403
               : error.code === "InvalidIntent" ||
                   error.code === "InvalidDisplayName" ||
-                  error.code === "InvalidCommandId"
+                  error.code === "InvalidCommandId" ||
+                  error.code === "InvalidSettings"
                 ? 422
                 : 400;
     return { status, body: { code: error.code, message: error.message } };
@@ -278,6 +280,17 @@ const handleRequest = async (
     }
     const result = await application.rematch(roomCode, token);
     writeJson(response, 200, result);
+    return;
+  }
+  if (method === "POST" && parts[2] === "settings" && parts.length === 3) {
+    ensureSameOrigin(request);
+    const parsed = parseUpdateSettingsBody(await readBody(request));
+    if (!parsed.ok) {
+      writeJson(response, 400, parsed.error);
+      return;
+    }
+    const result = await application.updateSettings(roomCode, token, parsed.value);
+    writeJson(response, 200, { room: result });
     return;
   }
   if (method === "POST" && parts[2] === "leave" && parts.length === 3) {
