@@ -88,4 +88,33 @@ describe("HTTP vertical slice", () => {
       );
     }
   });
+
+  it("serves static web assets and modular client scripts", async () => {
+    const server = createHttpServer(createServerApplication());
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", () => resolve()));
+    const address = server.address();
+    if (address === null || typeof address === "string") throw new Error("server did not bind");
+    const base = `http://127.0.0.1:${address.port}`;
+    try {
+      const indexRes = await fetch(`${base}/`);
+      expect(indexRes.status).toBe(200);
+      expect(indexRes.headers.get("content-type")).toContain("text/html");
+
+      const cssRes = await fetch(`${base}/style.css`);
+      expect(cssRes.status).toBe(200);
+      expect(cssRes.headers.get("content-type")).toContain("text/css");
+
+      const appJsRes = await fetch(`${base}/app.js`);
+      expect(appJsRes.status).toBe(200);
+      expect(appJsRes.headers.get("content-type")).toContain("text/javascript");
+
+      const apiJsRes = await fetch(`${base}/client/api.js`);
+      expect(apiJsRes.status).toBe(200);
+      expect(apiJsRes.headers.get("content-type")).toContain("text/javascript");
+    } finally {
+      await new Promise<void>((resolve, reject) =>
+        server.close((error) => (error === undefined ? resolve() : reject(error))),
+      );
+    }
+  });
 });

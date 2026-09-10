@@ -33,6 +33,10 @@ export interface StartMatchResult {
   readonly events: readonly DomainEvent[];
 }
 
+export interface RematchResult {
+  readonly room: RoomView;
+}
+
 export interface ReadViewResult {
   readonly room: RoomView;
   readonly match?: MatchView;

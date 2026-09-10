@@ -212,4 +212,134 @@ describe("application room and match flow", () => {
     expect(advanced.match?.phase.kind).toBe("ACTIVE_TURN");
     void guest;
   });
+
+  it("projects authoritative deadlineAt and keeps funding hidden from bystanders", async () => {
+    const app = makeApplication();
+    const p1 = await app.createRoom({ displayName: "Ari" });
+    const p2 = await app.joinRoom(p1.room.roomCode, { displayName: "Bo" });
+    const p3 = await app.joinRoom(p1.room.roomCode, { displayName: "Charlie" });
+    const started = await app.startMatch(p1.room.roomCode, p1.credential);
+    expect(started.match.phase.kind).toBe("ACTIVE_TURN");
+    if (started.match.phase.kind !== "ACTIVE_TURN") throw new Error("expected active");
+    expect(typeof started.match.phase.deadlineAt).toBe("number");
+    expect(started.match.phase.deadlineAt).toBeGreaterThan(0);
+
+    const attackerId = started.match.phase.activePlayerId;
+    const attackerCred =
+      attackerId === p1.playerId
+        ? p1.credential
+        : attackerId === p2.playerId
+          ? p2.credential
+          : p3.credential;
+    const otherPlayers = [p1, p2, p3].filter((p) => p.playerId !== attackerId);
+    const targetPlayer = otherPlayers[0]!;
+    const bystanderPlayer = otherPlayers[1]!;
+
+    const committed = await submit(
+      app,
+      p1.room.roomCode,
+      attackerCred,
+      "strike-3p",
+      started.match.revision,
+      started.match.phase.phaseToken,
+      asMatchId(started.match.matchId),
+      { type: "STRIKE", targetId: targetPlayer.playerId, funding: 0 },
+    );
+    expect(committed.match.phase.kind).toBe("REACTION");
+    if (committed.match.phase.kind !== "REACTION") throw new Error("expected reaction");
+    expect(committed.match.phase.pendingFunding).toBe(0);
+    expect(typeof committed.match.phase.deadlineAt).toBe("number");
+
+    const targetView = await app.getView(p1.room.roomCode, targetPlayer.credential);
+    if (targetView.match?.phase.kind !== "REACTION") throw new Error("expected reaction");
+    expect(targetView.match.phase.pendingFunding).toBeUndefined();
+
+    const bystanderView = await app.getView(p1.room.roomCode, bystanderPlayer.credential);
+    if (bystanderView.match?.phase.kind !== "REACTION") throw new Error("expected reaction");
+    expect(bystanderView.match.phase.pendingFunding).toBeUndefined();
+    expect(JSON.stringify(targetView)).not.toContain('"pendingFunding"');
+    expect(JSON.stringify(bystanderView)).not.toContain('"pendingFunding"');
+  });
+
+  it("supports rematch: returns finished room to lobby and allows new match", async () => {
+    const { app, host, guest, hostView } = await createStarted();
+    if (hostView.phase.kind !== "ACTIVE_TURN") throw new Error("expected active");
+    // Non-host cannot rematch
+    await expect(app.rematch(host.room.roomCode, guest.credential)).rejects.toMatchObject({
+      code: "RoomNotReady",
+    });
+
+    // We can simulate finishing by playing or setting finished state
+    // Let's finish the game by eliminating a player
+    const attackerId = hostView.phase.activePlayerId;
+    const targetId = hostView.seatOrder.find((id) => id !== attackerId)!;
+    const attackerCred = attackerId === host.playerId ? host.credential : guest.credential;
+    const targetCred = attackerId === host.playerId ? guest.credential : host.credential;
+
+    // Strike 1 + Challenge with target at low influence
+    // Let's do 2 genuine challenged strikes to eliminate target (target loses 2 then 1)
+    const c1 = await submit(
+      app,
+      host.room.roomCode,
+      attackerCred,
+      "s1",
+      hostView.revision,
+      hostView.phase.phaseToken,
+      asMatchId(hostView.matchId),
+      { type: "STRIKE", targetId, funding: 1 },
+    );
+    if (c1.match.phase.kind !== "REACTION") throw new Error("expected reaction");
+    const r1 = await submit(
+      app,
+      host.room.roomCode,
+      targetCred,
+      "r1",
+      c1.revision,
+      c1.match.phase.phaseToken,
+      asMatchId(hostView.matchId),
+      { type: "REACT", choice: "challenge" },
+    );
+    // target has 1 influence left. Next turn:
+    if (r1.match.phase.kind !== "ACTIVE_TURN") throw new Error("expected active");
+    const nextAttacker = r1.match.phase.activePlayerId;
+    const nextTarget = r1.match.seatOrder.find((id) => id !== nextAttacker)!;
+    const nextAttackerCred = nextAttacker === host.playerId ? host.credential : guest.credential;
+    const nextTargetCred = nextAttacker === host.playerId ? guest.credential : host.credential;
+
+    const c2 = await submit(
+      app,
+      host.room.roomCode,
+      nextAttackerCred,
+      "s2",
+      r1.match.revision,
+      r1.match.phase.phaseToken,
+      asMatchId(hostView.matchId),
+      { type: "STRIKE", targetId: nextTarget, funding: 0 },
+    );
+    if (c2.match.phase.kind !== "REACTION") throw new Error("expected reaction");
+    const r2 = await submit(
+      app,
+      host.room.roomCode,
+      nextTargetCred,
+      "r2",
+      c2.revision,
+      c2.match.phase.phaseToken,
+      asMatchId(hostView.matchId),
+      { type: "REACT", choice: "challenge" },
+    );
+    expect(r2.match.phase.kind).toBe("FINISHED");
+    const finishedRoom = await app.getView(host.room.roomCode, host.credential);
+    expect(finishedRoom.room.status).toBe("FINISHED");
+
+    // Host initiates rematch
+    const rematchRes = await app.rematch(host.room.roomCode, host.credential);
+    expect(rematchRes.room.status).toBe("LOBBY");
+    expect(rematchRes.room.members).toHaveLength(2);
+
+    // Host can start a new match
+    const newMatch = await app.startMatch(host.room.roomCode, host.credential);
+    expect(newMatch.match.status).toBe("PLAYING");
+    expect(newMatch.match.round).toBe(1);
+    expect(newMatch.match.matchId).not.toBe(hostView.matchId);
+  });
 });

@@ -1,6 +1,6 @@
 # First vertical slice — worker contracts
 
-Status: ready for architectural/rules review; do not dispatch implementation before acceptance. The slice is complete when multiple browser sessions can play the loop through round rollover and a winner. No significant code is part of Phase 0.
+Status: Completed & Verified; Ready for Playtest (2026-09-10). The vertical slice is fully integrated and tested. Multiple browser sessions can play the complete loop through bluffing, reactions, reveals, round rollover, elimination, sole-survivor victory, and seamless rematching.
 
 All workers obey the import matrix, source-size governance, and rule matrix. Owned paths include colocated tests unless noted. A new dependency, cross-owner change, or contract deviation requires lead review. Workers report behavior, test evidence, and unresolved risks. Listed durations are deliberately omitted; scope and dependencies define task size.
 

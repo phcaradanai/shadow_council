@@ -21,6 +21,7 @@ export type PublicPhaseView =
       readonly kind: "ACTIVE_TURN";
       readonly activePlayerId: PlayerId;
       readonly phaseToken: string;
+      readonly deadlineAt?: number;
     }
   | {
       readonly kind: "REACTION";
@@ -28,6 +29,7 @@ export type PublicPhaseView =
       readonly attackerId: PlayerId;
       readonly targetId: PlayerId;
       readonly phaseToken: string;
+      readonly deadlineAt?: number;
       readonly pendingFunding?: Funding;
     }
   | { readonly kind: "FINISHED"; readonly winnerId: PlayerId };
@@ -81,6 +83,7 @@ export const projectMatchView = (
   room: RoomRecord,
   state: MatchState,
   viewerPlayerId: PlayerId,
+  deadlineAt?: number,
 ): MatchView => {
   const memberById = new Map(room.members.map((member) => [member.playerId, member]));
   const players = state.players.map((player) => {
@@ -97,7 +100,12 @@ export const projectMatchView = (
   const phase = state.phase;
   const phaseView: PublicPhaseView =
     phase.kind === "ACTIVE_TURN"
-      ? { kind: "ACTIVE_TURN", activePlayerId: phase.activePlayerId, phaseToken: phase.phaseToken }
+      ? {
+          kind: "ACTIVE_TURN",
+          activePlayerId: phase.activePlayerId,
+          phaseToken: phase.phaseToken,
+          ...(deadlineAt !== undefined ? { deadlineAt } : {}),
+        }
       : phase.kind === "REACTION"
         ? {
             kind: "REACTION",
@@ -105,6 +113,7 @@ export const projectMatchView = (
             attackerId: phase.pendingStrike.attackerId,
             targetId: phase.pendingStrike.targetId,
             phaseToken: phase.phaseToken,
+            ...(deadlineAt !== undefined ? { deadlineAt } : {}),
             ...(phase.pendingStrike.attackerId === viewerPlayerId
               ? { pendingFunding: phase.pendingStrike.funding }
               : {}),

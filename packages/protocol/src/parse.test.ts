@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   parseCommandEnvelope,
   parseCreateRoomBody,
+  parseRematchBody,
   parseStartMatchBody,
   PROTOCOL_VERSION,
 } from "./index.js";
@@ -54,5 +55,13 @@ describe("wire protocol", () => {
       value: { commandId: "start-1" },
     });
     expect(parseStartMatchBody({ commandId: "" })).toMatchObject({ ok: false });
+  });
+
+  it("parses an optional idempotency key for rematch", () => {
+    expect(parseRematchBody({ commandId: "rematch-1" })).toEqual({
+      ok: true,
+      value: { commandId: "rematch-1" },
+    });
+    expect(parseRematchBody({ commandId: "" })).toMatchObject({ ok: false });
   });
 });

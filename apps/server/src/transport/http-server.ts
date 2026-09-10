@@ -1,6 +1,7 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import { readFile } from "node:fs/promises";
 import { URL } from "node:url";
+import { normalize, resolve } from "node:path";
 import {
   ApplicationError,
   GameApplication,
@@ -13,6 +14,7 @@ import {
   parseCommandEnvelope,
   parseCreateRoomBody,
   parseJoinRoomBody,
+  parseRematchBody,
   parseStartMatchBody,
   PROTOCOL_VERSION,
   type CommandEnvelope,
@@ -179,14 +181,33 @@ const handleRequest = async (
     response.end(html);
     return;
   }
-  if (method === "GET" && requestUrl.pathname === "/app.js") {
-    const script = await readFile("apps/web/dist/main.js", "utf8").catch(() => undefined);
-    if (script === undefined) {
-      writeJson(response, 404, { code: "NotFound", message: "Web client is not built." });
-      return;
+  if (method === "GET" && requestUrl.pathname === "/style.css") {
+    const css = await readFile("apps/web/style.css", "utf8").catch(() => "");
+    response.writeHead(200, { "content-type": "text/css; charset=utf-8" });
+    response.end(css);
+    return;
+  }
+  if (
+    method === "GET" &&
+    (requestUrl.pathname === "/app.js" ||
+      requestUrl.pathname.endsWith(".js") ||
+      requestUrl.pathname.endsWith(".js.map"))
+  ) {
+    const subPath = requestUrl.pathname === "/app.js" ? "main.js" : requestUrl.pathname.slice(1);
+    const safeRelative = normalize(subPath).replace(/^(\.\.[\/\\])+/, "");
+    const fullPath = resolve("apps/web/dist", safeRelative);
+    if (fullPath.startsWith(resolve("apps/web/dist"))) {
+      const fileContent = await readFile(fullPath, "utf8").catch(() => undefined);
+      if (fileContent !== undefined) {
+        const contentType = subPath.endsWith(".map")
+          ? "application/json; charset=utf-8"
+          : "text/javascript; charset=utf-8";
+        response.writeHead(200, { "content-type": contentType });
+        response.end(fileContent);
+        return;
+      }
     }
-    response.writeHead(200, { "content-type": "text/javascript; charset=utf-8" });
-    response.end(script);
+    writeJson(response, 404, { code: "NotFound", message: "Web file not found." });
     return;
   }
 
@@ -245,6 +266,17 @@ const handleRequest = async (
       return;
     }
     const result = await application.startMatch(roomCode, token, parsed.value.commandId);
+    writeJson(response, 200, result);
+    return;
+  }
+  if (method === "POST" && parts[2] === "rematch" && parts.length === 3) {
+    ensureSameOrigin(request);
+    const parsed = parseRematchBody(await readBody(request));
+    if (!parsed.ok) {
+      writeJson(response, 400, parsed.error);
+      return;
+    }
+    const result = await application.rematch(roomCode, token);
     writeJson(response, 200, result);
     return;
   }

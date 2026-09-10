@@ -12,6 +12,10 @@ export interface StartMatchBody {
   readonly commandId?: string;
 }
 
+export interface RematchBody {
+  readonly commandId?: string;
+}
+
 export type WireIntent =
   | { readonly type: "STRIKE"; readonly targetId: string; readonly funding: 0 | 1 }
   | { readonly type: "RECOVER" }
@@ -66,13 +70,19 @@ export type WireLegalIntent =
   | { readonly type: "REACT"; readonly choices: readonly ("guard" | "challenge" | "yield")[] };
 
 export type WirePhaseView =
-  | { readonly kind: "ACTIVE_TURN"; readonly activePlayerId: string; readonly phaseToken: string }
+  | {
+      readonly kind: "ACTIVE_TURN";
+      readonly activePlayerId: string;
+      readonly phaseToken: string;
+      readonly deadlineAt?: number;
+    }
   | {
       readonly kind: "REACTION";
       readonly activePlayerId: string;
       readonly attackerId: string;
       readonly targetId: string;
       readonly phaseToken: string;
+      readonly deadlineAt?: number;
       readonly pendingFunding?: 0 | 1;
     }
   | { readonly kind: "FINISHED"; readonly winnerId: string };

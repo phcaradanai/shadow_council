@@ -4,6 +4,7 @@ import {
   type CreateRoomBody,
   type JoinRoomBody,
   type ParseResult,
+  type RematchBody,
   type StartMatchBody,
   type WireIntent,
 } from "./types.js";
@@ -64,6 +65,9 @@ export const parseStartMatchBody = (value: unknown): ParseResult<StartMatchBody>
   }
   return { ok: true, value: { commandId: value.commandId } };
 };
+
+export const parseRematchBody = (value: unknown): ParseResult<RematchBody> =>
+  parseStartMatchBody(value);
 
 const parseIntent = (value: unknown): ParseResult<WireIntent> => {
   if (!isRecord(value))
