@@ -156,13 +156,13 @@ export const en: TranslationDictionary = {
   "action.schemeTitle": "♟️ Prepare Scheme",
   "action.schemeBadge": "1 Power",
   "action.schemeDesc":
-    "Set a hidden defensive contingency for 1 Power. Opponents see you have a Scheme, but not which one.",
+    "Spend 1 Power to arm one hidden contingency. Preparing another Scheme replaces the current one; opponents only know that one is armed.",
   "action.schemeAmbushTitle": "🗡️ Ambush",
   "action.schemeAmbushDesc":
     "When you catch an opponent bluffing via Challenge, deal +1 bonus damage to the attacker!",
   "action.schemeBulwarkTitle": "🛡️ Bulwark",
   "action.schemeBulwarkDesc":
-    "When struck, absorb 1 incoming damage from the attack.",
+    "When you commit Guard, Bulwark adds +1 effective Guard. It does nothing on Yield or a pure Challenge.",
   "action.schemeBtn": "♟️ Prepare Scheme",
   "action.schemeBtnDisabled": "Requires 1 Power",
   "action.schemingBtn": "Preparing Scheme...",
@@ -327,7 +327,7 @@ export const en: TranslationDictionary = {
     "🔒 <strong>Power is Private:</strong> You can only see your own Power reserves. Opponent Power is hidden.",
   "rules.turnTitle": "On Your Turn: Choose an Action",
   "rules.recoverRule": "⚡ <strong>Recover:</strong> Gain +2 Power (up to 3 max) and end your turn.",
-  "rules.schemeRule": "♟️ <strong>Scheme (1 Power):</strong> Set Ambush (+1 damage when catching a bluff) or Bulwark (absorb 1 damage). Opponents see you have a Scheme, but not which one.",
+  "rules.schemeRule": "♟️ <strong>Scheme (1 Power):</strong> Arm Ambush (+1 attacker damage on a successful Challenge) or Bulwark (+1 Guard when Guard is committed). Opponents know a Scheme is armed, but not which one.",
   "rules.strikeRule": "⚔️ <strong>Strike:</strong> Choose a target, announce Threat (1-3), and secretly commit Force (0-3).",
   "rules.bluffSubRule":
     "Force < Threat is a Bluff. If challenged, attacker takes 1 damage (plus Ambush).",

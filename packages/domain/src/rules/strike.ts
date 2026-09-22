@@ -156,7 +156,7 @@ export const resolveStrike = (
   const attackerInfluence = clampInfluence(attacker.influence - attackerInfluenceLoss);
   const targetInfluence = clampInfluence(target.influence - targetInfluenceLoss);
 
-  // If target's scheme triggered (or consumed upon being attacked), reset target's activeScheme
+  // Only the matching Scheme trigger is consumed. Unrelated reactions preserve the armed Scheme.
   const nextTargetScheme = triggeredScheme ? undefined : target.activeScheme;
 
   const nextPlayers = players.map((player) => {

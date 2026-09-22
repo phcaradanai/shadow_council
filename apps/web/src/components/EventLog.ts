@@ -8,7 +8,21 @@ const escapeHtml = (value: string): string =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 
-const formatReactionChoice = (choice: unknown): string => {
+export const formatReactionChoice = (choice: unknown): string => {
+  if (
+    typeof choice === "object" &&
+    choice !== null &&
+    "guard" in choice &&
+    "challenge" in choice
+  ) {
+    const guard = Number(choice.guard);
+    const challenge = choice.challenge === true;
+    if (guard > 0 && challenge) return t("reaction.modeHybrid", { guard });
+    if (challenge) return t("reaction.modeChallenge");
+    if (guard > 0) return t("reaction.modeGuard", { guard });
+    return t("reaction.modeYield");
+  }
+
   if (typeof choice === "object" && choice !== null && "type" in choice) {
     const obj = choice as { type: string; amount?: number };
     if (obj.type === "guard") {
