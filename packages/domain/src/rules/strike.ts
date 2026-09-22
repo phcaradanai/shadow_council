@@ -95,6 +95,7 @@ export interface StrikeResolution {
   readonly players: readonly PlayerState[];
   readonly events: readonly DomainEventData[];
   readonly eliminated: readonly PlayerId[];
+  readonly triggeredScheme?: SchemeType;
 }
 
 const clampInfluence = (value: number): number => Math.max(0, value);
@@ -212,5 +213,10 @@ export const resolveStrike = (
     events.push({ type: "PlayerEliminated", playerId });
   }
 
-  return { players: nextPlayers, events, eliminated };
+  return {
+    players: nextPlayers,
+    events,
+    eliminated,
+    ...(triggeredScheme !== undefined ? { triggeredScheme } : {}),
+  };
 };

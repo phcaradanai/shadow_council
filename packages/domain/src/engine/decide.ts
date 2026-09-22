@@ -115,10 +115,8 @@ const resolveReaction = (
       force,
       funding: force,
       genuine,
-      ...(resolution.events.some(
-        (event) => event.type === "AttackResolved" && event.damageAbsorbed !== undefined,
-      ) && target.activeScheme !== undefined
-        ? { triggeredScheme: target.activeScheme }
+      ...(resolution.triggeredScheme !== undefined
+        ? { triggeredScheme: resolution.triggeredScheme }
         : {}),
     },
     ...resolution.events,
