@@ -2,5 +2,8 @@
   "name": "@shadow-council/web",
   "version": "0.1.0",
   "type": "module",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@shadow-council/protocol": "0.1.0"
+  }
 }

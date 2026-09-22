@@ -27,7 +27,7 @@ export const createApplicationServer = () => createHttpServer(createServerApplic
 
 if (process.argv[1]?.endsWith("main.js")) {
   const port = Number(process.env.PORT ?? "3000");
-  createApplicationServer().listen(port, () => {
-    process.stdout.write(`Shadow Council server listening on http://localhost:${port}\n`);
+  createApplicationServer().listen(port, "0.0.0.0", () => {
+    process.stdout.write(`Shadow Council server listening on http://0.0.0.0:${port}\n`);
   });
 }

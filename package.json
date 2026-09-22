@@ -17,6 +17,7 @@
     "build:server": "tsc -p apps/server/tsconfig.json",
     "build:web": "tsc -p apps/web/tsconfig.json",
     "typecheck": "tsc -b",
+    "dev": "npm run build && node apps/server/dist/main.js",
     "test": "vitest run",
     "test:domain": "vitest run packages/domain/src/**/*.test.ts",
     "test:application": "vitest run packages/application/src/**/*.test.ts",
