@@ -91,7 +91,8 @@ export const attachStrikePlanner = (
     const plan = selectedPlan();
     const targetName =
       targetSelect.value && targetSelect.selectedOptions[0]
-        ? targetSelect.selectedOptions[0]!.dataset.name ?? targetSelect.selectedOptions[0]!.textContent?.trim()
+        ? (targetSelect.selectedOptions[0]!.dataset.name ??
+          targetSelect.selectedOptions[0]!.textContent?.trim())
         : undefined;
     const threat = selectedThreat();
     const force = selectedForce();

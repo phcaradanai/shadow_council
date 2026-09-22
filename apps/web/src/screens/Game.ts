@@ -146,7 +146,9 @@ export const renderGameScreen = (
     }
   };
 
-  container.querySelector<HTMLButtonElement>("#btn-stats-close")?.addEventListener("click", closeStats);
+  container
+    .querySelector<HTMLButtonElement>("#btn-stats-close")
+    ?.addEventListener("click", closeStats);
   statsModal?.addEventListener("click", (e) => {
     if (e.target === statsModal) {
       closeStats();
@@ -204,7 +206,9 @@ export const renderGameScreen = (
   const defensePlanner = container.querySelector<HTMLElement>(".defense-planner");
   const defenseForm = container.querySelector<HTMLFormElement>("#defense-form");
   if (defensePlanner && defenseForm) {
-    const legalPlans = new Set((defensePlanner.dataset.legalPlans ?? "").split(",").filter(Boolean));
+    const legalPlans = new Set(
+      (defensePlanner.dataset.legalPlans ?? "").split(",").filter(Boolean),
+    );
     const challengeCost = Number(defensePlanner.dataset.challengeCost ?? "1");
     const ownPower = Number(defensePlanner.dataset.power ?? "0");
     const influence = Number(defensePlanner.dataset.influence ?? "0");

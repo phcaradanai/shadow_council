@@ -70,12 +70,7 @@ const resolveReaction = (
   }
 
   const plan = normalizeDefensePlan(choice);
-  if (
-    plan.guard !== 0 &&
-    plan.guard !== 1 &&
-    plan.guard !== 2 &&
-    plan.guard !== 3
-  ) {
+  if (plan.guard !== 0 && plan.guard !== 1 && plan.guard !== 2 && plan.guard !== 3) {
     return failure({ code: "InvalidReaction", message: "Guard must be between 0 and 3." });
   }
   const defensePowerCost = plan.guard + (plan.challenge ? 1 : 0);
@@ -86,7 +81,9 @@ const resolveReaction = (
     });
   }
 
-  const threat = phase.pendingStrike.threat ?? (phase.pendingStrike.funding === 0 ? 1 : (phase.pendingStrike.funding as 1));
+  const threat =
+    phase.pendingStrike.threat ??
+    (phase.pendingStrike.funding === 0 ? 1 : (phase.pendingStrike.funding as 1));
   const force = phase.pendingStrike.force ?? phase.pendingStrike.funding ?? 0;
 
   const resolution = resolveStrike(

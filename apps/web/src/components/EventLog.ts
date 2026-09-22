@@ -9,12 +9,7 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;");
 
 export const formatReactionChoice = (choice: unknown): string => {
-  if (
-    typeof choice === "object" &&
-    choice !== null &&
-    "guard" in choice &&
-    "challenge" in choice
-  ) {
+  if (typeof choice === "object" && choice !== null && "guard" in choice && "challenge" in choice) {
     const guard = Number(choice.guard);
     const challenge = choice.challenge === true;
     if (guard > 0 && challenge) return t("reaction.modeHybrid", { guard });

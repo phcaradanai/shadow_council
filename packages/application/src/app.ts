@@ -226,7 +226,12 @@ export class GameApplication {
         const match =
           stored === undefined
             ? undefined
-            : projectMatchView(room, stored.state, membership.playerId, stored.deadline?.deadlineAt);
+            : projectMatchView(
+                room,
+                stored.state,
+                membership.playerId,
+                stored.deadline?.deadlineAt,
+              );
         const projectedEvents = projectEventsForViewer(events, membership.playerId);
         try {
           subscriber({
@@ -302,7 +307,9 @@ export class GameApplication {
         return;
       }
 
-      process.stdout.write(`Bot ${botPlayerId} [${difficulty}] submitting intent: ${intent.type}\n`);
+      process.stdout.write(
+        `Bot ${botPlayerId} [${difficulty}] submitting intent: ${intent.type}\n`,
+      );
 
       const input: SubmitIntentInput = {
         roomCode,

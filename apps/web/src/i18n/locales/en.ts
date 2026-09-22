@@ -32,7 +32,7 @@ export const en: TranslationDictionary = {
   "home.quickSummaryTitle": "Quick Summary",
   "home.quickBluffTitle": "Threat & Force",
   "home.quickBluffDesc":
-  "Declare Threat (1-3) and secretly commit Force from 0 up to that Threat. Force = Threat is fully backed; anything lower is a bluff.",
+    "Declare Threat (1-3) and secretly commit Force from 0 up to that Threat. Force = Threat is fully backed; anything lower is a bluff.",
   "home.quickReactionTitle": "Tactical Reactions",
   "home.quickReactionDesc":
     "Build a defense plan: choose Guard 0-3 and optionally spend 1 Power to Challenge. You can combine Guard + Challenge.",
@@ -131,9 +131,11 @@ export const en: TranslationDictionary = {
   "action.strikeDesc":
     "Choose an opponent to threaten. Declare a public Threat (1-3) and back it with private Force (0-3).",
   "action.threatLabel": "Public Threat Level (Damage claimed):",
-  "action.threatDesc": "This is your public claim. Actual Force stays hidden and can never exceed the declared Threat.",
+  "action.threatDesc":
+    "This is your public claim. Actual Force stays hidden and can never exceed the declared Threat.",
   "action.forceLabel": "Secret Force (Power committed):",
-  "action.forceDesc": "Force = Threat is fully backed. Force < Threat is underfunded and counts as a bluff.",
+  "action.forceDesc":
+    "Force = Threat is fully backed. Force < Threat is underfunded and counts as a bluff.",
   "action.chooseTarget": "Choose Target:",
   "action.targetPlaceholder": "Select an opponent...",
   "action.secretCommitment": "Secret Force Commitment:",
@@ -167,7 +169,8 @@ export const en: TranslationDictionary = {
   "action.schemeBtnDisabled": "Requires 1 Power",
   "action.schemingBtn": "Preparing Scheme...",
   "action.turnEyebrow": "Council move",
-  "action.strikePlannerHint": "Your main move is a wager: make the public claim, then decide how much private Power really backs it.",
+  "action.strikePlannerHint":
+    "Your main move is a wager: make the public claim, then decide how much private Power really backs it.",
   "action.powerAvailable": "{power} Power",
   "action.threatOption": "Threat {threat}",
   "action.claimPressure": "Public pressure {threat}",
@@ -180,13 +183,17 @@ export const en: TranslationDictionary = {
   "action.planSecret": "Private Force",
   "action.planRemaining": "Power after commit",
   "action.planAwaiting": "Build the claim",
-  "action.planHint": "Pick a target, public Threat, and secret Force. The defender only sees your Threat.",
+  "action.planHint":
+    "Pick a target, public Threat, and secret Force. The defender only sees your Threat.",
   "action.stylePureBluff": "🎭 Pure Bluff",
   "action.stylePartialBluff": "🌓 Partial Bluff",
   "action.styleFullyBacked": "⚔ Fully Backed",
-  "action.readPureBluff": "You spend no Power. If they Challenge, the bluff is exposed; if they hesitate, the claim still creates pressure.",
-  "action.readPartialBluff": "You are claiming Threat {threat} with only Force {force}. Cheaper pressure, but a Challenge catches the gap.",
-  "action.readFullyBacked": "Force matches Threat {threat}. Expensive, but a wrong Challenge is dangerous for the defender.",
+  "action.readPureBluff":
+    "You spend no Power. If they Challenge, the bluff is exposed; if they hesitate, the claim still creates pressure.",
+  "action.readPartialBluff":
+    "You are claiming Threat {threat} with only Force {force}. Cheaper pressure, but a Challenge catches the gap.",
+  "action.readFullyBacked":
+    "Force matches Threat {threat}. Expensive, but a wrong Challenge is dangerous for the defender.",
 
   // Reaction Panel
   "reaction.title": "How Do You Respond?",
@@ -225,7 +232,8 @@ export const en: TranslationDictionary = {
   "reaction.planTitle": "Defense plan",
   "reaction.totalCost": "Total Power",
   "reaction.selectDefense": "Choose your defense",
-  "reaction.selectDefenseHint": "Select a Guard amount first. You may add Challenge to hedge the read.",
+  "reaction.selectDefenseHint":
+    "Select a Guard amount first. You may add Challenge to hedge the read.",
   "reaction.lockPlan": "Lock Defense",
   "reaction.lockingPlan": "Locking Defense...",
   "reaction.modeYield": "Yield",
@@ -235,14 +243,17 @@ export const en: TranslationDictionary = {
   "reaction.previewYield": "Guaranteed controlled loss: your Influence would become {influence}.",
   "reaction.previewGuard": "Your Guard can absorb up to {guard} actual Force.",
   "reaction.previewBluffCaught": "If underfunded: Challenge succeeds and the attacker is punished.",
-  "reaction.previewChallengeWrong": "If fully backed: you take {damage} Influence damage → {influence} remaining.",
-  "reaction.previewHybridWrong": "If fully backed: Guard {guard} cushions the failed call to {damage} damage → {influence} remaining.",
+  "reaction.previewChallengeWrong":
+    "If fully backed: you take {damage} Influence damage → {influence} remaining.",
+  "reaction.previewHybridWrong":
+    "If fully backed: Guard {guard} cushions the failed call to {damage} damage → {influence} remaining.",
   "reaction.planTooExpensive": "This combination costs more Power than you have.",
 
   // Reveal Panel
   "reveal.eyebrow": "Clash Resolution",
   "reveal.stepThreat": "1. Threat",
-  "reveal.stepThreatDesc": "<strong>{attacker}</strong> declared Threat {threat} at <strong>{target}</strong>",
+  "reveal.stepThreatDesc":
+    "<strong>{attacker}</strong> declared Threat {threat} at <strong>{target}</strong>",
   "reveal.stepReaction": "2. Reaction",
   "reveal.stepReactionDesc": "<strong>{target}</strong> chose <strong>{reaction}</strong>",
   "reveal.stepTruth": "3. Truth Revealed",
@@ -262,8 +273,7 @@ export const en: TranslationDictionary = {
   "reveal.bluffCaughtSummary":
     "BLUFF EXPOSED! {attacker} committed Force {force} for Threat {threat}. {target}'s challenge succeeded! {attacker} loses Influence!",
   "reveal.strikeLandedTitle": "🗡️ STRIKE LANDED!",
-  "reveal.strikeLandedSummary":
-    "{target} yielded {timedOut} to {attacker}'s Strike.",
+  "reveal.strikeLandedSummary": "{target} yielded {timedOut} to {attacker}'s Strike.",
   "reveal.bluffSucceededTitle": "🃏 BLUFF SUCCEEDED!",
   "reveal.bluffSucceededSummary":
     "{attacker} forced concessions with a pure bluff! {target} yielded {timedOut}.",
@@ -275,11 +285,14 @@ export const en: TranslationDictionary = {
   "reveal.attackerPowerSpent": "Attacker Force spent: {power}",
   "reveal.attackerDamageResult": "{attacker} lost {damage} Influence · {remaining} remaining",
   "reveal.guardHeldTitle": "🛡️ GUARD HELD!",
-  "reveal.guardHeldSummary": "{target} committed Guard {guard} against Force {force} and stopped the strike.",
+  "reveal.guardHeldSummary":
+    "{target} committed Guard {guard} against Force {force} and stopped the strike.",
   "reveal.guardBreachedTitle": "⚔️ GUARD BREACHED!",
-  "reveal.guardBreachedSummary": "Force {force} exceeded {target}'s Guard {guard}. {target} loses {damage} Influence.",
+  "reveal.guardBreachedSummary":
+    "Force {force} exceeded {target}'s Guard {guard}. {target} loses {damage} Influence.",
   "reveal.challengeGuardedTitle": "🛡️ WRONG CALL — GUARD SAVED YOU",
-  "reveal.challengeGuardedSummary": "{target}'s Challenge was wrong, but committed Guard {guard} absorbed the full penalty.",
+  "reveal.challengeGuardedSummary":
+    "{target}'s Challenge was wrong, but committed Guard {guard} absorbed the full penalty.",
 
   // Event Log
   "log.title": "📜 Chronicle (Recent Events)",
@@ -326,15 +339,19 @@ export const en: TranslationDictionary = {
   "rules.powerPrivacyRule":
     "🔒 <strong>Power is Private:</strong> You can only see your own Power reserves. Opponent Power is hidden.",
   "rules.turnTitle": "On Your Turn: Choose an Action",
-  "rules.recoverRule": "⚡ <strong>Recover:</strong> Gain +2 Power (up to 3 max) and end your turn.",
-  "rules.schemeRule": "♟️ <strong>Scheme (1 Power):</strong> Arm Ambush (+1 attacker damage on a successful Challenge) or Bulwark (+1 Guard when Guard is committed). Opponents know a Scheme is armed, but not which one.",
-  "rules.strikeRule": "⚔️ <strong>Strike:</strong> Choose a target, announce Threat (1-3), and secretly commit Force (0-3).",
+  "rules.recoverRule":
+    "⚡ <strong>Recover:</strong> Gain +2 Power (up to 3 max) and end your turn.",
+  "rules.schemeRule":
+    "♟️ <strong>Scheme (1 Power):</strong> Arm Ambush (+1 attacker damage on a successful Challenge) or Bulwark (+1 Guard when Guard is committed). Opponents know a Scheme is armed, but not which one.",
+  "rules.strikeRule":
+    "⚔️ <strong>Strike:</strong> Choose a target, announce Threat (1-3), and secretly commit Force (0-3).",
   "rules.bluffSubRule":
     "Force < Threat is a Bluff. If challenged, attacker takes 1 damage (plus Ambush).",
   "rules.genuineSubRule":
     "Force = Threat is fully backed. A failed Challenge has fixed base danger 2, which Guard can mitigate.",
   "rules.reactionTitle": "Under Attack: Target's Reaction",
-  "rules.reactionDesc": "Force stays secret until you lock a Defense Plan. Choose Guard 0-3 and optionally add a 1-Power Challenge; the two may be combined.",
+  "rules.reactionDesc":
+    "Force stays secret until you lock a Defense Plan. Choose Guard 0-3 and optionally add a 1-Power Challenge; the two may be combined.",
   "rules.tableHeaderReaction": "Reaction",
   "rules.tableHeaderBluff": "If Bluff (Force < Threat)",
   "rules.tableHeaderGenuine": "If Fully Backed (Force = Threat)",
@@ -345,7 +362,8 @@ export const en: TranslationDictionary = {
   "rules.tableChallengeName": "👁️ Challenge",
   "rules.tableChallengeCost": "(1 Power)",
   "rules.tableChallengeBluff": "Bluff Caught! Attacker loses 1 Influence (+1 if Ambush).",
-  "rules.tableChallengeGenuine": "Challenge fails: base 2 Influence danger. Guard in a hybrid plan reduces it.",
+  "rules.tableChallengeGenuine":
+    "Challenge fails: base 2 Influence danger. Guard in a hybrid plan reduces it.",
   "rules.tableYieldName": "🏳️ Yield",
   "rules.tableYieldCost": "(Free)",
   "rules.tableYieldBluff": "Controlled loss: target loses exactly 1 Influence.",

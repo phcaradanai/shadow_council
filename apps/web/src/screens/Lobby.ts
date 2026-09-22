@@ -129,11 +129,11 @@ export const renderLobbyScreen = (
               const isMemberHost = member.playerId === room.hostPlayerId;
               const isSelf = member.playerId === viewerId;
               const diffBadge = member.isBot
-                ? (member.botDifficulty === "EASY"
-                    ? `<span class="badge badge--bot-easy">🟢 ${t("lobby.botEasy")}</span>`
-                    : member.botDifficulty === "HARD"
-                      ? `<span class="badge badge--bot-hard">🔴 ${t("lobby.botHard")}</span>`
-                      : `<span class="badge badge--bot-medium">🟡 ${t("lobby.botMedium")}</span>`)
+                ? member.botDifficulty === "EASY"
+                  ? `<span class="badge badge--bot-easy">🟢 ${t("lobby.botEasy")}</span>`
+                  : member.botDifficulty === "HARD"
+                    ? `<span class="badge badge--bot-hard">🔴 ${t("lobby.botHard")}</span>`
+                    : `<span class="badge badge--bot-medium">🟡 ${t("lobby.botMedium")}</span>`
                 : "";
               return `
                 <div class="roster-item ${isSelf ? "roster-item--self" : ""} ${!member.connected ? "roster-item--offline" : ""}">

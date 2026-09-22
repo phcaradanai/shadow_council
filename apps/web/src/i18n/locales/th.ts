@@ -130,9 +130,11 @@ export const th: TranslationDictionary = {
   "action.strikeDesc":
     "เลือกคู่ต่อสู้เป้าหมาย ประกาศระดับภัยคุกคาม (1-3) และเลือกลงพลังแฝงลับ (0-3)",
   "action.threatLabel": "ระดับภัยคุกคามเปิดเผย (ดาเมจที่อ้าง):",
-  "action.threatDesc": "นี่คือระดับคำขู่ที่เปิดเผย พลังจริงยังเป็นความลับและห้ามมากกว่าระดับภัยคุกคาม",
+  "action.threatDesc":
+    "นี่คือระดับคำขู่ที่เปิดเผย พลังจริงยังเป็นความลับและห้ามมากกว่าระดับภัยคุกคาม",
   "action.forceLabel": "พลังแฝงลับ (พลังที่ใช้จริง):",
-  "action.forceDesc": "พลังจริง = ภัยคุกคาม คือโจมตีเต็มกำลัง ส่วนพลังจริง < ภัยคุกคาม ถือว่าเป็นบลัฟ",
+  "action.forceDesc":
+    "พลังจริง = ภัยคุกคาม คือโจมตีเต็มกำลัง ส่วนพลังจริง < ภัยคุกคาม ถือว่าเป็นบลัฟ",
   "action.chooseTarget": "เลือกเป้าหมาย:",
   "action.targetPlaceholder": "เลือกคู่ต่อสู้...",
   "action.secretCommitment": "การลงพลังแฝงลับ:",
@@ -166,7 +168,8 @@ export const th: TranslationDictionary = {
   "action.schemeBtnDisabled": "ต้องการ 1 พลัง",
   "action.schemingBtn": "กำลังเตรียมแผนกล...",
   "action.turnEyebrow": "การเดินของสภา",
-  "action.strikePlannerHint": "การโจมตีคือการเดิมพัน: ประกาศคำขู่ให้ทุกคนเห็น แล้วตัดสินใจลับว่าคุณจะลงพลังจริงแค่ไหน",
+  "action.strikePlannerHint":
+    "การโจมตีคือการเดิมพัน: ประกาศคำขู่ให้ทุกคนเห็น แล้วตัดสินใจลับว่าคุณจะลงพลังจริงแค่ไหน",
   "action.powerAvailable": "{power} พลัง",
   "action.threatOption": "ภัยคุกคาม {threat}",
   "action.claimPressure": "แรงกดดันเปิดเผย {threat}",
@@ -183,9 +186,12 @@ export const th: TranslationDictionary = {
   "action.stylePureBluff": "🎭 บลัฟล้วน",
   "action.stylePartialBluff": "🌓 บลัฟบางส่วน",
   "action.styleFullyBacked": "⚔ ลงเต็มคำขู่",
-  "action.readPureBluff": "ไม่เสียพลังเลย แต่ถ้าถูกจับบลัฟจะถูกเปิดโปง หากอีกฝ่ายลังเล คำขู่นี้ยังสร้างแรงกดดันได้",
-  "action.readPartialBluff": "คุณประกาศภัยคุกคาม {threat} แต่ลงพลังจริงเพียง {force} ประหยัดกว่า แต่ถ้าถูกจับบลัฟจะเห็นช่องว่างทันที",
-  "action.readFullyBacked": "พลังจริงเท่ากับภัยคุกคาม {threat} ใช้ทรัพยากรมาก แต่ถ้าอีกฝ่ายจับบลัฟผิดจะเสี่ยงหนัก",
+  "action.readPureBluff":
+    "ไม่เสียพลังเลย แต่ถ้าถูกจับบลัฟจะถูกเปิดโปง หากอีกฝ่ายลังเล คำขู่นี้ยังสร้างแรงกดดันได้",
+  "action.readPartialBluff":
+    "คุณประกาศภัยคุกคาม {threat} แต่ลงพลังจริงเพียง {force} ประหยัดกว่า แต่ถ้าถูกจับบลัฟจะเห็นช่องว่างทันที",
+  "action.readFullyBacked":
+    "พลังจริงเท่ากับภัยคุกคาม {threat} ใช้ทรัพยากรมาก แต่ถ้าอีกฝ่ายจับบลัฟผิดจะเสี่ยงหนัก",
 
   // Reaction Panel
   "reaction.title": "คุณจะตอบโต้อย่างไร?",
@@ -207,8 +213,7 @@ export const th: TranslationDictionary = {
   "reaction.challengeBtnSubmitting": "กำลังท้าพิสูจน์...",
   "reaction.yieldTitle": "ยอมจำนน",
   "reaction.yieldCost": "ใช้: 0 พลัง",
-  "reaction.yieldDesc":
-    "ยอมรับความเสียหายแบบคุมความเสี่ยงโดยไม่เสียพลัง: เสียอิทธิพลแน่นอน 1 แต้ม",
+  "reaction.yieldDesc": "ยอมรับความเสียหายแบบคุมความเสี่ยงโดยไม่เสียพลัง: เสียอิทธิพลแน่นอน 1 แต้ม",
   "reaction.yieldBtn": "🏳️ ยอมจำนน",
   "reaction.yieldBtnSubmitting": "กำลังยอมจำนน...",
   "reaction.incomingClaim": "คำขู่ที่ประกาศ",
@@ -235,13 +240,15 @@ export const th: TranslationDictionary = {
   "reaction.previewGuard": "การป้องกันของคุณรับพลังจริงได้สูงสุด {guard}",
   "reaction.previewBluffCaught": "ถ้าลงพลังไม่เต็ม: คุณจับบลัฟสำเร็จและผู้โจมตีถูกลงโทษ",
   "reaction.previewChallengeWrong": "ถ้าลงเต็ม: คุณเสีย {damage} อิทธิพล → เหลือ {influence}",
-  "reaction.previewHybridWrong": "ถ้าลงเต็ม: การป้องกัน {guard} ช่วยลดโทษจากจับบลัฟพลาด เหลือเสีย {damage} → อิทธิพล {influence}",
+  "reaction.previewHybridWrong":
+    "ถ้าลงเต็ม: การป้องกัน {guard} ช่วยลดโทษจากจับบลัฟพลาด เหลือเสีย {damage} → อิทธิพล {influence}",
   "reaction.planTooExpensive": "แผนนี้ใช้พลังมากกว่าที่คุณมี",
 
   // Reveal Panel
   "reveal.eyebrow": "ผลการปะทะ",
   "reveal.stepThreat": "1. ภัยคุกคาม",
-  "reveal.stepThreatDesc": "<strong>{attacker}</strong> ประกาศภัยคุกคามระดับ {threat} ใส่ <strong>{target}</strong>",
+  "reveal.stepThreatDesc":
+    "<strong>{attacker}</strong> ประกาศภัยคุกคามระดับ {threat} ใส่ <strong>{target}</strong>",
   "reveal.stepReaction": "2. การตอบโต้",
   "reveal.stepReactionDesc": "<strong>{target}</strong> เลือก <strong>{reaction}</strong>",
   "reveal.stepTruth": "3. ความจริงเปิดเผย",
@@ -261,8 +268,7 @@ export const th: TranslationDictionary = {
   "reveal.bluffCaughtSummary":
     "การบลัฟถูกเปิดโปง! {attacker} ใช้พลังแฝง {force} สำหรับภัยคุกคาม {threat} การท้าพิสูจน์ของ {target} สำเร็จ! {attacker} เสียอิทธิพล!",
   "reveal.strikeLandedTitle": "🗡️ การโจมตีเข้าเป้า!",
-  "reveal.strikeLandedSummary":
-    "{target} ยอมจำนน{timedOut} ให้กับการโจมตีของ {attacker}",
+  "reveal.strikeLandedSummary": "{target} ยอมจำนน{timedOut} ให้กับการโจมตีของ {attacker}",
   "reveal.bluffSucceededTitle": "🃏 การบลัฟสำเร็จ!",
   "reveal.bluffSucceededSummary":
     "{attacker} หลอกศัตรูสำเร็จด้วยการบลัฟ! {target} ยอมจำนน{timedOut}",
@@ -276,9 +282,11 @@ export const th: TranslationDictionary = {
   "reveal.guardHeldTitle": "🛡️ ป้องกันสำเร็จ!",
   "reveal.guardHeldSummary": "{target} ลงป้องกัน {guard} รับพลังจริง {force} ได้ทั้งหมด",
   "reveal.guardBreachedTitle": "⚔️ การป้องกันถูกทะลวง!",
-  "reveal.guardBreachedSummary": "พลังจริง {force} สูงกว่าการป้องกัน {guard} ของ {target} จึงเสีย {damage} อิทธิพล",
+  "reveal.guardBreachedSummary":
+    "พลังจริง {force} สูงกว่าการป้องกัน {guard} ของ {target} จึงเสีย {damage} อิทธิพล",
   "reveal.challengeGuardedTitle": "🛡️ จับบลัฟพลาด แต่การป้องกันช่วยไว้!",
-  "reveal.challengeGuardedSummary": "{target} อ่านผิด แต่พลังป้องกัน {guard} รับโทษจากการจับบลัฟพลาดไว้ได้ทั้งหมด",
+  "reveal.challengeGuardedSummary":
+    "{target} อ่านผิด แต่พลังป้องกัน {guard} รับโทษจากการจับบลัฟพลาดไว้ได้ทั้งหมด",
 
   // Event Log
   "log.title": "📜 บันทึกเหตุการณ์ (ล่าสุด)",
@@ -324,15 +332,19 @@ export const th: TranslationDictionary = {
   "rules.powerPrivacyRule":
     "🔒 <strong>พลังเป็นข้อมูลลับ:</strong> คุณจะมองเห็นเฉพาะพลังคงเหลือของตนเองเท่านั้น พลังของคู่ต่อสู้จะถูกซ่อนไว้",
   "rules.turnTitle": "ในตาของคุณ: เลือกการกระทำ",
-  "rules.recoverRule": "⚡ <strong>ฟื้นพลัง:</strong> เพิ่ม +2 พลัง (สูงสุด 3 แต้ม) และจบตาเดินของคุณ",
-  "rules.schemeRule": "♟️ <strong>วางแผนกล (1 พลัง):</strong> เลือกซุ่มโจมตี (+1 ความเสียหายแก่ผู้โจมตีเมื่อจับบลัฟสำเร็จ) หรือปราการเงา (+1 การป้องกันเมื่อคุณลง Guard) ศัตรูจะรู้ว่ามีแผนกล แต่ไม่รู้ว่าเป็นแผนใด",
-  "rules.strikeRule": "⚔️ <strong>โจมตี:</strong> เลือกเป้าหมาย ประกาศภัยคุกคาม (1-3) และลงพลังแฝงลับ (0-3)",
+  "rules.recoverRule":
+    "⚡ <strong>ฟื้นพลัง:</strong> เพิ่ม +2 พลัง (สูงสุด 3 แต้ม) และจบตาเดินของคุณ",
+  "rules.schemeRule":
+    "♟️ <strong>วางแผนกล (1 พลัง):</strong> เลือกซุ่มโจมตี (+1 ความเสียหายแก่ผู้โจมตีเมื่อจับบลัฟสำเร็จ) หรือปราการเงา (+1 การป้องกันเมื่อคุณลง Guard) ศัตรูจะรู้ว่ามีแผนกล แต่ไม่รู้ว่าเป็นแผนใด",
+  "rules.strikeRule":
+    "⚔️ <strong>โจมตี:</strong> เลือกเป้าหมาย ประกาศภัยคุกคาม (1-3) และลงพลังแฝงลับ (0-3)",
   "rules.bluffSubRule":
     "พลังแฝง < ภัยคุกคาม คือการบลัฟ หากถูกท้าพิสูจน์ ผู้โจมตีจะเสีย 1 อิทธิพล (บวกดาเมจซุ่มโจมตี)",
   "rules.genuineSubRule":
     "พลังจริง = ภัยคุกคาม คือการลงเต็มกำลัง หากจับบลัฟผิด โทษพื้นฐานคือเสีย 2 อิทธิพล และการป้องกันช่วยลดได้",
   "rules.reactionTitle": "เมื่อถูกโจมตี: การตอบโต้ของเป้าหมาย",
-  "rules.reactionDesc": "พลังจริงจะยังเป็นความลับจนคุณล็อกแผนตั้งรับ เลือกพลังป้องกัน 0-3 และเลือกจับบลัฟเพิ่มได้โดยใช้ 1 พลัง ทั้งสองอย่างใช้ร่วมกันได้",
+  "rules.reactionDesc":
+    "พลังจริงจะยังเป็นความลับจนคุณล็อกแผนตั้งรับ เลือกพลังป้องกัน 0-3 และเลือกจับบลัฟเพิ่มได้โดยใช้ 1 พลัง ทั้งสองอย่างใช้ร่วมกันได้",
   "rules.tableHeaderReaction": "การตอบโต้",
   "rules.tableHeaderBluff": "หากบลัฟ (พลังแฝง < ภัยคุกคาม)",
   "rules.tableHeaderGenuine": "หากลงเต็มกำลัง (พลังจริง = ภัยคุกคาม)",
@@ -343,7 +355,8 @@ export const th: TranslationDictionary = {
   "rules.tableChallengeName": "👁️ ท้าพิสูจน์",
   "rules.tableChallengeCost": "(ใช้ 1 พลัง)",
   "rules.tableChallengeBluff": "จับบลัฟได้! ผู้โจมตีเสีย 1 อิทธิพล (+1 หากมีซุ่มโจมตี)",
-  "rules.tableChallengeGenuine": "จับบลัฟพลาด: โทษพื้นฐาน 2 อิทธิพล แต่พลังป้องกันในแผนผสมช่วยลดได้",
+  "rules.tableChallengeGenuine":
+    "จับบลัฟพลาด: โทษพื้นฐาน 2 อิทธิพล แต่พลังป้องกันในแผนผสมช่วยลดได้",
   "rules.tableYieldName": "🏳️ ยอมจำนน",
   "rules.tableYieldCost": "(ฟรี)",
   "rules.tableYieldBluff": "ยอมรับความเสียหายแบบคุมความเสี่ยง: เสีย 1 อิทธิพลแน่นอน",

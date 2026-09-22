@@ -16,9 +16,7 @@ const bot = asPlayerId("bot");
 const opponentA = asPlayerId("opponent-a");
 const opponentB = asPlayerId("opponent-b");
 
-const baseState = (
-  opponentPowers: readonly [number, number] = [0, 3],
-): MatchState => ({
+const baseState = (opponentPowers: readonly [number, number] = [0, 3]): MatchState => ({
   matchId: asMatchId("match-bot-policy"),
   rulesVersion: "0.2.3",
   revision: 0,

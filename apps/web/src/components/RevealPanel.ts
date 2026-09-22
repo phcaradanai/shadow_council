@@ -50,9 +50,7 @@ export const renderRevealPanel = (
   if (!revealed || !resolved) return "";
 
   const playerMap = new Map(players.map((player) => [player.playerId, player.displayName]));
-  const attackerName = escapeHtml(
-    playerMap.get(String(revealed.attackerId)) ?? "Attacker",
-  );
+  const attackerName = escapeHtml(playerMap.get(String(revealed.attackerId)) ?? "Attacker");
   const targetName = escapeHtml(playerMap.get(String(revealed.targetId)) ?? "Target");
 
   const threat = Math.max(1, Math.min(3, eventNumber(revealed, "threat") || 1));

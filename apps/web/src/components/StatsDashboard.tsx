@@ -23,17 +23,28 @@ const chartSvg = (
   const padY = 24;
   const plotW = width - padX * 2;
   const plotH = height - padY * 2;
-  const points = snapshots.length > 0 ? snapshots : [{
-    revision: 0,
-    round: 1,
-    step: 0,
-    label: "Start",
-    phaseKind: "ACTIVE_TURN",
-    timestamp: 0,
-    influences: Object.fromEntries(players.map((player) => [player.playerId, player.influence])),
-    powers: Object.fromEntries(players.map((player) => [player.playerId, player.power ?? null])),
-    eliminated: Object.fromEntries(players.map((player) => [player.playerId, player.eliminated])),
-  }];
+  const points =
+    snapshots.length > 0
+      ? snapshots
+      : [
+          {
+            revision: 0,
+            round: 1,
+            step: 0,
+            label: "Start",
+            phaseKind: "ACTIVE_TURN",
+            timestamp: 0,
+            influences: Object.fromEntries(
+              players.map((player) => [player.playerId, player.influence]),
+            ),
+            powers: Object.fromEntries(
+              players.map((player) => [player.playerId, player.power ?? null]),
+            ),
+            eliminated: Object.fromEntries(
+              players.map((player) => [player.playerId, player.eliminated]),
+            ),
+          },
+        ];
 
   const x = (index: number): number =>
     points.length <= 1 ? padX : padX + (index / (points.length - 1)) * plotW;

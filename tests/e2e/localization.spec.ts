@@ -126,7 +126,7 @@ test.describe("Browser E2E: Thai Localization & Language Switcher", () => {
     await expect(target.page.locator(".turn-banner__badge--danger")).toHaveText("ถูกจู่โจม");
     await expect(target.page.locator(".defense-planner")).toBeVisible();
     await expect(target.page.locator("#defense-form")).toContainText("แผนตั้งรับ");
-    await expect(target.page.locator('label.challenge-toggle')).toContainText("จับบลัฟ");
+    await expect(target.page.locator("label.challenge-toggle")).toContainText("จับบลัฟ");
 
     // Target reacts with Challenge ("จับบลัฟ")
     await reactToStrike(target.page, "challenge");

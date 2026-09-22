@@ -2152,18 +2152,18 @@ h4 {
   }
 }
 
-
 /* Defense Planner — layered bluff/counterplay instead of form-like reaction buttons */
 .defense-planner {
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(239, 68, 68, 0.35);
-  background:
-    radial-gradient(circle at 50% -20%, rgba(127, 29, 29, 0.32), transparent 48%),
+  background: radial-gradient(circle at 50% -20%, rgba(127, 29, 29, 0.32), transparent 48%),
     linear-gradient(180deg, rgba(17, 24, 39, 0.98), rgba(7, 10, 18, 0.98));
   border-radius: 16px;
   padding: 1.25rem;
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.34), inset 0 1px rgba(255, 255, 255, 0.04);
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.34),
+    inset 0 1px rgba(255, 255, 255, 0.04);
 }
 
 .defense-planner__threat {
@@ -2257,7 +2257,10 @@ h4 {
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
   background: rgba(15, 23, 42, 0.82);
-  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+  transition:
+    transform 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease;
 }
 
 .defense-choice:hover .defense-choice__body,
@@ -2318,8 +2321,12 @@ h4 {
   line-height: 1.4;
 }
 
-.preview-good { color: #86efac; }
-.preview-risk { color: #fbbf24; }
+.preview-good {
+  color: #86efac;
+}
+.preview-risk {
+  color: #fbbf24;
+}
 .preview-lethal {
   color: #fca5a5;
   font-weight: 800;
@@ -2364,7 +2371,6 @@ h4 {
   }
 }
 
-
 /* Council Stage — make the match feel like a shared table, not a dashboard grid */
 .council-stage {
   position: relative;
@@ -2372,8 +2378,7 @@ h4 {
   padding: clamp(0.85rem, 2vw, 1.35rem);
   border: 1px solid rgba(212, 175, 55, 0.18);
   border-radius: 20px;
-  background:
-    radial-gradient(circle at 50% 42%, rgba(101, 67, 33, 0.18), transparent 34%),
+  background: radial-gradient(circle at 50% 42%, rgba(101, 67, 33, 0.18), transparent 34%),
     linear-gradient(180deg, rgba(12, 17, 29, 0.96), rgba(5, 8, 14, 0.98));
   box-shadow:
     0 22px 60px rgba(0, 0, 0, 0.32),
@@ -2386,9 +2391,8 @@ h4 {
   inset: 0;
   pointer-events: none;
   opacity: 0.18;
-  background-image:
-    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+  background-image: linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
   background-size: 28px 28px;
   mask-image: radial-gradient(circle at center, #000 35%, transparent 88%);
 }
@@ -2427,8 +2431,12 @@ h4 {
   inset: 11% 7%;
   border-radius: 50%;
   border: 1px solid rgba(212, 175, 55, 0.16);
-  background:
-    radial-gradient(ellipse at center, rgba(95, 62, 31, 0.36), rgba(28, 19, 15, 0.74) 58%, rgba(7, 10, 18, 0.18) 72%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(95, 62, 31, 0.36),
+    rgba(28, 19, 15, 0.74) 58%,
+    rgba(7, 10, 18, 0.18) 72%
+  );
   box-shadow:
     inset 0 0 50px rgba(0, 0, 0, 0.55),
     0 0 50px rgba(212, 175, 55, 0.04);
@@ -2491,8 +2499,7 @@ h4 {
   position: relative;
   min-width: 0;
   border: 1px solid rgba(148, 163, 184, 0.16);
-  background:
-    linear-gradient(145deg, rgba(24, 32, 48, 0.94), rgba(10, 14, 23, 0.96));
+  background: linear-gradient(145deg, rgba(24, 32, 48, 0.94), rgba(10, 14, 23, 0.96));
   box-shadow:
     0 12px 28px rgba(0, 0, 0, 0.28),
     inset 0 1px rgba(255, 255, 255, 0.035);
@@ -2510,7 +2517,12 @@ h4 {
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  background: linear-gradient(115deg, transparent 0 58%, rgba(255,255,255,.025) 65%, transparent 73%);
+  background: linear-gradient(
+    115deg,
+    transparent 0 58%,
+    rgba(255, 255, 255, 0.025) 65%,
+    transparent 73%
+  );
 }
 
 .council-seat__sigil {
@@ -2621,7 +2633,6 @@ h4 {
   }
 }
 
-
 /* Entry experience — establish game fantasy before asking for form input */
 .screen--home,
 .council-anteroom {
@@ -2635,8 +2646,7 @@ h4 {
   inset: 0;
   z-index: -2;
   pointer-events: none;
-  background:
-    radial-gradient(circle at 50% 14%, rgba(212, 175, 55, 0.075), transparent 26%),
+  background: radial-gradient(circle at 50% 14%, rgba(212, 175, 55, 0.075), transparent 26%),
     radial-gradient(circle at 15% 55%, rgba(79, 70, 229, 0.055), transparent 34%),
     linear-gradient(180deg, #070a10 0%, #0a0e17 42%, #05070c 100%);
 }
@@ -2653,9 +2663,13 @@ h4 {
   overflow: hidden;
   border: 1px solid rgba(212, 175, 55, 0.18);
   border-radius: 22px;
-  background:
-    radial-gradient(circle at 18% 50%, rgba(212, 175, 55, 0.12), transparent 22%),
-    linear-gradient(115deg, rgba(28, 22, 24, 0.96), rgba(10, 14, 24, 0.97) 60%, rgba(16, 12, 19, 0.96));
+  background: radial-gradient(circle at 18% 50%, rgba(212, 175, 55, 0.12), transparent 22%),
+    linear-gradient(
+      115deg,
+      rgba(28, 22, 24, 0.96),
+      rgba(10, 14, 24, 0.97) 60%,
+      rgba(16, 12, 19, 0.96)
+    );
   box-shadow: 0 28px 70px rgba(0, 0, 0, 0.35);
 }
 
@@ -2689,7 +2703,9 @@ h4 {
 .home-hero__sigil span {
   transform: rotate(-45deg);
   color: var(--text-gold);
-  font: 900 clamp(1.2rem, 3vw, 1.8rem)/1 Georgia, serif;
+  font:
+    900 clamp(1.2rem, 3vw, 1.8rem) / 1 Georgia,
+    serif;
   letter-spacing: 0.12em;
 }
 
@@ -2735,7 +2751,7 @@ h4 {
   padding-top: 1.35rem;
   border-color: rgba(148, 163, 184, 0.14);
   background: linear-gradient(160deg, rgba(19, 25, 38, 0.94), rgba(8, 12, 20, 0.97));
-  box-shadow: 0 14px 32px rgba(0,0,0,.2);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.2);
 }
 
 .home-gate::before {
@@ -2766,8 +2782,7 @@ h4 {
   overflow: hidden;
   padding: clamp(1.35rem, 4vw, 2rem);
   border-color: rgba(212, 175, 55, 0.26);
-  background:
-    radial-gradient(circle at center, rgba(212, 175, 55, 0.08), transparent 58%),
+  background: radial-gradient(circle at center, rgba(212, 175, 55, 0.08), transparent 58%),
     linear-gradient(180deg, rgba(24, 20, 18, 0.94), rgba(10, 13, 20, 0.97));
 }
 
@@ -2801,9 +2816,8 @@ h4 {
 .council-roster .roster-item {
   position: relative;
   min-height: 78px;
-  background:
-    linear-gradient(145deg, rgba(24, 32, 48, 0.85), rgba(9, 13, 21, 0.9));
-  box-shadow: inset 0 1px rgba(255,255,255,.025);
+  background: linear-gradient(145deg, rgba(24, 32, 48, 0.85), rgba(9, 13, 21, 0.9));
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
 }
 
 .council-roster .roster-item__avatar {
@@ -2813,7 +2827,7 @@ h4 {
   place-items: center;
   border: 1px solid rgba(212, 175, 55, 0.16);
   border-radius: 50%;
-  background: rgba(0,0,0,.24);
+  background: rgba(0, 0, 0, 0.24);
 }
 
 .council-settings {
@@ -2867,7 +2881,6 @@ h4 {
   }
 }
 
-
 /* Strike Planner — make the primary action feel like a wager, not a form */
 .action-options--game {
   display: grid;
@@ -2879,19 +2892,24 @@ h4 {
   align-items: stretch;
 }
 
-.action-card--strike-planner { grid-area: strike; }
-.action-card--scheme { grid-area: scheme; }
-.action-card--recover { grid-area: recover; }
+.action-card--strike-planner {
+  grid-area: strike;
+}
+.action-card--scheme {
+  grid-area: scheme;
+}
+.action-card--recover {
+  grid-area: recover;
+}
 
 .action-card--strike-planner {
   position: relative;
   overflow: hidden;
   padding: 1.1rem;
   border-color: rgba(245, 158, 11, 0.34);
-  background:
-    radial-gradient(circle at 12% 0%, rgba(245, 158, 11, 0.09), transparent 28%),
+  background: radial-gradient(circle at 12% 0%, rgba(245, 158, 11, 0.09), transparent 28%),
     linear-gradient(155deg, rgba(25, 22, 24, 0.98), rgba(8, 12, 20, 0.98));
-  box-shadow: 0 16px 38px rgba(0,0,0,.28);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
 }
 
 .decision-tray__eyebrow {
@@ -2927,15 +2945,14 @@ h4 {
 
 .strike-step {
   padding: 0.85rem;
-  border: 1px solid rgba(255,255,255,.07);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 12px;
   background: rgba(3, 6, 12, 0.34);
 }
 
 .strike-step--secret {
   border-color: rgba(168, 85, 247, 0.18);
-  background:
-    radial-gradient(circle at right, rgba(126, 34, 206, 0.08), transparent 40%),
+  background: radial-gradient(circle at right, rgba(126, 34, 206, 0.08), transparent 40%),
     rgba(3, 6, 12, 0.4);
 }
 
@@ -3007,7 +3024,7 @@ h4 {
   justify-content: center;
   padding: 0.65rem 0.5rem;
   text-align: center;
-  border: 1px solid rgba(255,255,255,.09);
+  border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 10px;
   background: rgba(12, 16, 25, 0.9);
   transition:
@@ -3078,8 +3095,7 @@ h4 {
   padding: 0.9rem;
   border: 1px solid rgba(212, 175, 55, 0.16);
   border-radius: 12px;
-  background:
-    linear-gradient(130deg, rgba(31, 24, 18, 0.78), rgba(6, 10, 17, 0.78));
+  background: linear-gradient(130deg, rgba(31, 24, 18, 0.78), rgba(6, 10, 17, 0.78));
 }
 
 .strike-plan-summary__header {
@@ -3088,7 +3104,7 @@ h4 {
   justify-content: space-between;
   gap: 0.8rem;
   padding-bottom: 0.6rem;
-  border-bottom: 1px solid rgba(255,255,255,.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   color: var(--text-muted);
   font-size: 0.76rem;
 }
@@ -3100,7 +3116,7 @@ h4 {
 
 .strike-plan-summary__grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0,1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.55rem;
   margin-top: 0.65rem;
 }
@@ -3109,7 +3125,7 @@ h4 {
   min-width: 0;
   padding: 0.5rem;
   border-radius: 8px;
-  background: rgba(0,0,0,.18);
+  background: rgba(0, 0, 0, 0.18);
 }
 
 .strike-plan-summary__grid span {
@@ -3163,7 +3179,7 @@ h4 {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  border-color: rgba(148,163,184,.12);
+  border-color: rgba(148, 163, 184, 0.12);
   background: linear-gradient(160deg, rgba(19, 25, 38, 0.93), rgba(8, 12, 20, 0.96));
 }
 
@@ -3188,7 +3204,7 @@ h4 {
   padding: 0.62rem;
   border: 1px solid var(--border-subtle);
   border-radius: 9px;
-  background: rgba(0,0,0,.18);
+  background: rgba(0, 0, 0, 0.18);
 }
 
 .scheme-card input:checked + span {
@@ -3217,7 +3233,7 @@ h4 {
   width: 100%;
   min-height: 42px;
   margin-top: 0.7rem;
-  border: 1px solid rgba(255,255,255,.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(30, 41, 59, 0.9);
   color: #fff;
 }
@@ -3232,7 +3248,7 @@ h4 {
   height: 6px;
   flex: 1;
   border-radius: 999px;
-  background: rgba(255,255,255,.08);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .recover-meter__pip--filled {
@@ -3261,10 +3277,9 @@ h4 {
   }
 
   .strike-plan-summary__grid {
-    grid-template-columns: repeat(2, minmax(0,1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-
 
 .reveal-scheme-trigger {
   margin-top: 0.75rem;
@@ -3308,7 +3323,6 @@ h4 {
   }
 }
 
-
 /* Input focus and compact secondary information */
 .threat-seal input:focus-visible + .threat-seal__body,
 .force-stone input:focus-visible + .force-stone__body,
@@ -3329,7 +3343,7 @@ h4 {
 }
 
 .event-log__details[open] .event-log__summary {
-  border-bottom: 1px solid rgba(255,255,255,.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .event-log__summary:focus-visible {
@@ -3367,7 +3381,6 @@ h4 {
     display: none;
   }
 }
-
 
 /* Native stats dashboard: dependency-free, browser-module friendly */
 .stats-dashboard--native {

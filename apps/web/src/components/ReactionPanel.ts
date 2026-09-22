@@ -30,8 +30,9 @@ export const renderReactionControls = (
     return [];
   });
 
-  const plans = (reactIntent.defensePlans?.length ? reactIntent.defensePlans : legacyPlans) as
-    readonly DefensePlan[];
+  const plans = (
+    reactIntent.defensePlans?.length ? reactIntent.defensePlans : legacyPlans
+  ) as readonly DefensePlan[];
   const legalPlanKeys = plans.map(planKey).join(",");
   const guardAmounts = [...new Set(plans.map((plan) => plan.guard))].sort((a, b) => a - b);
   const currentThreat = match.phase.threat ?? 1;

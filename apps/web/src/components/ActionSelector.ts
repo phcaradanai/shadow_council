@@ -145,9 +145,7 @@ export const renderActionControls = (
                         <span class="force-stone__body">
                           <span class="force-stone__icon">${force === 0 ? "🎭" : "◆"}</span>
                           <strong>${
-                            force === 0
-                              ? t("action.forceZero")
-                              : t("action.forceValue", { force })
+                            force === 0 ? t("action.forceZero") : t("action.forceValue", { force })
                           }</strong>
                           <small>${t("action.forceCost", { force })}</small>
                         </span>
@@ -230,11 +228,13 @@ export const renderActionControls = (
             class="btn btn--large action-secondary-btn"
             ${!canScheme || isSubmitting ? "disabled" : ""}
           >
-            ${!canScheme
-              ? t("action.schemeBtnDisabled")
-              : isSubmitting
-                ? t("action.schemingBtn")
-                : t("action.schemeBtn")}
+            ${
+              !canScheme
+                ? t("action.schemeBtnDisabled")
+                : isSubmitting
+                  ? t("action.schemingBtn")
+                  : t("action.schemeBtn")
+            }
           </button>
         </div>
 
@@ -263,11 +263,13 @@ export const renderActionControls = (
             class="btn btn--large action-secondary-btn"
             ${!canRecover || isSubmitting ? "disabled" : ""}
           >
-            ${!canRecover
-              ? t("action.recoverBtnDisabled")
-              : isSubmitting
-                ? t("action.recoveringBtn")
-                : t("action.recoverBtn")}
+            ${
+              !canRecover
+                ? t("action.recoverBtnDisabled")
+                : isSubmitting
+                  ? t("action.recoveringBtn")
+                  : t("action.recoverBtn")
+            }
           </button>
         </div>
       </div>

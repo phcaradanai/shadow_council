@@ -69,10 +69,7 @@ export const buildBotDecisionContext = (
   };
 };
 
-export const botDelayMs = (
-  difficulty: BotDifficulty,
-  random: BotRandom = Math.random,
-): number => {
+export const botDelayMs = (difficulty: BotDifficulty, random: BotRandom = Math.random): number => {
   switch (difficulty) {
     case "EASY":
       return 1200 + random() * 1000;
@@ -172,12 +169,7 @@ export const selectBotIntent = (
   }
 
   if (difficulty === "MEDIUM") {
-    if (
-      schemeOption &&
-      botPower >= 1 &&
-      !context.own.activeScheme &&
-      random() < 0.25
-    ) {
+    if (schemeOption && botPower >= 1 && !context.own.activeScheme && random() < 0.25) {
       return { type: "SCHEME", schemeType: random() < 0.5 ? "ambush" : "bulwark" };
     }
 

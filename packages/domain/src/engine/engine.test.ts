@@ -88,9 +88,7 @@ describe("Strike and reactions", () => {
       const attackerState = findPlayer(resolved.state, attacker);
       const targetState = findPlayer(resolved.state, target);
       expect(attackerState.power).toBe(2 - funding);
-      expect(targetState.power).toBe(
-        2 - (choice === "guard" || choice === "challenge" ? 1 : 0),
-      );
+      expect(targetState.power).toBe(2 - (choice === "guard" || choice === "challenge" ? 1 : 0));
       expect(attackerState.power).toBe(expectedAttackerPower);
       expect(targetState.power).toBe(expectedTargetPower);
       expect(targetState.influence).toBe(expectedTargetInfluence);
@@ -172,11 +170,7 @@ describe("Strike and reactions", () => {
     if (target === undefined) throw new Error("missing target");
 
     const committed = play(initial.state, strike(attacker, target, 2, 2));
-    const result = decide(
-      committed.state,
-      react(target, { guard: 2, challenge: true }),
-      provider,
-    );
+    const result = decide(committed.state, react(target, { guard: 2, challenge: true }), provider);
     expect(result.ok).toBe(false);
     expect(result.ok ? undefined : result.error.code).toBe("InsufficientPower");
   });

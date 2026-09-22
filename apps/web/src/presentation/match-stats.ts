@@ -320,8 +320,10 @@ export class MatchStatsTracker {
       }
 
       let tag = "Participant";
-      if (isWinner) tag = peak === 3 && player.influence === 3 ? "Flawless Victor" : "Council Master";
-      else if (player.influence <= 0) tag = counters.strikesReceived >= 2 ? "Fierce Target" : "Eliminated";
+      if (isWinner)
+        tag = peak === 3 && player.influence === 3 ? "Flawless Victor" : "Council Master";
+      else if (player.influence <= 0)
+        tag = counters.strikesReceived >= 2 ? "Fierce Target" : "Eliminated";
       else if (player.influence === 1) tag = "Tenacious Survivor";
       else if (player.influence >= 2) tag = "Strong Contender";
 
