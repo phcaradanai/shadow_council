@@ -60,11 +60,11 @@ export const renderGameScreen = (
           <button type="button" class="btn btn--icon" id="btn-sound-toggle" aria-label="${isMuted ? t("common.soundUnmute") : t("common.soundMute")}">
             ${isMuted ? "🔇" : "🔊"}
           </button>
-          <button type="button" class="btn btn--secondary btn--sm" id="btn-stats-open">
-            📊 ${t("game.stats")}
+          <button type="button" class="btn btn--icon utility-action" id="btn-stats-open" aria-label="${t("game.stats")}" title="${t("game.stats")}">
+            📊
           </button>
-          <button type="button" class="btn btn--secondary btn--sm" id="btn-rules-open">
-            📜 ${t("common.rules")}
+          <button type="button" class="btn btn--icon utility-action" id="btn-rules-open" aria-label="${t("common.rules")}" title="${t("common.rules")}">
+            📜
           </button>
           <button type="button" class="btn btn--danger btn--sm" id="btn-leave-room" ${isSubmitting ? "disabled" : ""}>
             ${t("common.leave")}

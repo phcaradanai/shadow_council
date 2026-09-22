@@ -31,7 +31,7 @@ export const renderLobbyScreen = (
   const isMuted = sounds.isMuted();
 
   container.innerHTML = `
-    <div class="screen screen--lobby">
+    <div class="screen screen--lobby council-anteroom">
       <header class="app-header">
         <div class="app-header__brand">
           <h1 class="app-title">${t("lobby.title")}</h1>
@@ -53,7 +53,7 @@ export const renderLobbyScreen = (
 
       ${errorMessage ? `<div class="alert alert--error" role="alert"><span class="alert__icon">⚠️</span> ${escapeHtml(getLocalizedErrorMessage(errorMessage))}</div>` : ""}
 
-      <section class="card room-code-card">
+      <section class="card room-code-card council-invitation">
         <div class="room-code-display">
           <span class="room-code-label">${t("lobby.roomCodeLabel")}:</span>
           <strong class="room-code-value" id="room-code-text">${escapeHtml(room.roomCode)}</strong>
@@ -64,7 +64,7 @@ export const renderLobbyScreen = (
         <p class="room-code-hint">${t("lobby.codeHint")}</p>
       </section>
 
-      <section class="card settings-card" aria-label="${t("lobby.settingsTitle")}">
+      <section class="card settings-card council-settings" aria-label="${t("lobby.settingsTitle")}">
         <h2 class="card__title">⚙️ ${t("lobby.settingsTitle")}</h2>
         <div class="settings-grid">
           <div class="setting-item">
@@ -121,7 +121,7 @@ export const renderLobbyScreen = (
         ${!isHost ? `<p class="settings-hint">${t("lobby.settingsHostOnly")}</p>` : ""}
       </section>
 
-      <section class="card roster-card">
+      <section class="card roster-card council-roster">
         <h2 class="card__title">${t("lobby.rosterTitle", { count: connectedMembers.length })}</h2>
         <div class="roster-grid">
           ${room.members
@@ -154,7 +154,7 @@ export const renderLobbyScreen = (
         </div>
       </section>
 
-      <div class="lobby-actions">
+      <div class="lobby-actions council-launch">
         ${
           isHost
             ? `

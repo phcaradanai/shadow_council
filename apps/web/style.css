@@ -2620,3 +2620,249 @@ h4 {
     gap: 0.65rem;
   }
 }
+
+
+/* Entry experience — establish game fantasy before asking for form input */
+.screen--home,
+.council-anteroom {
+  position: relative;
+}
+
+.screen--home::before,
+.council-anteroom::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 14%, rgba(212, 175, 55, 0.075), transparent 26%),
+    radial-gradient(circle at 15% 55%, rgba(79, 70, 229, 0.055), transparent 34%),
+    linear-gradient(180deg, #070a10 0%, #0a0e17 42%, #05070c 100%);
+}
+
+.home-hero {
+  position: relative;
+  min-height: 235px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(1rem, 4vw, 2.5rem);
+  margin: 1.2rem 0 1.65rem;
+  padding: clamp(1.4rem, 4vw, 2.5rem);
+  overflow: hidden;
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 18% 50%, rgba(212, 175, 55, 0.12), transparent 22%),
+    linear-gradient(115deg, rgba(28, 22, 24, 0.96), rgba(10, 14, 24, 0.97) 60%, rgba(16, 12, 19, 0.96));
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.35);
+}
+
+.home-hero::after {
+  content: "";
+  position: absolute;
+  inset: -60% -20% auto 45%;
+  width: 55%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid rgba(212, 175, 55, 0.08);
+  box-shadow:
+    0 0 0 48px rgba(212, 175, 55, 0.018),
+    0 0 0 96px rgba(212, 175, 55, 0.012);
+  pointer-events: none;
+}
+
+.home-hero__sigil {
+  width: clamp(82px, 11vw, 118px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  transform: rotate(45deg);
+  border: 1px solid rgba(212, 175, 55, 0.42);
+  background: rgba(5, 7, 12, 0.82);
+  box-shadow:
+    0 0 38px rgba(212, 175, 55, 0.12),
+    inset 0 0 28px rgba(212, 175, 55, 0.06);
+}
+
+.home-hero__sigil span {
+  transform: rotate(-45deg);
+  color: var(--text-gold);
+  font: 900 clamp(1.2rem, 3vw, 1.8rem)/1 Georgia, serif;
+  letter-spacing: 0.12em;
+}
+
+.home-hero__kicker {
+  color: var(--text-gold);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+}
+
+.home-hero__title {
+  max-width: 720px;
+  margin: 0.25rem 0 0.55rem;
+  color: #fff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.75rem, 5vw, 3.25rem);
+  line-height: 1.03;
+  text-wrap: balance;
+}
+
+.home-hero__lead {
+  max-width: 650px;
+  color: var(--text-muted);
+  font-size: clamp(0.9rem, 2vw, 1.05rem);
+  line-height: 1.55;
+}
+
+.home-hero__omens {
+  display: grid;
+  gap: 0.5rem;
+  color: rgba(212, 175, 55, 0.46);
+  font-size: 1.15rem;
+}
+
+.home-gates {
+  align-items: stretch;
+}
+
+.home-gate {
+  position: relative;
+  overflow: hidden;
+  padding-top: 1.35rem;
+  border-color: rgba(148, 163, 184, 0.14);
+  background: linear-gradient(160deg, rgba(19, 25, 38, 0.94), rgba(8, 12, 20, 0.97));
+  box-shadow: 0 14px 32px rgba(0,0,0,.2);
+}
+
+.home-gate::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  opacity: 0.8;
+}
+
+.home-gate--create::before {
+  background: linear-gradient(90deg, transparent, var(--gold-accent), transparent);
+}
+
+.home-gate--join::before {
+  background: linear-gradient(90deg, transparent, var(--power-cyan), transparent);
+}
+
+.home-gate .form-input {
+  min-height: 46px;
+  background: rgba(3, 6, 12, 0.72);
+}
+
+/* Lobby as a council antechamber rather than settings/admin page */
+.council-invitation {
+  position: relative;
+  text-align: center;
+  overflow: hidden;
+  padding: clamp(1.35rem, 4vw, 2rem);
+  border-color: rgba(212, 175, 55, 0.26);
+  background:
+    radial-gradient(circle at center, rgba(212, 175, 55, 0.08), transparent 58%),
+    linear-gradient(180deg, rgba(24, 20, 18, 0.94), rgba(10, 13, 20, 0.97));
+}
+
+.council-invitation .room-code-display {
+  justify-content: center;
+}
+
+.council-invitation .room-code-label {
+  width: 100%;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.council-invitation .room-code-value {
+  position: relative;
+  padding: 0.2rem 0.55rem 0.25rem;
+  font-size: clamp(2rem, 8vw, 3.25rem);
+  letter-spacing: 0.24em;
+  text-indent: 0.24em;
+  text-shadow: 0 0 22px rgba(212, 175, 55, 0.25);
+}
+
+.council-roster {
+  border-color: rgba(212, 175, 55, 0.12);
+  background: rgba(10, 14, 23, 0.86);
+}
+
+.council-roster .roster-item {
+  position: relative;
+  min-height: 78px;
+  background:
+    linear-gradient(145deg, rgba(24, 32, 48, 0.85), rgba(9, 13, 21, 0.9));
+  box-shadow: inset 0 1px rgba(255,255,255,.025);
+}
+
+.council-roster .roster-item__avatar {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(212, 175, 55, 0.16);
+  border-radius: 50%;
+  background: rgba(0,0,0,.24);
+}
+
+.council-settings {
+  opacity: 0.9;
+  border-style: dashed;
+  background: rgba(9, 13, 21, 0.62);
+}
+
+.council-launch {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px solid rgba(212, 175, 55, 0.14);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(18, 23, 34, 0.88), rgba(8, 12, 19, 0.92));
+}
+
+.council-launch #btn-start {
+  min-height: 54px;
+  font-weight: 900;
+  letter-spacing: 0.025em;
+  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.08);
+}
+
+.utility-action {
+  opacity: 0.72;
+}
+
+.utility-action:hover,
+.utility-action:focus-visible {
+  opacity: 1;
+}
+
+@media (max-width: 640px) {
+  .home-hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    text-align: center;
+  }
+
+  .home-hero__sigil {
+    margin: 0 auto;
+    width: 74px;
+  }
+
+  .home-hero__omens {
+    display: none;
+  }
+
+  .home-hero__lead {
+    margin-inline: auto;
+  }
+}

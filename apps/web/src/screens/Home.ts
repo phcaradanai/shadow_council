@@ -41,11 +41,23 @@ export const renderHomeScreen = (
         </div>
       </header>
 
+      <section class="home-hero" aria-labelledby="home-hero-title">
+        <div class="home-hero__sigil" aria-hidden="true"><span>SC</span></div>
+        <div class="home-hero__copy">
+          <span class="home-hero__kicker">${t("common.title")}</span>
+          <h2 id="home-hero-title" class="home-hero__title">${t("home.tagline")}</h2>
+          <p class="home-hero__lead">${t("common.subtitle")}</p>
+        </div>
+        <div class="home-hero__omens" aria-hidden="true">
+          <span>◆</span><span>⚔</span><span>👁</span>
+        </div>
+      </section>
+
       ${errorMessage ? `<div class="alert alert--error" role="alert"><span class="alert__icon">⚠️</span> ${escapeHtml(getLocalizedErrorMessage(errorMessage))}</div>` : ""}
 
-      <main class="home-grid">
+      <main class="home-grid home-gates">
         <!-- Create Room Card -->
-        <section class="card home-card">
+        <section class="card home-card home-gate home-gate--create">
           <h2 class="card__title">${t("home.createTitle")}</h2>
           <p class="card__desc">${t("home.createDesc")}</p>
           <form id="form-create" class="form-vertical">
@@ -70,7 +82,7 @@ export const renderHomeScreen = (
         </section>
 
         <!-- Join Room Card -->
-        <section class="card home-card">
+        <section class="card home-card home-gate home-gate--join">
           <h2 class="card__title">${t("home.joinTitle")}</h2>
           <p class="card__desc">${t("home.joinDesc")}</p>
           <form id="form-join" class="form-vertical">
