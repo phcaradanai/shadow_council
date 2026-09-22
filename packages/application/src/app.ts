@@ -369,49 +369,53 @@ export class GameApplication {
     const botPower = botState?.power ?? 0;
 
     // --- REACTION PHASE ---
+    // Bots choose only from server-issued legal plans and public/own information.
+    // Never inspect pendingStrike.force or opponent private Power when deciding.
     if (reactOption) {
+      const plans = reactOption.defensePlans ?? [];
+      if (plans.length > 0) {
+        const hybrids = plans.filter((plan) => plan.guard > 0 && plan.challenge);
+        const guards = plans.filter((plan) => plan.guard > 0 && !plan.challenge);
+        const challenges = plans.filter((plan) => plan.guard === 0 && plan.challenge);
+        const yields = plans.filter((plan) => plan.guard === 0 && !plan.challenge);
+
+        let pool = plans;
+        if (difficulty === "MEDIUM") {
+          const roll = Math.random();
+          pool =
+            roll < 0.35 && hybrids.length > 0
+              ? hybrids
+              : roll < 0.7 && guards.length > 0
+                ? guards
+                : roll < 0.88 && challenges.length > 0
+                  ? challenges
+                  : yields.length > 0
+                    ? yields
+                    : plans;
+        } else if (difficulty === "HARD") {
+          const publicThreat =
+            state.phase.kind === "REACTION" ? state.phase.pendingStrike.threat : 1;
+          const ownInfluence = botState?.influence ?? 3;
+          const wantsInsurance = publicThreat >= 2 || ownInfluence <= 1;
+          pool =
+            wantsInsurance && hybrids.length > 0
+              ? hybrids
+              : guards.length > 0
+                ? guards
+                : challenges.length > 0
+                  ? challenges
+                  : plans;
+        }
+
+        const plan = pool[Math.floor(Math.random() * pool.length)]!;
+        return { type: "REACT", choice: plan };
+      }
+
+      // Legacy compatibility while old clients/tests still emit exclusive reactions.
       const choices = reactOption.choices;
       if (choices.length === 0) return undefined;
-
-      const guardChoices = choices.filter(
-        (c) => typeof c === "object" && c.type === "guard",
-      );
-
-      if (difficulty === "EASY") {
-        const choice = choices[Math.floor(Math.random() * choices.length)]!;
-        return { type: "REACT", choice };
-      }
-
-      if (difficulty === "MEDIUM") {
-        if (guardChoices.length > 0) {
-          const roll = Math.random();
-          if (roll < 0.65) {
-            // Pick a guard amount
-            const guardChoice = guardChoices[guardChoices.length - 1]!;
-            return { type: "REACT", choice: guardChoice };
-          }
-          if (roll < 0.9 && choices.includes("challenge")) return { type: "REACT", choice: "challenge" };
-          return { type: "REACT", choice: choices.includes("yield") ? "yield" : guardChoices[0]! };
-        }
-        if (choices.includes("challenge") && Math.random() < 0.6) {
-          return { type: "REACT", choice: "challenge" };
-        }
-        const fallback = choices.includes("yield") ? "yield" : choices[0]!;
-        return { type: "REACT", choice: fallback };
-      }
-
-      // HARD DIFFICULTY
-      if (guardChoices.length > 0) {
-        return Math.random() < 0.85
-          ? { type: "REACT", choice: guardChoices[guardChoices.length - 1]! }
-          : { type: "REACT", choice: choices.includes("challenge") ? "challenge" : guardChoices[0]! };
-      }
-      if (choices.includes("challenge")) {
-        return Math.random() < 0.75
-          ? { type: "REACT", choice: "challenge" }
-          : { type: "REACT", choice: choices.includes("yield") ? "yield" : "challenge" };
-      }
-      return { type: "REACT", choice: choices[0]! };
+      const choice = choices[Math.floor(Math.random() * choices.length)]!;
+      return { type: "REACT", choice };
     }
 
     // --- ACTIVE TURN PHASE ---
@@ -438,7 +442,8 @@ export class GameApplication {
       const threats = strikeOption!.threats ?? [1, 2, 3];
       const forces = strikeOption!.forces ?? [0];
       const threat = threats[Math.floor(Math.random() * threats.length)]!;
-      const force = forces[Math.floor(Math.random() * forces.length)]!;
+      const legalForces = forces.filter((force) => force <= threat);
+      const force = legalForces[Math.floor(Math.random() * legalForces.length)] ?? 0;
       return { type: "STRIKE", targetId, threat, force, funding: force };
     }
 
@@ -464,11 +469,11 @@ export class GameApplication {
 
         const threats = strikeOption.threats ?? [1, 2, 3];
         const threat = threats[Math.floor(Math.random() * threats.length)]!;
-        const forces = strikeOption.forces ?? [0];
+        const forces = (strikeOption.forces ?? [0]).filter((force) => force <= threat);
         const force =
           botPower >= threat && Math.random() < 0.55
             ? threat
-            : forces[Math.floor(Math.random() * forces.length)]!;
+            : forces[Math.floor(Math.random() * forces.length)] ?? 0;
 
         return { type: "STRIKE", targetId, threat, force, funding: force };
       }
@@ -503,7 +508,7 @@ export class GameApplication {
     // 4. Target leader with genuine threat or calculated bluff
     if (strikeOption && strikeOption.targetIds.length > 0) {
       const opponents = state.players.filter((p) => strikeOption.targetIds.includes(p.playerId));
-      opponents.sort((a, b) => b.influence - a.influence || b.power - a.power);
+      opponents.sort((a, b) => b.influence - a.influence);
       const targetId = opponents[0]!.playerId;
 
       const threat = (Math.min(2, Math.max(1, botPower)) as 1 | 2);

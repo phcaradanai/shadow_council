@@ -220,12 +220,28 @@ export const renderGameScreen = (
     syncTargetHighlights(targetSelect.value);
   });
 
-  // Threat & Force radio buttons sounds
+  // Threat & Force are explicit commitments. Force may never exceed the public Threat.
+  const syncForceOptionsToThreat = () => {
+    const selectedThreat = container.querySelector<HTMLInputElement>('input[name="threat"]:checked');
+    const threat = selectedThreat ? Number(selectedThreat.value) : undefined;
+    container.querySelectorAll<HTMLInputElement>('input[name="force"]').forEach((radio) => {
+      const force = Number(radio.dataset.force ?? radio.value);
+      const affordable = radio.dataset.affordable !== "0";
+      const legalForThreat = threat !== undefined && force <= threat;
+      radio.disabled = isSubmitting || !affordable || !legalForThreat;
+      const label = radio.closest<HTMLLabelElement>(".radio-card");
+      label?.classList.toggle("radio-card--disabled", !affordable || !legalForThreat);
+      if (radio.checked && !legalForThreat) radio.checked = false;
+    });
+  };
+
   container.querySelectorAll<HTMLInputElement>('input[name="threat"], input[name="force"]').forEach((radio) => {
     radio.addEventListener("change", () => {
       sounds.click();
+      syncForceOptionsToThreat();
     });
   });
+  syncForceOptionsToThreat();
 
   // Strike form validation and submit
   const strikeForm = container.querySelector<HTMLFormElement>("#strike-form");
@@ -234,11 +250,25 @@ export const renderGameScreen = (
       const submitBtn = strikeForm.querySelector<HTMLButtonElement>("#btn-strike");
       if (!submitBtn) return;
       const targetVal = targetSelect?.value ?? "";
-      const canSubmit = Boolean(targetVal && !isSubmitting);
+      const threatInput = strikeForm.querySelector<HTMLInputElement>('input[name="threat"]:checked');
+      const forceInput = strikeForm.querySelector<HTMLInputElement>('input[name="force"]:checked');
+      const threat = threatInput ? Number(threatInput.value) : undefined;
+      const force = forceInput ? Number(forceInput.value) : undefined;
+      const canSubmit = Boolean(
+        targetVal &&
+          threat !== undefined &&
+          force !== undefined &&
+          force <= threat &&
+          !forceInput?.disabled &&
+          !isSubmitting,
+      );
       submitBtn.disabled = !canSubmit;
     };
 
-    strikeForm.addEventListener("change", updateStrikeButtonState);
+    strikeForm.addEventListener("change", () => {
+      syncForceOptionsToThreat();
+      updateStrikeButtonState();
+    });
     strikeForm.addEventListener("input", updateStrikeButtonState);
     updateStrikeButtonState();
 
@@ -247,11 +277,14 @@ export const renderGameScreen = (
       if (isSubmitting) return;
       const fd = new FormData(strikeForm);
       const targetId = String(fd.get("targetId") ?? "");
-      const threatVal = Number(fd.get("threat") ?? 1);
-      const forceVal = Number(fd.get("force") ?? 0);
-      if (!targetId) return;
-      const threat = (threatVal >= 1 && threatVal <= 3 ? threatVal : 1) as 1 | 2 | 3;
-      const force = (forceVal >= 0 && forceVal <= 3 ? forceVal : 0) as 0 | 1 | 2 | 3;
+      const rawThreat = fd.get("threat");
+      const rawForce = fd.get("force");
+      if (!targetId || rawThreat === null || rawForce === null) return;
+      const threatVal = Number(rawThreat);
+      const forceVal = Number(rawForce);
+      if (threatVal < 1 || threatVal > 3 || forceVal < 0 || forceVal > threatVal) return;
+      const threat = threatVal as 1 | 2 | 3;
+      const force = forceVal as 0 | 1 | 2 | 3;
       sounds.threat();
       callbacks.onStrike(targetId, threat, force);
     });

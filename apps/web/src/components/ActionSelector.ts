@@ -81,7 +81,7 @@ export const renderActionControls = (
                   .map(
                     (thr) => `
                   <label class="btn-option border border-amber-600/40 p-2 text-center rounded cursor-pointer hover:bg-amber-950/40 transition">
-                    <input type="radio" name="threat" value="${thr}" class="sr-only" ${thr === 1 ? "checked" : ""} ${isSubmitting ? "disabled" : ""} />
+                    <input type="radio" name="threat" value="${thr}" class="sr-only" ${isSubmitting ? "disabled" : ""} />
                     <span class="block font-bold text-amber-300">⚔️ Threat ${thr}</span>
                     <span class="text-xs text-neutral-400 block">${thr} Dmg claim</span>
                   </label>
@@ -98,14 +98,14 @@ export const renderActionControls = (
               <div class="grid grid-cols-2 gap-2">
                 ${[0, 1, 2, 3]
                   .map((fc) => {
-                    const hasPower = fc <= currentPower;
+                    const hasPower = forces.includes(fc as 0 | 1 | 2 | 3);
                     return `
                   <label class="radio-card p-2 rounded border transition text-left cursor-pointer ${
                     hasPower
                       ? "border-neutral-700 hover:border-neutral-500 bg-neutral-950"
                       : "border-neutral-800 opacity-40 cursor-not-allowed bg-neutral-900"
                   }">
-                    <input type="radio" name="force" value="${fc}" class="sr-only" ${fc === 0 ? "checked" : ""} ${!hasPower || isSubmitting ? "disabled" : ""} />
+                    <input type="radio" name="force" value="${fc}" data-force="${fc}" data-affordable="${hasPower ? "1" : "0"}" class="sr-only" ${!hasPower || isSubmitting ? "disabled" : ""} />
                     <div class="flex justify-between items-center">
                       <strong class="text-sm ${fc === 0 ? "text-purple-300" : "text-emerald-300"}">
                         ${fc === 0 ? "🎭 Bluff (0 Pw)" : `🗡️ Force ${fc} (${fc} Pw)`}
@@ -118,7 +118,7 @@ export const renderActionControls = (
               </div>
             </fieldset>
 
-            <button type="submit" id="btn-strike" class="btn btn--primary btn--large btn--strike w-full py-2.5 rounded font-bold bg-amber-600 hover:bg-amber-500 text-neutral-950 transition" ${!selectedTargetId ? "disabled" : ""}>
+            <button type="submit" id="btn-strike" class="btn btn--primary btn--large btn--strike w-full py-2.5 rounded font-bold bg-amber-600 hover:bg-amber-500 text-neutral-950 transition" disabled>
               ${isSubmitting ? t("action.declaringStrike") : t("action.declareStrike")}
             </button>
           </form>
