@@ -6,6 +6,7 @@ import {
   startMatch,
   declareStrike,
   reactToStrike,
+  defendStrike,
   getPlayerStat,
   getPlayerIdFromCard,
   findActivePlayer,
@@ -108,9 +109,34 @@ test.describe("Browser E2E: Real Gameplay Journeys", () => {
     await expect(active.page.locator(".reveal-card__title")).toHaveText("🛡️ ATTACK BLOCKED!");
     await expect(target.page.locator(".reveal-card__title")).toHaveText("🛡️ ATTACK BLOCKED!");
 
-    // Both spent 1 Power (each down to 1), neither lost influence
-    await expect(await getPlayerStat(active.page, activeId, "power")).toBe(1);
+    // Challenge now costs 1 Power. After the first exchange, the new attacker had 1 Power,
+    // spends it on the genuine Strike, while the defender spends 1 Power on Guard.
+    await expect(await getPlayerStat(active.page, activeId, "power")).toBe(0);
     await expect(await getPlayerStat(target.page, targetId, "power")).toBe(1);
+  });
+
+  test("Journey C2: Hybrid Defense lets Guard cushion a wrong bluff call", async ({ browser }) => {
+    host = await createPlayer(browser, "Ari");
+    guest = await createPlayer(browser, "Bo");
+
+    const roomCode = await createRoom(host);
+    await joinRoom(guest, roomCode);
+    await startMatch(host);
+
+    const { active, nonActive } = await findActivePlayer([host, guest]);
+    const target = nonActive[0]!;
+    const targetId = await getPlayerIdFromCard(active.page, target.name);
+    const targetSelfId = await getPlayerIdFromCard(active.page, target.name);
+
+    // Threat 2 is fully backed by Force 2.
+    await declareStrike(active.page, targetId, 2, 2);
+
+    // Target spends both starting Power: Guard 1 + Challenge 1.
+    await defendStrike(target.page, { guard: 1, challenge: true });
+
+    // Wrong Challenge has base danger 2, but Guard 1 cushions it to only 1 damage.
+    await expect(await getPlayerStat(target.page, targetSelfId, "influence")).toBe(2);
+    await expect(await getPlayerStat(target.page, targetSelfId, "power")).toBe(0);
   });
 
   test("Journey D & E: Match Completion to Winner & Rematch Flow", async ({ browser }) => {
@@ -143,7 +169,15 @@ test.describe("Browser E2E: Real Gameplay Journeys", () => {
     await declareStrike(designatedWinner.page, loserTargetId, 1);
     await reactToStrike(designatedLoser.page, "yield");
 
-    // Turn 3 (Loser): Loser bluffs, Winner challenges -> Loser drops to 0 Influence (Eliminated!)
+    // Challenge costs Power in v0.2.3, so both players take one economy turn before
+    // the winner can afford the final bluff call.
+    await findActivePlayer([designatedLoser]);
+    await designatedLoser.page.locator("#btn-recover").click();
+
+    await findActivePlayer([designatedWinner]);
+    await designatedWinner.page.locator("#btn-recover").click();
+
+    // Loser bluffs again; Winner spends 1 Power to Challenge and eliminates them.
     await findActivePlayer([designatedLoser]);
     await declareStrike(designatedLoser.page, winnerTargetId, 0);
     await reactToStrike(designatedWinner.page, "challenge");
