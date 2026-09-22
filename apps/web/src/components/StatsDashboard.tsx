@@ -312,7 +312,9 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({
                 </div>
                 <div className="stats-metric-item">
                   <span className="stats-metric-label">Final Power</span>
-                  <span className="stats-metric-value">{summary.finalPower} / 3</span>
+                  <span className="stats-metric-value">
+                    {summary.finalPower === undefined ? "Hidden" : `${summary.finalPower} / 3`}
+                  </span>
                 </div>
                 <div className="stats-metric-item">
                   <span className="stats-metric-label">Strikes Dealt</span>
@@ -321,6 +323,26 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({
                 <div className="stats-metric-item">
                   <span className="stats-metric-label">Strikes Taken</span>
                   <span className="stats-metric-value">🛡️ {summary.strikesReceived}</span>
+                </div>
+                <div className="stats-metric-item">
+                  <span className="stats-metric-label">Bluffs Worked</span>
+                  <span className="stats-metric-value">
+                    🎭 {summary.bluffsSucceeded}/{summary.bluffsDeclared}
+                  </span>
+                </div>
+                <div className="stats-metric-item">
+                  <span className="stats-metric-label">Challenges Won</span>
+                  <span className="stats-metric-value">
+                    👁️ {summary.challengesWon}/{summary.challengesMade}
+                  </span>
+                </div>
+                <div className="stats-metric-item">
+                  <span className="stats-metric-label">Hybrid Defense</span>
+                  <span className="stats-metric-value">🛡️👁️ {summary.hybridDefenses}</span>
+                </div>
+                <div className="stats-metric-item">
+                  <span className="stats-metric-label">Yields</span>
+                  <span className="stats-metric-value">🏳️ {summary.yields}</span>
                 </div>
               </div>
             </div>
