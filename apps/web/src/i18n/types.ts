@@ -35,6 +35,9 @@ export type TranslationKey =
   | "home.quickReactionDesc"
   | "home.quickSurvivorTitle"
   | "home.quickSurvivorDesc"
+  | "home.tagline"
+  | "home.tabCreate"
+  | "home.tabJoin"
   // Lobby Screen
   | "lobby.title"
   | "lobby.subtitle"
@@ -93,8 +96,11 @@ export type TranslationKey =
   | "player.badgeActive"
   | "player.badgeTarget"
   | "player.badgeEliminated"
+  | "player.targetPrompt"
+  | "player.selectedTarget"
   // Action Selector
   | "action.title"
+  | "action.targetHint"
   | "action.strikeTitle"
   | "action.strikeBadge"
   | "action.strikeDesc"
@@ -157,6 +163,9 @@ export type TranslationKey =
   | "reveal.bluffSucceededSummary"
   // Event Log
   | "log.title"
+  | "log.collapse"
+  | "log.expand"
+  | "log.latest"
   | "log.actionCommitted"
   | "log.reactionCommitted"
   | "log.actionRevealed"

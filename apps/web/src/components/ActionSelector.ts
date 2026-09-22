@@ -12,6 +12,7 @@ export const renderActionControls = (
   match: WireMatchView,
   viewerId: string,
   isSubmitting: boolean,
+  selectedTargetId?: string,
 ): string => {
   if (match.phase.kind !== "ACTIVE_TURN" || match.phase.activePlayerId !== viewerId) {
     return "";
@@ -28,29 +29,39 @@ export const renderActionControls = (
   const canFundGenuine = fundingOptions.includes(1);
 
   const targets = match.players.filter((p) => targetIds.includes(p.playerId));
+  const activeTarget = targets.find((t) => t.playerId === selectedTargetId);
 
   return `
-    <section class="action-panel" aria-label="${t("action.title")}">
-      <h3 class="action-panel__title">${t("action.title")}</h3>
+    <section class="action-panel decision-tray" aria-label="${t("action.title")}">
+      <div class="decision-tray__header">
+        <h3 class="action-panel__title">⚡ ${t("action.title")}</h3>
+        <span class="decision-tray__subtitle">${t("game.turnChooseActionDesc")}</span>
+      </div>
 
       <div class="action-options">
         <!-- Strike Option Card -->
         <div class="action-card action-card--strike" data-action="strike">
           <div class="action-card__header">
-            <h4>${t("action.strikeTitle")}</h4>
+            <div class="action-card__badge-row">
+              <span class="action-card__icon" aria-hidden="true">⚔️</span>
+              <h4>${t("action.strikeTitle")}</h4>
+            </div>
             <span class="action-card__badge">${t("action.strikeBadge")}</span>
           </div>
           <p class="action-card__desc">${t("action.strikeDesc")}</p>
 
           <form id="strike-form" class="action-form">
             <div class="form-group">
-              <label for="strike-target" class="form-label">${t("action.chooseTarget")}</label>
+              <label for="strike-target" class="form-label">
+                ${t("action.chooseTarget")}
+                ${activeTarget ? `<strong class="form-label__highlight">(${activeTarget.displayName})</strong>` : ""}
+              </label>
               <select id="strike-target" name="targetId" class="form-select" required ${isSubmitting ? "disabled" : ""}>
-                <option value="" disabled selected>${t("action.targetPlaceholder")}</option>
+                <option value="" disabled ${!selectedTargetId ? "selected" : ""}>${t("action.targetPlaceholder")}</option>
                 ${targets
                   .map(
                     (tPlayer) =>
-                      `<option value="${escapeHtml(tPlayer.playerId)}">${escapeHtml(tPlayer.displayName)} (◆${tPlayer.influence})</option>`,
+                      `<option value="${escapeHtml(tPlayer.playerId)}" ${selectedTargetId === tPlayer.playerId ? "selected" : ""}>${escapeHtml(tPlayer.displayName)} (◆${tPlayer.influence})</option>`,
                   )
                   .join("")}
               </select>
@@ -59,25 +70,31 @@ export const renderActionControls = (
             <fieldset class="form-fieldset">
               <legend class="form-legend">${t("action.secretCommitment")}</legend>
               <div class="funding-options">
-                <label class="radio-card">
-                  <input type="radio" name="funding" value="0" ${isSubmitting ? "disabled" : ""} />
+                <label class="radio-card radio-card--bluff" for="funding-bluff">
+                  <input type="radio" id="funding-bluff" name="funding" value="0" ${isSubmitting ? "disabled" : ""} />
                   <div class="radio-card__content">
-                    <span class="radio-card__title">${t("action.bluffTitle")}</span>
-                    <span class="radio-card__desc">${t("action.bluffDesc")}</span>
+                    <div class="radio-card__header-line">
+                      <span class="radio-card__sigil">🎭</span>
+                      <strong class="radio-card__title">${t("action.bluffTitle")}</strong>
+                    </div>
+                    <p class="radio-card__desc">${t("action.bluffDesc")}</p>
                   </div>
                 </label>
 
-                <label class="radio-card ${!canFundGenuine ? "radio-card--disabled" : ""}">
-                  <input type="radio" name="funding" value="1" ${!canFundGenuine ? "disabled" : ""} ${isSubmitting ? "disabled" : ""} />
+                <label class="radio-card radio-card--genuine ${!canFundGenuine ? "radio-card--disabled" : ""}" for="funding-genuine">
+                  <input type="radio" id="funding-genuine" name="funding" value="1" ${!canFundGenuine ? "disabled" : ""} ${isSubmitting ? "disabled" : ""} />
                   <div class="radio-card__content">
-                    <span class="radio-card__title">${t("action.genuineTitle")}</span>
-                    <span class="radio-card__desc">${canFundGenuine ? t("action.genuineDesc") : t("action.genuineDisabled")}</span>
+                    <div class="radio-card__header-line">
+                      <span class="radio-card__sigil">🗡️</span>
+                      <strong class="radio-card__title">${t("action.genuineTitle")}</strong>
+                    </div>
+                    <p class="radio-card__desc">${canFundGenuine ? t("action.genuineDesc") : t("action.genuineDisabled")}</p>
                   </div>
                 </label>
               </div>
             </fieldset>
 
-            <button type="submit" id="btn-strike" class="btn btn--primary btn--large" disabled>
+            <button type="submit" id="btn-strike" class="btn btn--primary btn--large btn--strike" disabled>
               ${isSubmitting ? t("action.declaringStrike") : t("action.declareStrike")}
             </button>
           </form>
@@ -86,12 +103,15 @@ export const renderActionControls = (
         <!-- Recover Option Card -->
         <div class="action-card action-card--recover ${!canRecover ? "action-card--disabled" : ""}" data-action="recover">
           <div class="action-card__header">
-            <h4>${t("action.recoverTitle")}</h4>
-            <span class="action-card__badge">${t("action.recoverBadge")}</span>
+            <div class="action-card__badge-row">
+              <span class="action-card__icon" aria-hidden="true">⚡</span>
+              <h4>${t("action.recoverTitle")}</h4>
+            </div>
+            <span class="action-card__badge action-card__badge--recover">${t("action.recoverBadge")}</span>
           </div>
           <p class="action-card__desc">${t("action.recoverDesc")}</p>
           <div class="action-card__footer">
-            <button type="button" id="btn-recover" class="btn btn--secondary btn--large" ${!canRecover || isSubmitting ? "disabled" : ""}>
+            <button type="button" id="btn-recover" class="btn btn--secondary btn--large btn--recover" ${!canRecover || isSubmitting ? "disabled" : ""}>
               ${!canRecover ? t("action.recoverBtnDisabled") : isSubmitting ? t("action.recoveringBtn") : t("action.recoverBtn")}
             </button>
           </div>

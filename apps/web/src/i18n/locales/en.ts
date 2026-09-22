@@ -39,6 +39,9 @@ export const en: TranslationDictionary = {
   "home.quickSurvivorTitle": "Last One Standing",
   "home.quickSurvivorDesc":
     "Start with 3 Influence. Zero influence eliminates you. Sole survivor takes the Council!",
+  "home.tagline": "Trust no one. Outwit the Council.",
+  "home.tabCreate": "Assemble Council",
+  "home.tabJoin": "Take Your Seat",
 
   // Lobby Screen
   "lobby.title": "LOBBY",
@@ -106,9 +109,12 @@ export const en: TranslationDictionary = {
   "player.badgeActive": "ACTIVE",
   "player.badgeTarget": "TARGET",
   "player.badgeEliminated": "ELIMINATED",
+  "player.targetPrompt": "🎯 Click to Target",
+  "player.selectedTarget": "🎯 Target Locked",
 
   // Action Selector
   "action.title": "Your Action",
+  "action.targetHint": "Select an opponent from the Council Table above or the list below:",
   "action.strikeTitle": "⚔️ Claim a Strike",
   "action.strikeBadge": "Bluff or Attack",
   "action.strikeDesc":
@@ -187,6 +193,9 @@ export const en: TranslationDictionary = {
 
   // Event Log
   "log.title": "📜 Chronicle (Recent Events)",
+  "log.collapse": "Hide Chronicle",
+  "log.expand": "View Chronicle",
+  "log.latest": "Latest",
   "log.actionCommitted":
     "⚔️ <strong>{attacker}</strong> claimed Strike on <strong>{target}</strong> (commitment hidden).",
   "log.reactionCommitted":

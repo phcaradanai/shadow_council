@@ -68,15 +68,26 @@ export const renderGameScreen = (
 
       ${errorMessage ? `<div class="alert alert--error" role="alert"><span class="alert__icon">⚠️</span> ${escapeHtml(getLocalizedErrorMessage(errorMessage))}</div>` : ""}
 
-      <!-- Primary Decision & Status Area -->
-      <main class="game-main">
-        ${renderTurnIndicator(match, viewerId)}
-        ${renderCountdown(deadlineAt)}
-        ${renderRevealPanel(recentEvents, match.players)}
-        ${renderActionControls(match, viewerId, isSubmitting)}
-        ${renderReactionControls(match, viewerId, isSubmitting)}
-        ${renderPlayerGrid(match, viewerId)}
-        ${renderEventLog(recentEvents, match.players)}
+      <!-- 3-Zone Council Chamber Layout -->
+      <main class="game-main council-chamber">
+        <!-- Zone 1: Situation & Verdict (Top) -->
+        <section class="chamber-zone chamber-zone--situation" aria-label="Situation">
+          ${renderTurnIndicator(match, viewerId)}
+          ${renderCountdown(deadlineAt)}
+          ${renderRevealPanel(recentEvents, match.players)}
+        </section>
+
+        <!-- Zone 2: Council Table Seats (Center) -->
+        <section class="chamber-zone chamber-zone--table" aria-label="Council Table">
+          ${renderPlayerGrid(match, viewerId)}
+        </section>
+
+        <!-- Zone 3: Decision Tray & Chronicle Drawer (Bottom) -->
+        <section class="chamber-zone chamber-zone--decision decision-tray-zone" aria-label="Decision Tray">
+          ${renderActionControls(match, viewerId, isSubmitting)}
+          ${renderReactionControls(match, viewerId, isSubmitting)}
+          ${renderEventLog(recentEvents, match.players)}
+        </section>
       </main>
 
       ${renderRulesModal()}
@@ -108,18 +119,69 @@ export const renderGameScreen = (
     callbacks.onLeaveRoom();
   });
 
+  // Direct card-click targeting & synchronization
+  const targetSelect = container.querySelector<HTMLSelectElement>("#strike-target");
+  const targetableCards = container.querySelectorAll<HTMLElement>(
+    ".player-card[data-targetable='true']",
+  );
+
+  const syncTargetHighlights = (selectedId?: string) => {
+    targetableCards.forEach((c) => {
+      const isSelected = Boolean(selectedId && c.dataset.playerId === selectedId);
+      c.classList.toggle("player-card--selected-target", isSelected);
+      if (isSelected) {
+        c.setAttribute("aria-selected", "true");
+      } else {
+        c.removeAttribute("aria-selected");
+      }
+    });
+  };
+
+  targetableCards.forEach((card) => {
+    card.setAttribute("tabindex", "0");
+    card.setAttribute("role", "button");
+    card.addEventListener("click", () => {
+      const targetId = card.dataset.playerId;
+      if (!targetId || !targetSelect) return;
+      targetSelect.value = targetId;
+      syncTargetHighlights(targetId);
+      targetSelect.dispatchEvent(new Event("change", { bubbles: true }));
+      sounds.click();
+    });
+    card.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        card.click();
+      }
+    });
+  });
+
+  if (targetSelect?.value) {
+    syncTargetHighlights(targetSelect.value);
+  }
+
+  targetSelect?.addEventListener("change", () => {
+    syncTargetHighlights(targetSelect.value);
+  });
+
+  // Funding stone clicks sound
+  container.querySelectorAll<HTMLInputElement>('input[name="funding"]').forEach((radio) => {
+    radio.addEventListener("change", () => {
+      sounds.click();
+    });
+  });
+
   // Strike form validation and submit
   const strikeForm = container.querySelector<HTMLFormElement>("#strike-form");
   if (strikeForm) {
     const updateStrikeButtonState = () => {
       const submitBtn = strikeForm.querySelector<HTMLButtonElement>("#btn-strike");
       if (!submitBtn) return;
-      const targetSelect = strikeForm.querySelector<HTMLSelectElement>("#strike-target");
-      const targetValue = targetSelect?.value ?? "";
+      const targetVal = targetSelect?.value ?? "";
       const fundingRadio = strikeForm.querySelector<HTMLInputElement>(
         'input[name="funding"]:checked',
       );
-      const canSubmit = Boolean(targetValue && fundingRadio && !isSubmitting);
+      const canSubmit = Boolean(targetVal && fundingRadio && !isSubmitting);
       submitBtn.disabled = !canSubmit;
     };
 

@@ -74,11 +74,16 @@ export const renderEventLog = (
 ): string => {
   if (events.length === 0) return "";
   const playerMap = new Map(players.map((p) => [p.playerId, p.displayName]));
+  const latestEvent = events[events.length - 1];
+  const latestEventText = latestEvent ? formatEvent(latestEvent, playerMap) : "";
 
   return `
-    <section class="event-log" aria-label="${t("log.title")}">
+    <section class="event-log chronicle-drawer" aria-label="${t("log.title")}">
       <details class="event-log__details" open>
-        <summary class="event-log__summary">${t("log.title")}</summary>
+        <summary class="event-log__summary">
+          <span class="event-log__summary-main">📜 ${t("log.title")}</span>
+          ${latestEventText ? `<span class="event-log__summary-preview">${t("log.latest", { text: latestEventText })}</span>` : ""}
+        </summary>
         <ol class="event-log__list">
           ${events.map((e) => `<li class="event-log__item">${formatEvent(e, playerMap)}</li>`).join("")}
         </ol>

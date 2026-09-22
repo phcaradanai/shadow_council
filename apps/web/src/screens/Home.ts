@@ -28,6 +28,7 @@ export const renderHomeScreen = (
         <div class="app-header__brand">
           <h1 class="app-title">${t("common.title")}</h1>
           <p class="app-subtitle">${t("common.subtitle")}</p>
+          <p class="app-tagline">${t("home.tagline")}</p>
         </div>
         <div class="app-header__actions">
           ${renderLanguageSwitcher(getLocale())}

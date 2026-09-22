@@ -39,6 +39,9 @@ export const th: TranslationDictionary = {
   "home.quickSurvivorTitle": "ผู้อยู่รอดคนสุดท้าย",
   "home.quickSurvivorDesc":
     "เริ่มด้วย 3 อิทธิพล หากเหลือ 0 จะถูกกำจัด ผู้รอดชีวิตคนสุดท้ายจะครองสภาเงา!",
+  "home.tagline": "อย่าไว้ใจใคร เอาชนะสภาเงา",
+  "home.tabCreate": "สร้างสภาใหม่",
+  "home.tabJoin": "เข้าร่วมสภา",
 
   // Lobby Screen
   "lobby.title": "ห้องล็อบบี้",
@@ -105,9 +108,12 @@ export const th: TranslationDictionary = {
   "player.badgeActive": "กำลังเล่น",
   "player.badgeTarget": "เป้าหมาย",
   "player.badgeEliminated": "ถูกกำจัด",
+  "player.targetPrompt": "🎯 คลิกเพื่อเลือกเป้าหมาย",
+  "player.selectedTarget": "🎯 ล็อกเป้าหมายแล้ว",
 
   // Action Selector
   "action.title": "การกระทำของคุณ",
+  "action.targetHint": "เลือกคู่ต่อสู้จากโต๊ะสภาด้านบน หรือจากเมนูด้านล่าง:",
   "action.strikeTitle": "⚔️ ประกาศโจมตี",
   "action.strikeBadge": "บลัฟ หรือ โจมตีจริง",
   "action.strikeDesc":
@@ -186,6 +192,9 @@ export const th: TranslationDictionary = {
 
   // Event Log
   "log.title": "📜 บันทึกเหตุการณ์ (ล่าสุด)",
+  "log.collapse": "ซ่อนบันทึก",
+  "log.expand": "ดูบันทึกเหตุการณ์",
+  "log.latest": "ล่าสุด",
   "log.actionCommitted":
     "⚔️ <strong>{attacker}</strong> ประกาศโจมตีใส่ <strong>{target}</strong> (การตัดสินใจซ่อนอยู่)",
   "log.reactionCommitted":
