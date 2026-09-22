@@ -150,13 +150,29 @@ export const renderPlayerGrid = (
 ): string => {
   const aliveCount = match.players.filter((p) => !p.eliminated).length;
   return `
-    <section class="players-section council-table" aria-label="Council Chamber Table">
+    <section
+      class="players-section council-table council-stage"
+      aria-label="Council Chamber Table"
+      data-player-count="${match.players.length}"
+    >
       <div class="council-table__header">
-        <h2 class="section-title">🏛️ ${t("player.aliveCount", { count: aliveCount })}</h2>
+        <div>
+          <span class="council-stage__eyebrow">${t("common.title")}</span>
+          <h2 class="section-title">🏛️ ${t("player.aliveCount", { count: aliveCount })}</h2>
+        </div>
         <span class="council-table__hint">${t("action.targetHint")}</span>
       </div>
-      <div class="players-grid council-table__seats">
-        ${match.players.map((player) => renderPlayerCard(player, match, viewerId, selectedTargetId)).join("")}
+
+      <div class="council-table__arena">
+        <div class="council-table__surface" aria-hidden="true">
+          <div class="council-table__crest">
+            <span class="council-table__crest-mark">SC</span>
+          </div>
+        </div>
+
+        <div class="players-grid council-table__seats">
+          ${match.players.map((player) => renderPlayerCard(player, match, viewerId, selectedTargetId)).join("")}
+        </div>
       </div>
     </section>
   `;

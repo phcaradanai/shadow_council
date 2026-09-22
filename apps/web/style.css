@@ -2363,3 +2363,260 @@ h4 {
     box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
   }
 }
+
+
+/* Council Stage — make the match feel like a shared table, not a dashboard grid */
+.council-stage {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(0.85rem, 2vw, 1.35rem);
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(101, 67, 33, 0.18), transparent 34%),
+    linear-gradient(180deg, rgba(12, 17, 29, 0.96), rgba(5, 8, 14, 0.98));
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.32),
+    inset 0 1px rgba(255, 255, 255, 0.035);
+}
+
+.council-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.18;
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(circle at center, #000 35%, transparent 88%);
+}
+
+.council-table__header {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.council-stage__eyebrow {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: var(--text-gold);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.78;
+}
+
+.council-table__arena {
+  position: relative;
+  min-height: 300px;
+  padding: clamp(2.25rem, 7vw, 4rem) clamp(0.25rem, 2vw, 1.25rem);
+  isolation: isolate;
+}
+
+.council-table__surface {
+  position: absolute;
+  z-index: -1;
+  inset: 11% 7%;
+  border-radius: 50%;
+  border: 1px solid rgba(212, 175, 55, 0.16);
+  background:
+    radial-gradient(ellipse at center, rgba(95, 62, 31, 0.36), rgba(28, 19, 15, 0.74) 58%, rgba(7, 10, 18, 0.18) 72%);
+  box-shadow:
+    inset 0 0 50px rgba(0, 0, 0, 0.55),
+    0 0 50px rgba(212, 175, 55, 0.04);
+}
+
+.council-table__surface::before,
+.council-table__surface::after {
+  content: "";
+  position: absolute;
+  inset: 7%;
+  border: 1px solid rgba(212, 175, 55, 0.08);
+  border-radius: 50%;
+}
+
+.council-table__surface::after {
+  inset: 19%;
+  border-style: dashed;
+  opacity: 0.65;
+}
+
+.council-table__crest {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 76px;
+  height: 76px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  background: rgba(8, 10, 17, 0.88);
+  box-shadow:
+    0 0 28px rgba(212, 175, 55, 0.12),
+    inset 0 0 20px rgba(212, 175, 55, 0.05);
+}
+
+.council-table__crest-mark {
+  transform: rotate(-45deg);
+  color: rgba(212, 175, 55, 0.68);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+}
+
+.council-table__seats {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: clamp(0.75rem, 2.3vw, 1.5rem);
+}
+
+.council-stage[data-player-count="5"] .council-table__seats,
+.council-stage[data-player-count="6"] .council-table__seats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.council-seat {
+  position: relative;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background:
+    linear-gradient(145deg, rgba(24, 32, 48, 0.94), rgba(10, 14, 23, 0.96));
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.28),
+    inset 0 1px rgba(255, 255, 255, 0.035);
+  transform: translateZ(0);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    filter 160ms ease;
+}
+
+.council-seat::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 0 58%, rgba(255,255,255,.025) 65%, transparent 73%);
+}
+
+.council-seat__sigil {
+  box-shadow:
+    0 0 0 4px rgba(255, 255, 255, 0.025),
+    0 8px 16px rgba(0, 0, 0, 0.28);
+}
+
+.player-card--self {
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow:
+    0 0 0 1px rgba(56, 189, 248, 0.12),
+    0 15px 34px rgba(0, 0, 0, 0.34),
+    0 0 26px rgba(56, 189, 248, 0.08);
+}
+
+.player-card--active {
+  border-color: rgba(212, 175, 55, 0.72);
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.12),
+    0 0 26px rgba(212, 175, 55, 0.12),
+    0 16px 34px rgba(0, 0, 0, 0.38);
+}
+
+.player-card--target {
+  border-color: rgba(239, 68, 68, 0.72);
+  box-shadow:
+    0 0 0 1px rgba(239, 68, 68, 0.12),
+    0 0 30px rgba(239, 68, 68, 0.14),
+    0 16px 34px rgba(0, 0, 0, 0.38);
+}
+
+.player-card--selected-target {
+  transform: translateY(-4px);
+  border-color: #ef4444;
+  box-shadow:
+    0 0 0 2px rgba(239, 68, 68, 0.18),
+    0 0 34px rgba(239, 68, 68, 0.2),
+    0 18px 36px rgba(0, 0, 0, 0.42);
+}
+
+.player-card--selectable:not(.player-card--selected-target):hover {
+  transform: translateY(-2px);
+  border-color: rgba(239, 68, 68, 0.44);
+}
+
+.player-card--eliminated {
+  filter: grayscale(0.8) brightness(0.6);
+  opacity: 0.65;
+}
+
+.player-card--eliminated::after {
+  content: "×";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  font-size: 4.5rem;
+  line-height: 1;
+  color: rgba(239, 68, 68, 0.22);
+  font-weight: 300;
+  pointer-events: none;
+}
+
+.council-seat__prompt {
+  margin-top: 0.55rem;
+  color: #fca5a5;
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.015em;
+}
+
+@media (max-width: 760px) {
+  .council-table__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .council-table__hint {
+    font-size: 0.72rem;
+  }
+
+  .council-table__arena {
+    min-height: auto;
+    padding: 1rem 0;
+  }
+
+  .council-table__surface {
+    display: none;
+  }
+
+  .council-table__seats,
+  .council-stage[data-player-count="5"] .council-table__seats,
+  .council-stage[data-player-count="6"] .council-table__seats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 430px) {
+  .council-stage {
+    padding-inline: 0.7rem;
+  }
+
+  .council-table__seats,
+  .council-stage[data-player-count="5"] .council-table__seats,
+  .council-stage[data-player-count="6"] .council-table__seats {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+}
