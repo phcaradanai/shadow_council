@@ -27,7 +27,7 @@ Commands:
 - `Strike(actorId, targetId, threat: 1 | 2 | 3, force: 0 | 1 | 2 | 3)` in ACTIVE_TURN.
 - `Recover(actorId)` in ACTIVE_TURN. Gain +2 Power (cap 3).
 - `Scheme(actorId, schemeType: "ambush" | "bulwark")` in ACTIVE_TURN. Costs 1 Power.
-- `React(actorId, choice: "yield" | "challenge" | { type: "guard"; amount: 1 | 2 | 3 })` in REACTION.
+- `React(actorId, defensePlan: { guard: 0 | 1 | 2 | 3; challenge: boolean })` in REACTION. Legacy reaction shapes are accepted only as compatibility inputs and normalize into a DefensePlan. Challenge costs 1 Power.
 - `ExpirePhase(phaseToken)` is application-only; domain validates the current token and applies Pass/Yield. It contains no wall-clock reading.
 
 Client commands omit trusted actor identity; application supplies actorId from membership. Never accept damage, balances, truth verdicts, winner IDs, or complete state as client intent. Room operations (CreateRoom, JoinRoom, UpdateSettings, LeaveRoom in lobby, StartMatch, GetView, Reconnect) are application use cases, not match commands. Host departure in lobby transfers ownership to the earliest remaining member; empty rooms may be removed. Started rosters are frozen. No mid-match joining or seat replacement.
@@ -43,7 +43,7 @@ All events have a stable `(matchId, revision, ordinal)` identity. Do not stamp d
 | MatchStarted, RoundStarted, TurnStarted | Public seat order, round, active player, phase token as appropriate. No seed. |
 | ActionCommitted | Public attacker, target, threat level; force is strictly omitted. |
 | SchemePrepared | Public actorId; schemeType is secret (projected only for owner). |
-| ReactionCommitted | Public target and reaction choice (yield, challenge, guard(amount)); followed immediately by reveal/resolution. |
+| ReactionCommitted | Public target and committed DefensePlan (Guard amount + Challenge flag); followed immediately by reveal/resolution. |
 | ActionRevealed | Public attacker, target, threat, force, derived genuine/bluff verdict, triggered target scheme (if any). |
 | AttackResolved | Public costs, Influence losses, damage absorbed; resulting Power and Scheme status are projected privately per viewer. |
 | BluffSucceeded | Public attacker, target, outcome; emitted when bluff went unchallenged. |
@@ -58,7 +58,7 @@ RandomProvider is a domain-owned interface: `nextInt(randomState, exclusiveMax) 
 
 Keep seed, algorithm version, cursor/state, rules version, initial roster, and ordered accepted domain commands (including expiries) for server-side reproduction. No Math.random, ambient clocks, unordered iteration, locale-dependent ordering, or network calls in domain. Identical inputs and versions reproduce identical state and events. Seeds come from server crypto; security credentials use independent crypto, never this game PRNG.
 
-Invariants: balances stay integer and in range; IDs unique; exactly one active actor or pending target; only living players in actionable positions; queue advances once per turn; winner is the sole survivor; finished state rejects all gameplay commands; rejected decisions consume no randomness. Domain legal-intent queries reuse rule validators and reveal no opponent secret commitments. UI may display these results but must not recalculate eligibility or outcomes.
+Invariants: balances stay integer and in range; IDs unique; exactly one active actor or pending target; only living players in actionable positions; queue advances once per turn; winner is the sole survivor; finished state rejects all gameplay commands; rejected decisions consume no randomness; Force never exceeds Threat; Guard + Challenge cost never exceeds defender Power. Domain legal-intent queries reuse rule validators and reveal no opponent secret commitments. UI may display these results but must not recalculate eligibility or outcomes.
 
 ## Extension seams
 
