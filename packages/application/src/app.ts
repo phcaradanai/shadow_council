@@ -269,7 +269,7 @@ export class GameApplication {
     }
 
     process.stdout.write(
-      `Bot ${botMember.displayName} (${activePlayerId}) [${difficulty}] thinking for ${delay.toFixed(0)}ms\n`,
+      `Bot ${botMember.displayName} (${decisionPlayerId}) [${difficulty}] thinking for ${delay.toFixed(0)}ms\n`,
     );
     setTimeout(() => {
       void this.botMove(roomCode, decisionPlayerId, difficulty);
