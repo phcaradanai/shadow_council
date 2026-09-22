@@ -68,15 +68,15 @@ const renderApp = (state: SessionState): void => {
           void handleAsync(async () => {
             realtime.resetRevisionTracking();
             const res = await api.createRoom(displayName);
-            session.setRoomSession(res.room, res.playerId);
-            realtime.connect(res.room.roomCode);
+            session.setRoomSession(res.room, res.playerId, res.credential);
+            realtime.connect(res.room.roomCode, res.credential);
           }),
         onJoinRoom: (roomCode, displayName) =>
           void handleAsync(async () => {
             realtime.resetRevisionTracking();
             const res = await api.joinRoom(roomCode, displayName);
-            session.setRoomSession(res.room, res.playerId);
-            realtime.connect(res.room.roomCode);
+            session.setRoomSession(res.room, res.playerId, res.credential);
+            realtime.connect(res.room.roomCode, res.credential);
           }),
       },
       errorMessage,
@@ -100,6 +100,11 @@ const renderApp = (state: SessionState): void => {
         onUpdateSettings: (settings) =>
           void handleAsync(async () => {
             const res = await api.updateSettings(room.roomCode, settings);
+            session.updateFromNotification(res.room, undefined, []);
+          }),
+        onAddBot: (difficulty) =>
+          void handleAsync(async () => {
+            const res = await api.addBot(room.roomCode, difficulty);
             session.updateFromNotification(res.room, undefined, []);
           }),
         onLeaveRoom: () =>
@@ -148,7 +153,7 @@ const renderApp = (state: SessionState): void => {
     playerId,
     recentEvents,
     {
-      onStrike: (targetId, funding) =>
+      onStrike: (targetId, threat, force) =>
         void handleAsync(async () => {
           if (match.phase.kind !== "ACTIVE_TURN") return;
           const commandId = session.nextCommandId();
@@ -158,7 +163,7 @@ const renderApp = (state: SessionState): void => {
             commandId,
             match.revision,
             match.phase.phaseToken,
-            { type: "STRIKE", targetId, funding },
+            { type: "STRIKE", targetId, threat, force },
           );
           session.updateFromNotification(room, res.match, res.events);
         }),
@@ -173,6 +178,20 @@ const renderApp = (state: SessionState): void => {
             match.revision,
             match.phase.phaseToken,
             { type: "RECOVER" },
+          );
+          session.updateFromNotification(room, res.match, res.events);
+        }),
+      onScheme: (schemeType) =>
+        void handleAsync(async () => {
+          if (match.phase.kind !== "ACTIVE_TURN") return;
+          const commandId = session.nextCommandId();
+          const res = await api.submitCommand(
+            room.roomCode,
+            match.matchId,
+            commandId,
+            match.revision,
+            match.phase.phaseToken,
+            { type: "SCHEME", schemeType },
           );
           session.updateFromNotification(room, res.match, res.events);
         }),
@@ -219,11 +238,11 @@ const initSession = async (): Promise<void> => {
     const view = await api.fetchView(currentCode);
     if (view.room) {
       const viewerId = view.match?.viewerPlayerId ?? view.room.hostPlayerId;
-      session.setRoomSession(view.room, viewerId);
+      session.setRoomSession(view.room, viewerId, session.getCredential());
       if (view.match) {
         session.updateFromNotification(view.room, view.match, []);
       }
-      realtime.connect(currentCode);
+      realtime.connect(currentCode, session.getCredential());
     }
   } catch {
     // Session invalidated or expired; start fresh

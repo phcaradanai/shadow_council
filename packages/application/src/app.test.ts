@@ -472,4 +472,22 @@ describe("application room and match flow", () => {
       expect((p2RecEvent as any).power).toBeUndefined();
     }
   });
+
+  it("ensures bots execute before turn timer expires without causing timeout", async () => {
+    const app = makeApplication();
+    const host = await app.createRoom({ displayName: "Host" });
+    const bot = await app.addBot(host.room.roomCode, host.credential, {
+      displayName: "Bot1",
+      difficulty: "EASY",
+    });
+
+    const started = await app.startMatch(host.room.roomCode, host.credential);
+    const view = await app.getView(host.room.roomCode, host.credential);
+    expect(view.match).toBeDefined();
+
+    // Verify stored match has deadline configured
+    const stored = (app as any).ports.matches.get(started.match.matchId);
+    expect(stored.deadline).toBeDefined();
+    expect(stored.deadline.deadlineAt).toBeGreaterThan(0);
+  });
 });

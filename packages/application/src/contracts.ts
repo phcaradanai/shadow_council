@@ -1,10 +1,13 @@
 import type {
   DomainEvent,
+  Force,
   Funding,
   MatchCommand,
   MatchId,
   PlayerId,
   ReactionChoice,
+  SchemeType,
+  Threat,
 } from "@shadow-council/domain";
 import { applicationError } from "./errors.js";
 import type { ApplicationDomainEvent } from "./events.js";
@@ -18,6 +21,8 @@ export const MAX_ROOM_MEMBERS = 6;
 export const DEFAULT_TURN_TIME_SECONDS = 45;
 export const ALLOWED_TURN_TIME_SECONDS = [30, 45, 60, 90] as const;
 export type AllowedTurnTimeSeconds = (typeof ALLOWED_TURN_TIME_SECONDS)[number];
+
+export type BotDifficulty = "EASY" | "MEDIUM" | "HARD";
 
 export const DEFAULT_ROOM_SETTINGS: RoomGameSettings = {
   turnTimerEnabled: true,
@@ -46,8 +51,15 @@ export const validateRoomGameSettings = (input: unknown): RoomGameSettings => {
 };
 
 export type SubmittedIntent =
-  | { readonly type: "STRIKE"; readonly targetId: PlayerId; readonly funding: Funding }
+  | {
+      readonly type: "STRIKE";
+      readonly targetId: PlayerId;
+      readonly threat?: Threat;
+      readonly force?: Force;
+      readonly funding?: Force;
+    }
   | { readonly type: "RECOVER" }
+  | { readonly type: "SCHEME"; readonly schemeType: SchemeType }
   | { readonly type: "REACT"; readonly choice: ReactionChoice };
 
 export interface CreateRoomResult {
@@ -125,13 +137,30 @@ export const deadlineFor = (match: StoredMatch, now: number): DeadlineRecord | u
 
 export const commandFor = (playerId: PlayerId, intent: SubmittedIntent): MatchCommand => {
   if (intent.type === "STRIKE") {
+    let threat: Threat;
+    let force: Force;
+    if (intent.threat !== undefined && intent.force !== undefined) {
+      threat = intent.threat;
+      force = intent.force;
+    } else {
+      const f = (intent.force ?? intent.funding ?? 0) as Force;
+      threat = (f === 0 ? 1 : f) as Threat;
+      force = f;
+    }
     return {
       type: "STRIKE",
       actorId: playerId,
       targetId: intent.targetId,
-      funding: intent.funding,
+      threat,
+      force,
+      funding: force,
     };
   }
-  if (intent.type === "RECOVER") return { type: "RECOVER", actorId: playerId };
+  if (intent.type === "RECOVER") {
+    return { type: "RECOVER", actorId: playerId };
+  }
+  if (intent.type === "SCHEME") {
+    return { type: "SCHEME", actorId: playerId, schemeType: intent.schemeType };
+  }
   return { type: "REACT", actorId: playerId, choice: intent.choice };
 };

@@ -2,6 +2,8 @@ import type { WireMatchView, WireRoomView } from "@shadow-council/protocol";
 import { sounds } from "../presentation/sound.js";
 import { renderRulesModal, attachRulesModalListeners } from "../components/RulesModal.js";
 import { t, getLocale, renderLanguageSwitcher, getLocalizedErrorMessage } from "../i18n/index.js";
+import { mountStatsDashboard } from "../components/StatsDashboard.js";
+import { matchStatsTracker } from "../presentation/match-stats.js";
 
 const escapeHtml = (value: string): string =>
   value
@@ -68,6 +70,8 @@ export const renderResultScreen = (
         </p>
       </section>
 
+      <section class="card stats-card" id="stats-dashboard-container"></section>
+
       <section class="card result-roster-card">
         <h3 class="card__title">${t("result.standingsTitle")}</h3>
         <div class="result-roster">
@@ -115,6 +119,17 @@ export const renderResultScreen = (
   `;
 
   attachRulesModalListeners(container);
+
+  const statsContainer = container.querySelector<HTMLElement>("#stats-dashboard-container");
+  if (statsContainer) {
+    mountStatsDashboard(
+      statsContainer,
+      matchStatsTracker.getSnapshots(),
+      match.players,
+      viewerId,
+      winnerId || undefined,
+    );
+  }
 
   container.querySelector<HTMLButtonElement>("#btn-sound-toggle")?.addEventListener("click", () => {
     sounds.click();

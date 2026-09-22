@@ -6,8 +6,16 @@ export type PlayerId = Brand<string, "PlayerId">;
 export const asMatchId = (value: string): MatchId => value as MatchId;
 export const asPlayerId = (value: string): PlayerId => value as PlayerId;
 
-export type Funding = 0 | 1;
-export type ReactionChoice = "guard" | "challenge" | "yield";
+export type Threat = 1 | 2 | 3;
+export type Force = 0 | 1 | 2 | 3;
+export type SchemeType = "ambush" | "bulwark";
+export type ReactionChoice =
+  | "yield"
+  | "challenge"
+  | { readonly type: "guard"; readonly amount: 1 | 2 | 3 };
+
+// Backward-compat alias for any code expecting Funding
+export type Funding = Force;
 
 export interface RandomState {
   readonly algorithmVersion: string;
@@ -20,12 +28,16 @@ export interface PlayerState {
   readonly playerId: PlayerId;
   readonly influence: number;
   readonly power: number;
+  readonly activeScheme?: SchemeType | undefined;
 }
 
 export interface PendingStrike {
   readonly attackerId: PlayerId;
   readonly targetId: PlayerId;
-  readonly funding: Funding;
+  readonly threat: Threat;
+  readonly force: Force;
+  // Backward compatibility alias:
+  readonly funding?: Force;
 }
 
 export interface ActiveTurnPhase {

@@ -80,6 +80,15 @@ export const renderPlayerCard = (
     isOffline
       ? `<span class="badge badge--offline" data-badge="offline">${t("common.offline")}</span>`
       : "",
+    player.hasScheme
+      ? `<span class="badge badge--scheme bg-indigo-950 text-indigo-300 border border-indigo-700 text-xs px-1.5 py-0.5 rounded font-mono" data-badge="scheme">♟️ ${
+          isSelf && player.activeScheme
+            ? player.activeScheme === "ambush"
+              ? t("player.schemeAmbush")
+              : t("player.schemeBulwark")
+            : t("player.schemeHidden")
+        }</span>`
+      : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -104,7 +113,7 @@ export const renderPlayerCard = (
             <h3 class="player-card__name">${escapeHtml(player.displayName)}</h3>
             ${isSelectedTarget ? `<span class="badge badge--target-locked">${t("player.selectedTarget")}</span>` : ""}
           </div>
-          <div class="player-card__badges">${badges}</div>
+          <div class="player-card__badges flex flex-wrap gap-1 mt-1">${badges}</div>
         </header>
 
         <div class="player-card__stats">

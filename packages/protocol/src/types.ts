@@ -26,10 +26,26 @@ export interface UpdateSettingsBody {
   readonly turnTimeSeconds?: number;
 }
 
+export type WireReactionChoice =
+  | "yield"
+  | "challenge"
+  | { readonly type: "guard"; readonly amount: 1 | 2 | 3 }
+  | "guard"; // backward compatibility
+
 export type WireIntent =
-  | { readonly type: "STRIKE"; readonly targetId: string; readonly funding: 0 | 1 }
+  | {
+      readonly type: "STRIKE";
+      readonly targetId: string;
+      readonly threat?: 1 | 2 | 3;
+      readonly force?: 0 | 1 | 2 | 3;
+      readonly funding?: 0 | 1 | 2 | 3;
+    }
   | { readonly type: "RECOVER" }
-  | { readonly type: "REACT"; readonly choice: "guard" | "challenge" | "yield" };
+  | { readonly type: "SCHEME"; readonly schemeType: "ambush" | "bulwark" }
+  | {
+      readonly type: "REACT";
+      readonly choice: WireReactionChoice;
+    };
 
 export interface CommandEnvelope {
   readonly protocolVersion: typeof PROTOCOL_VERSION;
@@ -55,10 +71,16 @@ export interface WireError {
   readonly message: string;
 }
 
+export interface AddBotBody {
+  readonly difficulty?: "EASY" | "MEDIUM" | "HARD";
+}
+
 export interface WireRoomMemberView {
   readonly playerId: string;
   readonly displayName: string;
   readonly connected: boolean;
+  readonly isBot: boolean;
+  readonly botDifficulty?: "EASY" | "MEDIUM" | "HARD";
 }
 
 export interface WireRoomView {
@@ -75,10 +97,16 @@ export type WireLegalIntent =
   | {
       readonly type: "STRIKE";
       readonly targetIds: readonly string[];
-      readonly funding: readonly (0 | 1)[];
+      readonly threats?: readonly (1 | 2 | 3)[];
+      readonly forces?: readonly (0 | 1 | 2 | 3)[];
+      readonly funding?: readonly (0 | 1)[];
     }
   | { readonly type: "RECOVER" }
-  | { readonly type: "REACT"; readonly choices: readonly ("guard" | "challenge" | "yield")[] };
+  | { readonly type: "SCHEME"; readonly schemeTypes: readonly ("ambush" | "bulwark")[] }
+  | {
+      readonly type: "REACT";
+      readonly choices: readonly WireReactionChoice[];
+    };
 
 export type WirePhaseView =
   | {
@@ -94,6 +122,8 @@ export type WirePhaseView =
       readonly targetId: string;
       readonly phaseToken: string;
       readonly deadlineAt?: number;
+      readonly threat?: 1 | 2 | 3;
+      readonly pendingForce?: 0 | 1 | 2 | 3; // for attacker view only
       readonly pendingFunding?: 0 | 1;
     }
   | { readonly kind: "FINISHED"; readonly winnerId: string };
@@ -102,7 +132,9 @@ export interface WirePlayerView {
   readonly playerId: string;
   readonly displayName: string;
   readonly influence: number;
-  readonly power?: number;
+  readonly power?: number; // only populated for viewer
+  readonly hasScheme?: boolean; // public indicator for opponents
+  readonly activeScheme?: "ambush" | "bulwark"; // only populated for viewer
   readonly eliminated: boolean;
   readonly connected: boolean;
 }

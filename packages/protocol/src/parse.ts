@@ -1,5 +1,6 @@
 import {
   PROTOCOL_VERSION,
+  type AddBotBody,
   type CommandEnvelope,
   type CreateRoomBody,
   type JoinRoomBody,
@@ -8,6 +9,7 @@ import {
   type StartMatchBody,
   type UpdateSettingsBody,
   type WireIntent,
+  type WireReactionChoice,
 } from "./types.js";
 
 type RecordValue = Record<string, unknown>;
@@ -49,6 +51,15 @@ export const parseCreateRoomBody = (value: unknown): ParseResult<CreateRoomBody>
 
 export const parseJoinRoomBody = (value: unknown): ParseResult<JoinRoomBody> =>
   parseCreateRoomBody(value);
+
+export const parseAddBotBody = (value: unknown): ParseResult<AddBotBody> => {
+  if (!isRecord(value)) return { ok: true, value: {} };
+  const diff = value.difficulty;
+  if (diff === "EASY" || diff === "MEDIUM" || diff === "HARD") {
+    return { ok: true, value: { difficulty: diff } };
+  }
+  return { ok: true, value: {} };
+};
 
 export const parseStartMatchBody = (value: unknown): ParseResult<StartMatchBody> => {
   if (!isRecord(value))
@@ -100,27 +111,92 @@ export const parseUpdateSettingsBody = (value: unknown): ParseResult<UpdateSetti
   };
 };
 
+const parseReactionChoice = (value: unknown): ParseResult<WireReactionChoice> => {
+  if (value === "yield" || value === "challenge" || value === "guard") {
+    return { ok: true, value };
+  }
+  if (isRecord(value) && value.type === "guard") {
+    const amount = value.amount;
+    if (amount === 1 || amount === 2 || amount === 3) {
+      return { ok: true, value: { type: "guard", amount } };
+    }
+    return {
+      ok: false,
+      error: { code: "InvalidPayload", message: "Guard amount must be 1, 2, or 3." },
+    };
+  }
+  return { ok: false, error: { code: "InvalidPayload", message: "choice is invalid." } };
+};
+
 const parseIntent = (value: unknown): ParseResult<WireIntent> => {
   if (!isRecord(value))
     return { ok: false, error: { code: "InvalidPayload", message: "intent must be an object." } };
   const type = value.type;
   if (type === "RECOVER") return { ok: true, value: { type: "RECOVER" } };
+  if (type === "SCHEME") {
+    const schemeType = value.schemeType;
+    if (schemeType !== "ambush" && schemeType !== "bulwark") {
+      return {
+        ok: false,
+        error: { code: "InvalidPayload", message: "schemeType must be ambush or bulwark." },
+      };
+    }
+    return { ok: true, value: { type: "SCHEME", schemeType } };
+  }
   if (type === "STRIKE") {
     const targetId = stringValue(value.targetId, "targetId");
     if (!targetId.ok) return targetId;
-    if (value.funding !== 0 && value.funding !== 1) {
-      return { ok: false, error: { code: "InvalidPayload", message: "funding must be 0 or 1." } };
+
+    if (value.threat !== undefined || value.force !== undefined) {
+      if (value.threat !== 1 && value.threat !== 2 && value.threat !== 3) {
+        return {
+          ok: false,
+          error: { code: "InvalidPayload", message: "threat must be 1, 2, or 3." },
+        };
+      }
+      if (
+        value.force !== 0 &&
+        value.force !== 1 &&
+        value.force !== 2 &&
+        value.force !== 3
+      ) {
+        return {
+          ok: false,
+          error: { code: "InvalidPayload", message: "force must be 0, 1, 2, or 3." },
+        };
+      }
+      return {
+        ok: true,
+        value: {
+          type: "STRIKE",
+          targetId: targetId.value,
+          threat: value.threat,
+          force: value.force,
+          funding: value.force,
+        },
+      };
     }
+
+    if (value.funding !== 0 && value.funding !== 1) {
+      return {
+        ok: false,
+        error: { code: "InvalidPayload", message: "funding must be 0 or 1, or provide threat/force." },
+      };
+    }
+    const f = value.funding;
     return {
       ok: true,
-      value: { type: "STRIKE", targetId: targetId.value, funding: value.funding },
+      value: {
+        type: "STRIKE",
+        targetId: targetId.value,
+        funding: f,
+      },
     };
   }
   if (type === "REACT") {
-    if (value.choice !== "guard" && value.choice !== "challenge" && value.choice !== "yield") {
-      return { ok: false, error: { code: "InvalidPayload", message: "choice is invalid." } };
-    }
-    return { ok: true, value: { type: "REACT", choice: value.choice } };
+    const choice = parseReactionChoice(value.choice);
+    if (!choice.ok) return choice;
+    return { ok: true, value: { type: "REACT", choice: choice.value } };
   }
   return { ok: false, error: { code: "InvalidPayload", message: "intent type is invalid." } };
 };

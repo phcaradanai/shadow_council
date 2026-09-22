@@ -7,6 +7,7 @@ export const POWER_CAP = 3;
 export interface RecoverResult {
   readonly players: readonly PlayerState[];
   readonly resultingPower: number;
+  readonly powerGained: number;
 }
 
 export const recoverPower = (
@@ -20,9 +21,11 @@ export const recoverPower = (
   if (actor.power >= POWER_CAP) {
     return failure({ code: "PowerAtCap", message: "Power is already at its maximum." });
   }
-  const resultingPower = actor.power + 1;
+  const resultingPower = Math.min(POWER_CAP, actor.power + 2);
+  const powerGained = resultingPower - actor.power;
   return success({
     resultingPower,
+    powerGained,
     players: players.map((player) =>
       player.playerId === actorId ? { ...player, power: resultingPower } : player,
     ),

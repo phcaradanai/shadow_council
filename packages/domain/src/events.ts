@@ -1,4 +1,12 @@
-import type { Funding, MatchId, PlayerId, ReactionChoice } from "./model.js";
+import type {
+  Force,
+  Funding,
+  MatchId,
+  PlayerId,
+  ReactionChoice,
+  SchemeType,
+  Threat,
+} from "./model.js";
 
 interface EventBase {
   readonly matchId: MatchId;
@@ -28,7 +36,13 @@ export type DomainEventData =
       readonly attackerId: PlayerId;
       readonly targetId: PlayerId;
       readonly action: "Strike";
+      readonly threat?: Threat;
       readonly phaseToken: string;
+    }
+  | {
+      readonly type: "SchemePrepared";
+      readonly actorId: PlayerId;
+      readonly schemeType: SchemeType;
     }
   | {
       readonly type: "ReactionCommitted";
@@ -40,8 +54,11 @@ export type DomainEventData =
       readonly type: "ActionRevealed";
       readonly attackerId: PlayerId;
       readonly targetId: PlayerId;
-      readonly funding: Funding;
+      readonly threat?: Threat;
+      readonly force?: Force;
+      readonly funding?: Funding;
       readonly genuine: boolean;
+      readonly triggeredScheme?: SchemeType | undefined;
     }
   | {
       readonly type: "AttackResolved";
@@ -56,12 +73,15 @@ export type DomainEventData =
       readonly targetPower: number;
       readonly attackerInfluence: number;
       readonly targetInfluence: number;
+      readonly damageAbsorbed?: number;
+      readonly ambushDamage?: number;
     }
   | {
       readonly type: "BluffSucceeded";
       readonly attackerId: PlayerId;
       readonly targetId: PlayerId;
-      readonly reaction: "guard" | "yield";
+      readonly outcome?: "guard" | "yield";
+      readonly reaction?: ReactionChoice;
     }
   | {
       readonly type: "PowerRecovered";

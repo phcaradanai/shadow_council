@@ -10,6 +10,8 @@ export interface RoomMemberRecord {
   readonly playerId: PlayerId;
   readonly displayName: string;
   readonly connected: boolean;
+  readonly isBot: boolean;
+  readonly botDifficulty?: "EASY" | "MEDIUM" | "HARD";
 }
 
 export type RoomStatus = "LOBBY" | "PLAYING" | "FINISHED";

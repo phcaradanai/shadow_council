@@ -1,4 +1,5 @@
 import type { WireDomainEvent, WireMatchView, WireRoomView } from "@shadow-council/protocol";
+import { matchStatsTracker } from "../presentation/match-stats.js";
 
 export type ConnectionStatus = "connected" | "connecting" | "disconnected";
 
@@ -6,6 +7,7 @@ export interface SessionState {
   room?: WireRoomView | undefined;
   match?: WireMatchView | undefined;
   playerId?: string | undefined;
+  credential?: string | undefined;
   roomCode: string;
   connectionStatus: ConnectionStatus;
   errorMessage?: string | undefined;
@@ -22,17 +24,24 @@ class SessionStore {
 
   constructor() {
     let savedCode = "";
+    let savedCredential = "";
     try {
       savedCode = sessionStorage.getItem("shadow-council.roomCode") ?? "";
+      savedCredential = sessionStorage.getItem("shadow-council.credential") ?? "";
     } catch {
       // Storage unavailable
     }
     this.state = {
       roomCode: savedCode,
+      credential: savedCredential || undefined,
       connectionStatus: "disconnected",
       isSubmitting: false,
       recentEvents: [],
     };
+  }
+
+  getCredential(): string | undefined {
+    return this.state.credential;
   }
 
   getState(): SessionState {
@@ -83,9 +92,12 @@ class SessionStore {
     }
   }
 
-  setRoomSession(room: WireRoomView, playerId: string): void {
+  setRoomSession(room: WireRoomView, playerId: string, credential?: string): void {
     try {
       sessionStorage.setItem("shadow-council.roomCode", room.roomCode);
+      if (credential) {
+        sessionStorage.setItem("shadow-council.credential", credential);
+      }
     } catch {
       // Storage unavailable
     }
@@ -94,6 +106,7 @@ class SessionStore {
       room,
       roomCode: room.roomCode,
       playerId,
+      ...(credential ? { credential } : {}),
       errorMessage: undefined,
       isSubmitting: false,
     };
@@ -105,6 +118,9 @@ class SessionStore {
     match: WireMatchView | undefined,
     events: readonly WireDomainEvent[],
   ): void {
+    if (match) {
+      matchStatsTracker.recordMatchState(match, events);
+    }
     let recentEvents = this.state.recentEvents;
     if (events.length > 0) {
       recentEvents = [...events, ...recentEvents].slice(0, 20);
@@ -122,6 +138,7 @@ class SessionStore {
   clearSession(): void {
     try {
       sessionStorage.removeItem("shadow-council.roomCode");
+      sessionStorage.removeItem("shadow-council.credential");
     } catch {
       // Storage unavailable
     }
@@ -130,6 +147,7 @@ class SessionStore {
       room: undefined,
       match: undefined,
       playerId: undefined,
+      credential: undefined,
       connectionStatus: "disconnected",
       errorMessage: undefined,
       isSubmitting: false,

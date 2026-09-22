@@ -13,6 +13,7 @@ const escapeHtml = (value: string): string =>
 export interface LobbyCallbacks {
   onStartMatch: () => void;
   onLeaveRoom: () => void;
+  onAddBot?: (difficulty?: "EASY" | "MEDIUM" | "HARD") => void;
   onUpdateSettings?: (settings: { turnTimerEnabled: boolean; turnTimeSeconds?: number }) => void;
 }
 
@@ -127,14 +128,22 @@ export const renderLobbyScreen = (
             .map((member) => {
               const isMemberHost = member.playerId === room.hostPlayerId;
               const isSelf = member.playerId === viewerId;
+              const diffBadge = member.isBot
+                ? (member.botDifficulty === "EASY"
+                    ? `<span class="badge badge--bot-easy">🟢 ${t("lobby.botEasy")}</span>`
+                    : member.botDifficulty === "HARD"
+                      ? `<span class="badge badge--bot-hard">🔴 ${t("lobby.botHard")}</span>`
+                      : `<span class="badge badge--bot-medium">🟡 ${t("lobby.botMedium")}</span>`)
+                : "";
               return `
                 <div class="roster-item ${isSelf ? "roster-item--self" : ""} ${!member.connected ? "roster-item--offline" : ""}">
-                  <div class="roster-item__avatar">${isMemberHost ? "👑" : "👤"}</div>
+                  <div class="roster-item__avatar">${member.isBot ? "🤖" : isMemberHost ? "👑" : "👤"}</div>
                   <div class="roster-item__info">
                     <span class="roster-item__name">${escapeHtml(member.displayName)}</span>
                     <div class="roster-item__badges">
                       ${isSelf ? `<span class="badge badge--self" data-badge="self">${t("common.you")}</span>` : ""}
                       ${isMemberHost ? `<span class="badge badge--host" data-badge="host">${t("common.host")}</span>` : ""}
+                      ${diffBadge}
                       ${member.connected ? `<span class="badge badge--online" data-badge="online">${t("common.online")}</span>` : `<span class="badge badge--offline" data-badge="offline">${t("common.offline")}</span>`}
                     </div>
                   </div>
@@ -149,6 +158,16 @@ export const renderLobbyScreen = (
         ${
           isHost
             ? `
+              <div class="bot-add-group" style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center;">
+                <select id="select-bot-difficulty" class="form-select" style="width: auto; min-width: 120px;" ${isSubmitting ? "disabled" : ""}>
+                  <option value="EASY">🟢 ${t("lobby.botEasy")}</option>
+                  <option value="MEDIUM" selected>🟡 ${t("lobby.botMedium")}</option>
+                  <option value="HARD">🔴 ${t("lobby.botHard")}</option>
+                </select>
+                <button type="button" id="btn-add-bot" class="btn btn--secondary btn--large" style="flex: 1;" ${isSubmitting || room.members.length >= 6 ? "disabled" : ""}>
+                  ${isSubmitting ? t("lobby.addingBot") : `🤖 ${t("lobby.addBot")}`}
+                </button>
+              </div>
               <button type="button" id="btn-start" class="btn btn--primary btn--large btn--block" ${!canStart || isSubmitting ? "disabled" : ""}>
                 ${
                   !canStart
@@ -228,6 +247,13 @@ export const renderLobbyScreen = (
   container.querySelector<HTMLButtonElement>("#btn-start")?.addEventListener("click", () => {
     sounds.click();
     callbacks.onStartMatch();
+  });
+
+  container.querySelector<HTMLButtonElement>("#btn-add-bot")?.addEventListener("click", () => {
+    sounds.click();
+    const selectEl = container.querySelector<HTMLSelectElement>("#select-bot-difficulty");
+    const diff = selectEl?.value as "EASY" | "MEDIUM" | "HARD" | undefined;
+    callbacks.onAddBot?.(diff);
   });
 
   container.querySelector<HTMLButtonElement>("#btn-leave-room")?.addEventListener("click", () => {

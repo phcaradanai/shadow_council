@@ -4,10 +4,11 @@
     "rootDir": "src",
     "outDir": "dist",
     "lib": ["ES2022", "DOM"],
+    "jsx": "react-jsx",
     "types": []
   },
   "references": [
     { "path": "../../packages/protocol" }
   ],
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

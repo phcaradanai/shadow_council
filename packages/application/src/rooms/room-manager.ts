@@ -5,6 +5,7 @@ import {
   MAX_ROOM_MEMBERS,
   validateDisplayName,
   validateRoomGameSettings,
+  type BotDifficulty,
   type CreateRoomResult,
   type JoinRoomResult,
   type RematchResult,
@@ -28,8 +29,8 @@ export class RoomManager {
     return room;
   }
 
-  requireMembership(roomCode: string, token: string): MembershipRecord {
-    if (token.trim().length === 0) {
+  requireMembership(roomCode: string, token: string | undefined): MembershipRecord {
+    if (token === undefined || token.trim().length === 0) {
       throw applicationError("Unauthenticated", "Membership is required.");
     }
     const membership = this.ports.memberships.get(token);
@@ -51,7 +52,7 @@ export class RoomManager {
       roomId: this.ports.identities.nextRoomId(),
       roomCode,
       hostPlayerId: playerId,
-      members: [{ playerId, displayName: name, connected: true }],
+      members: [{ playerId, displayName: name, connected: true, isBot: false }],
       status: "LOBBY",
       settings: DEFAULT_ROOM_SETTINGS,
     };
@@ -76,7 +77,7 @@ export class RoomManager {
     const credential = this.ports.credentials.next();
     const nextRoom: RoomRecord = {
       ...room,
-      members: [...room.members, { playerId, displayName: name, connected: true }],
+      members: [...room.members, { playerId, displayName: name, connected: true, isBot: false }],
     };
     this.ports.rooms.save(nextRoom);
     this.ports.memberships.save({ token: credential, roomCode, playerId });
@@ -203,6 +204,48 @@ export class RoomManager {
     return {
       room: nextRoom,
       roomView: projectRoomView(nextRoom),
+    };
+  }
+
+  addBot(
+    roomCode: string,
+    credential: string | undefined,
+    difficulty: BotDifficulty = "MEDIUM",
+  ): { readonly room: RoomView; readonly nextRoom: RoomRecord } {
+    const membership = this.requireMembership(roomCode, credential);
+    const room = this.requireRoom(roomCode);
+    if (room.hostPlayerId !== membership.playerId) {
+      throw applicationError("NotHost", "Only the host may add a bot.");
+    }
+    if (room.status !== "LOBBY") {
+      throw applicationError("RoomNotReady", "Bots can only be added in the lobby.");
+    }
+    if (room.members.length >= MAX_ROOM_MEMBERS) {
+      throw applicationError("RoomFull", "This room is full.");
+    }
+    const playerId = this.ports.identities.nextPlayerId();
+    const botNames = ["Specter", "Phantom", "Wraith", "Ghost", "Shade", "Entity"];
+    const name = botNames[Math.floor(Math.random() * botNames.length)] ?? "Bot";
+    const validatedDiff: BotDifficulty =
+      difficulty === "EASY" || difficulty === "HARD" ? difficulty : "MEDIUM";
+    const nextRoom: RoomRecord = {
+      ...room,
+      members: [
+        ...room.members,
+        {
+          playerId,
+          displayName: `${name} (Bot)`,
+          connected: true,
+          isBot: true,
+          botDifficulty: validatedDiff,
+        },
+      ],
+    };
+    this.ports.rooms.save(nextRoom);
+    this.ports.memberships.save({ token: `bot:${playerId}`, roomCode, playerId });
+    return {
+      room: projectRoomView(nextRoom),
+      nextRoom,
     };
   }
 }

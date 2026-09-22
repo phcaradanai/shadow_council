@@ -9,6 +9,8 @@ import { renderRevealPanel } from "../components/RevealPanel.js";
 import { renderEventLog } from "../components/EventLog.js";
 import { renderRulesModal, attachRulesModalListeners } from "../components/RulesModal.js";
 import { t, getLocale, renderLanguageSwitcher, getLocalizedErrorMessage } from "../i18n/index.js";
+import { mountStatsDashboard } from "../components/StatsDashboard.js";
+import { matchStatsTracker } from "../presentation/match-stats.js";
 
 const escapeHtml = (value: string): string =>
   value
@@ -18,9 +20,10 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;");
 
 export interface GameCallbacks {
-  onStrike: (targetId: string, funding: 0 | 1) => void;
+  onStrike: (targetId: string, threat: 1 | 2 | 3, force: 0 | 1 | 2 | 3) => void;
   onRecover: () => void;
-  onReact: (choice: "guard" | "challenge" | "yield") => void;
+  onScheme: (schemeType: "ambush" | "bulwark") => void;
+  onReact: (choice: { type: "guard"; amount: 1 | 2 | 3 } | "challenge" | "yield") => void;
   onLeaveRoom: () => void;
 }
 
@@ -57,6 +60,9 @@ export const renderGameScreen = (
           <button type="button" class="btn btn--icon" id="btn-sound-toggle" aria-label="${isMuted ? t("common.soundUnmute") : t("common.soundMute")}">
             ${isMuted ? "🔇" : "🔊"}
           </button>
+          <button type="button" class="btn btn--secondary btn--sm" id="btn-stats-open">
+            📊 ${t("game.stats")}
+          </button>
           <button type="button" class="btn btn--secondary btn--sm" id="btn-rules-open">
             📜 ${t("common.rules")}
           </button>
@@ -91,10 +97,60 @@ export const renderGameScreen = (
       </main>
 
       ${renderRulesModal()}
+
+      <!-- In-Game Stats Modal -->
+      <div class="modal-backdrop" id="stats-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="stats-modal-title">
+        <div class="modal-dialog modal-dialog--lg">
+          <header class="modal-header">
+            <h2 class="modal-title" id="stats-modal-title">📊 ${t("game.stats")}</h2>
+            <button type="button" class="modal-close" id="btn-stats-close" aria-label="Close">✕</button>
+          </header>
+          <div class="modal-body" id="game-stats-modal-container"></div>
+        </div>
+      </div>
     </div>
   `;
 
   attachRulesModalListeners(container);
+
+  // Stats Modal Listeners
+  const statsModal = container.querySelector<HTMLElement>("#stats-modal");
+  const statsModalContainer = container.querySelector<HTMLElement>("#game-stats-modal-container");
+  let unmountStats: (() => void) | undefined;
+
+  container.querySelector<HTMLButtonElement>("#btn-stats-open")?.addEventListener("click", () => {
+    sounds.click();
+    if (statsModal) {
+      statsModal.style.display = "flex";
+      if (statsModalContainer) {
+        unmountStats?.();
+        unmountStats = mountStatsDashboard(
+          statsModalContainer,
+          matchStatsTracker.getSnapshots(),
+          match.players,
+          viewerId,
+          undefined,
+          true,
+        );
+      }
+    }
+  });
+
+  const closeStats = () => {
+    sounds.click();
+    if (statsModal) {
+      statsModal.style.display = "none";
+      unmountStats?.();
+      unmountStats = undefined;
+    }
+  };
+
+  container.querySelector<HTMLButtonElement>("#btn-stats-close")?.addEventListener("click", closeStats);
+  statsModal?.addEventListener("click", (e) => {
+    if (e.target === statsModal) {
+      closeStats();
+    }
+  });
 
   // Sound toggle
   container.querySelector<HTMLButtonElement>("#btn-sound-toggle")?.addEventListener("click", () => {
@@ -164,8 +220,8 @@ export const renderGameScreen = (
     syncTargetHighlights(targetSelect.value);
   });
 
-  // Funding stone clicks sound
-  container.querySelectorAll<HTMLInputElement>('input[name="funding"]').forEach((radio) => {
+  // Threat & Force radio buttons sounds
+  container.querySelectorAll<HTMLInputElement>('input[name="threat"], input[name="force"]').forEach((radio) => {
     radio.addEventListener("change", () => {
       sounds.click();
     });
@@ -178,10 +234,7 @@ export const renderGameScreen = (
       const submitBtn = strikeForm.querySelector<HTMLButtonElement>("#btn-strike");
       if (!submitBtn) return;
       const targetVal = targetSelect?.value ?? "";
-      const fundingRadio = strikeForm.querySelector<HTMLInputElement>(
-        'input[name="funding"]:checked',
-      );
-      const canSubmit = Boolean(targetVal && fundingRadio && !isSubmitting);
+      const canSubmit = Boolean(targetVal && !isSubmitting);
       submitBtn.disabled = !canSubmit;
     };
 
@@ -194,13 +247,29 @@ export const renderGameScreen = (
       if (isSubmitting) return;
       const fd = new FormData(strikeForm);
       const targetId = String(fd.get("targetId") ?? "");
-      const fundingVal = fd.get("funding");
-      if (!targetId || fundingVal === null) return;
-      const funding = Number(fundingVal) === 1 ? 1 : 0;
+      const threatVal = Number(fd.get("threat") ?? 1);
+      const forceVal = Number(fd.get("force") ?? 0);
+      if (!targetId) return;
+      const threat = (threatVal >= 1 && threatVal <= 3 ? threatVal : 1) as 1 | 2 | 3;
+      const force = (forceVal >= 0 && forceVal <= 3 ? forceVal : 0) as 0 | 1 | 2 | 3;
       sounds.threat();
-      callbacks.onStrike(targetId, funding);
+      callbacks.onStrike(targetId, threat, force);
     });
   }
+
+  // Scheme click
+  const schemeBtn = container.querySelector<HTMLButtonElement>("#btn-scheme");
+  schemeBtn?.addEventListener("click", () => {
+    if (isSubmitting) return;
+    const selectedSchemeRadio = container.querySelector<HTMLInputElement>(
+      'input[name="schemeType"]:checked',
+    );
+    const schemeType = (selectedSchemeRadio?.value === "bulwark" ? "bulwark" : "ambush") as
+      | "ambush"
+      | "bulwark";
+    sounds.click();
+    callbacks.onScheme(schemeType);
+  });
 
   // Recover click
   const recoverBtn = container.querySelector<HTMLButtonElement>("#btn-recover");
@@ -211,14 +280,29 @@ export const renderGameScreen = (
   });
 
   // Reaction clicks
+  container.querySelectorAll<HTMLButtonElement>(".btn-guard-amount").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (isSubmitting) return;
+      const amount = Number(btn.dataset.amount ?? 1) as 1 | 2 | 3;
+      sounds.click();
+      callbacks.onReact({ type: "guard", amount });
+    });
+  });
+
   container.querySelectorAll<HTMLButtonElement>(".reaction-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       if (isSubmitting) return;
       const choice = btn.dataset.choice as "guard" | "challenge" | "yield" | undefined;
-      if (choice) {
-        if (choice === "challenge") sounds.challenge();
-        else sounds.click();
-        callbacks.onReact(choice);
+      if (choice === "guard") {
+        const amount = Number(btn.dataset.amount ?? 1) as 1 | 2 | 3;
+        sounds.click();
+        callbacks.onReact({ type: "guard", amount });
+      } else if (choice === "challenge") {
+        sounds.challenge();
+        callbacks.onReact("challenge");
+      } else if (choice === "yield") {
+        sounds.click();
+        callbacks.onReact("yield");
       }
     });
   });

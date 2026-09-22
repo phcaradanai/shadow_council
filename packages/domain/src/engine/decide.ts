@@ -13,6 +13,7 @@ import { failure, success } from "../model.js";
 import type { Transition } from "../transition.js";
 import type { RandomProvider } from "../random/random-provider.js";
 import { recoverPower } from "../rules/recover.js";
+import { prepareScheme } from "../rules/scheme.js";
 import { advanceAfterTurn, phaseTokenFor } from "../rules/turn.js";
 import { resolveStrike, validateStrike } from "../rules/strike.js";
 import { soleSurvivor } from "../rules/victory.js";
@@ -67,17 +68,38 @@ const resolveReaction = (
   if (target === undefined || target.influence <= 0) {
     return failure({ code: "InvalidTarget", message: "The reaction target is no longer living." });
   }
-  if (choice === "guard" && target.power < 1) {
-    return failure({ code: "InsufficientPower", message: "Guard requires 1 Power." });
+
+  // Validate Guard power
+  if (typeof choice === "object" && choice.type === "guard") {
+    if (choice.amount !== 1 && choice.amount !== 2 && choice.amount !== 3) {
+      return failure({ code: "InvalidReaction", message: "Guard amount must be 1, 2, or 3." });
+    }
+    if (target.power < choice.amount) {
+      return failure({
+        code: "InsufficientPower",
+        message: `Guard (${choice.amount}) requires ${choice.amount} Power (you have ${target.power}).`,
+      });
+    }
+  } else if ((choice as unknown) === "guard") {
+    if (target.power < 1) {
+      return failure({ code: "InsufficientPower", message: "Guard requires 1 Power." });
+    }
   }
+
+  const threat = phase.pendingStrike.threat ?? (phase.pendingStrike.funding === 0 ? 1 : (phase.pendingStrike.funding as 1));
+  const force = phase.pendingStrike.force ?? phase.pendingStrike.funding ?? 0;
+
   const resolution = resolveStrike(
     state.players,
     phase.pendingStrike.attackerId,
     phase.pendingStrike.targetId,
-    phase.pendingStrike.funding,
+    threat,
+    force,
     choice,
   );
   const revision = nextRevision(state);
+  const genuine = force >= threat;
+
   const inputs: DomainEventData[] = [
     {
       type: "ReactionCommitted",
@@ -89,8 +111,11 @@ const resolveReaction = (
       type: "ActionRevealed",
       attackerId: phase.pendingStrike.attackerId,
       targetId: phase.pendingStrike.targetId,
-      funding: phase.pendingStrike.funding,
-      genuine: phase.pendingStrike.funding === 1,
+      threat,
+      force,
+      funding: force,
+      genuine,
+      triggeredScheme: target.activeScheme,
     },
     ...resolution.events,
     { type: "TurnEnded", playerId: phase.pendingStrike.attackerId },
@@ -141,7 +166,9 @@ export const decide = (
         pendingStrike: {
           attackerId: command.actorId,
           targetId: command.targetId,
-          funding: valid.value,
+          threat: valid.value.threat,
+          force: valid.value.force,
+          funding: valid.value.force,
         },
       };
       return success(
@@ -151,6 +178,7 @@ export const decide = (
             attackerId: command.actorId,
             targetId: command.targetId,
             action: "Strike",
+            threat: valid.value.threat,
             phaseToken: reactionPhase.phaseToken,
           },
         ]),
@@ -172,8 +200,33 @@ export const decide = (
             {
               type: "PowerRecovered",
               playerId: command.actorId,
-              powerGained: 1,
+              powerGained: recovered.value.powerGained,
               power: recovered.value.resultingPower,
+            },
+            { type: "TurnEnded", playerId: command.actorId },
+            ...advanced.events,
+          ],
+          advanced.round,
+        ),
+      );
+    }
+    if (command.type === "SCHEME") {
+      const actorError = ensureActiveActor(phase, command.actorId, state.players);
+      if (actorError !== undefined) return failure(actorError);
+      const schemed = prepareScheme(state.players, command.actorId, command.schemeType);
+      if (!schemed.ok) return schemed;
+      const revision = nextRevision(state);
+      const advanced = advanceInputs(state, schemed.value.players, revision);
+      return success(
+        transition(
+          state,
+          advanced.phase,
+          schemed.value.players,
+          [
+            {
+              type: "SchemePrepared",
+              actorId: command.actorId,
+              schemeType: command.schemeType,
             },
             { type: "TurnEnded", playerId: command.actorId },
             ...advanced.events,
@@ -218,11 +271,12 @@ export const decide = (
     if (target === undefined || target.influence <= 0) {
       return failure({ code: "NotYourTurn", message: "An eliminated player cannot react." });
     }
-    if (
-      command.choice !== "guard" &&
-      command.choice !== "challenge" &&
-      command.choice !== "yield"
-    ) {
+    const isValidChoice =
+      command.choice === "yield" ||
+      command.choice === "challenge" ||
+      (typeof command.choice === "object" && command.choice.type === "guard") ||
+      (command.choice as unknown) === "guard";
+    if (!isValidChoice) {
       return failure({ code: "InvalidReaction", message: "That reaction is not supported." });
     }
     return resolveReaction(state, command.choice, false);

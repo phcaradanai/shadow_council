@@ -51,24 +51,26 @@ export const renderTurnIndicator = (match: WireMatchView, viewerId: string): str
     const isTarget = phase.targetId === viewerId;
     const attackerName = playerMap.get(phase.attackerId) ?? "Attacker";
     const targetName = playerMap.get(phase.targetId) ?? "Target";
+    const threat = phase.threat ?? 1;
 
     if (isTarget) {
       return `
         <div class="turn-banner turn-banner--targeted" data-state="under-attack" role="status" aria-live="assertive">
           <div class="turn-banner__badge turn-banner__badge--danger" data-state="under-attack">${t("game.turnUnderAttack")}</div>
-          <h2 class="turn-banner__headline">${t("game.turnAttackedBy", { player: escapeHtml(attackerName) })}</h2>
+          <h2 class="turn-banner__headline">${t("game.turnAttackedBy", { player: escapeHtml(attackerName), threat })}</h2>
           <p class="turn-banner__subline">${t("game.turnAttackedByDesc")}</p>
         </div>
       `;
     }
 
     if (isAttacker) {
-      const isBluff = phase.pendingFunding === 0;
+      const force = phase.pendingForce ?? (phase.pendingFunding as number | undefined) ?? 0;
+      const isBluff = force < threat;
       return `
         <div class="turn-banner turn-banner--threat" data-state="threat-committed" role="status" aria-live="polite">
           <div class="turn-banner__badge">${t("game.turnThreatCommitted")}</div>
-          <h2 class="turn-banner__headline">${t("game.turnThreatDeclaredAgainst", { player: escapeHtml(targetName) })}</h2>
-          <p class="turn-banner__subline">${isBluff ? t("game.turnYouCommittedBluff", { player: escapeHtml(targetName) }) : t("game.turnYouCommittedGenuine", { player: escapeHtml(targetName) })}</p>
+          <h2 class="turn-banner__headline">${t("game.turnThreatDeclaredAgainst", { player: escapeHtml(targetName), threat })}</h2>
+          <p class="turn-banner__subline">${isBluff ? t("game.turnYouCommittedBluff", { player: escapeHtml(targetName), threat, force }) : t("game.turnYouCommittedGenuine", { player: escapeHtml(targetName), threat, force })}</p>
         </div>
       `;
     }
@@ -76,7 +78,7 @@ export const renderTurnIndicator = (match: WireMatchView, viewerId: string): str
     return `
       <div class="turn-banner turn-banner--waiting" data-state="clash-in-progress" role="status" aria-live="polite">
         <div class="turn-banner__badge">${t("game.turnClashInProgress")}</div>
-        <h2 class="turn-banner__headline">${t("game.turnClashHeadline", { attacker: escapeHtml(attackerName), target: escapeHtml(targetName) })}</h2>
+        <h2 class="turn-banner__headline">${t("game.turnClashHeadline", { attacker: escapeHtml(attackerName), target: escapeHtml(targetName), threat })}</h2>
         <p class="turn-banner__subline">${t("game.turnClashWaitingReaction", { target: escapeHtml(targetName) })}</p>
       </div>
     `;

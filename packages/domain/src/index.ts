@@ -7,6 +7,7 @@ export * from "./legal-intents.js";
 export * from "./random/random-provider.js";
 export * from "./random/seeded.js";
 export * from "./rules/recover.js";
+export * from "./rules/scheme.js";
 export * from "./rules/strike.js";
 export * from "./rules/victory.js";
 export * from "./rules/turn.js";

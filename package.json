@@ -15,9 +15,10 @@
     "build:application": "tsc -p packages/application/tsconfig.json",
     "build:protocol": "tsc -p packages/protocol/tsconfig.json",
     "build:server": "tsc -p apps/server/tsconfig.json",
-    "build:web": "tsc -p apps/web/tsconfig.json",
+    "build:web": "tsc -p apps/web/tsconfig.json && bun build apps/web/src/main.ts --outfile=apps/web/dist/main.js --target=browser",
     "typecheck": "tsc -b",
-    "dev": "npm run build && node apps/server/dist/main.js",
+    "dev": "npm run build && NODE_ENV=development node apps/server/dist/main.js",
+    "start": "node server.ts",
     "test": "vitest run",
     "test:domain": "vitest run packages/domain/src/**/*.test.ts",
     "test:application": "vitest run packages/application/src/**/*.test.ts",
@@ -34,5 +35,12 @@
     "prettier": "3.4.2",
     "typescript": "5.7.3",
     "vitest": "2.1.9"
+  },
+  "dependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "recharts": "^3.10.1"
   }
 }

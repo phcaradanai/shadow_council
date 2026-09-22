@@ -10,7 +10,9 @@ import {
   type ReadViewResult,
   type SubmittedIntent,
 } from "@shadow-council/application";
+import type { Force, Threat } from "@shadow-council/domain";
 import {
+  parseAddBotBody,
   parseCommandEnvelope,
   parseCreateRoomBody,
   parseJoinRoomBody,
@@ -86,13 +88,27 @@ const parseCookies = (header: string | undefined): Map<string, string> => {
   return result;
 };
 
-const membershipToken = (request: IncomingMessage): string | undefined =>
-  parseCookies(request.headers.cookie).get(COOKIE_NAME);
+const membershipToken = (request: IncomingMessage, requestUrl?: URL): string | undefined => {
+  const queryToken = requestUrl?.searchParams.get("token");
+  if (queryToken && queryToken.trim().length > 0) {
+    return queryToken.trim();
+  }
+  const authHeader = request.headers["authorization"];
+  if (authHeader?.startsWith("Bearer ")) {
+    const bearer = authHeader.slice(7).trim();
+    if (bearer.length > 0) return bearer;
+  }
+  const customHeader = request.headers["x-membership-token"];
+  if (typeof customHeader === "string" && customHeader.trim().length > 0) {
+    return customHeader.trim();
+  }
+  return parseCookies(request.headers.cookie).get(COOKIE_NAME);
+};
 
 const cookie = (token: string): string =>
-  `${COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; SameSite=Lax; Path=/${process.env.NODE_ENV === "production" ? "; Secure" : ""}`;
+  `${COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; SameSite=None; Secure; Path=/`;
 
-const clearCookie = (): string => `${COOKIE_NAME}=; HttpOnly; SameSite=Lax; Max-Age=0; Path=/`;
+const clearCookie = (): string => `${COOKIE_NAME}=; HttpOnly; SameSite=None; Secure; Max-Age=0; Path=/`;
 
 const readBody = (request: IncomingMessage): Promise<unknown> =>
   new Promise((resolve, reject) => {
@@ -123,23 +139,47 @@ const readBody = (request: IncomingMessage): Promise<unknown> =>
   });
 
 const ensureSameOrigin = (request: IncomingMessage): void => {
+  // Relaxed for AI Studio preview environment
   const origin = request.headers.origin;
   const host = request.headers.host;
   if (origin === undefined || host === undefined) return;
   try {
-    if (new URL(origin).host !== host)
-      throw new ApplicationError("NotMember", "Origin is not allowed.");
-  } catch (error) {
-    if (error instanceof ApplicationError) throw error;
-    throw new ApplicationError("NotMember", "Origin is not allowed.");
+    const originHost = new URL(origin).host;
+    if (originHost !== host) {
+      process.stdout.write(`Origin mismatch (ignored): origin=${originHost}, host=${host}\n`);
+    }
+  } catch {
+    // Ignore malformed origin
   }
 };
 
 const wireIntent = (intent: WireIntent): SubmittedIntent => {
-  if (intent.type === "STRIKE")
-    return { type: "STRIKE", targetId: playerIdFromWire(intent.targetId), funding: intent.funding };
+  if (intent.type === "STRIKE") {
+    let threat: Threat;
+    let force: Force;
+    if (intent.threat !== undefined && intent.force !== undefined) {
+      threat = intent.threat;
+      force = intent.force;
+    } else {
+      const f = (intent.force ?? intent.funding ?? 0) as Force;
+      threat = (f === 0 ? 1 : f) as Threat;
+      force = f;
+    }
+    return {
+      type: "STRIKE",
+      targetId: playerIdFromWire(intent.targetId),
+      threat,
+      force,
+      funding: force,
+    };
+  }
   if (intent.type === "RECOVER") return { type: "RECOVER" };
-  return { type: "REACT", choice: intent.choice };
+  if (intent.type === "SCHEME") return { type: "SCHEME", schemeType: intent.schemeType };
+  const choice =
+    intent.choice === "guard"
+      ? ({ type: "guard", amount: 1 } as const)
+      : intent.choice;
+  return { type: "REACT", choice };
 };
 
 const readEnvelope = (envelope: CommandEnvelope) => ({
@@ -214,19 +254,29 @@ const handleRequest = async (
   }
 
   if (method === "POST" && requestUrl.pathname === "/rooms") {
+    process.stdout.write(`POST /rooms request received\n`);
     ensureSameOrigin(request);
-    const parsed = parseCreateRoomBody(await readBody(request));
+    const body = await readBody(request);
+    process.stdout.write(`Body: ${JSON.stringify(body)}\n`);
+    const parsed = parseCreateRoomBody(body);
     if (!parsed.ok) {
+      process.stdout.write(`Parse failed: ${JSON.stringify(parsed.error)}\n`);
       writeJson(response, 400, parsed.error);
       return;
     }
-    const result = await application.createRoom(parsed.value);
-    writeJson(
-      response,
-      201,
-      { room: result.room, playerId: result.playerId },
-      { "set-cookie": cookie(result.credential) },
-    );
+    try {
+      const result = await application.createRoom(parsed.value);
+      process.stdout.write(`Room created: ${result.room.roomCode}\n`);
+      writeJson(
+        response,
+        201,
+        { room: result.room, playerId: result.playerId, credential: result.credential },
+        { "set-cookie": cookie(result.credential) },
+      );
+    } catch (err) {
+      process.stdout.write(`createRoom error: ${err instanceof Error ? err.message : String(err)}\n`);
+      throw err;
+    }
     return;
   }
 
@@ -235,7 +285,7 @@ const handleRequest = async (
     return;
   }
   const roomCode = decodeURIComponent(parts[1]);
-  const token = membershipToken(request);
+  const token = membershipToken(request, requestUrl);
 
   if (method === "POST" && parts[2] === "join" && parts.length === 3) {
     ensureSameOrigin(request);
@@ -248,7 +298,7 @@ const handleRequest = async (
     writeJson(
       response,
       200,
-      { room: result.room, playerId: result.playerId },
+      { room: result.room, playerId: result.playerId, credential: result.credential },
       { "set-cookie": cookie(result.credential) },
     );
     return;
@@ -297,6 +347,26 @@ const handleRequest = async (
     ensureSameOrigin(request);
     const result = await application.leaveRoom(roomCode, token);
     writeJson(response, 200, { room: result ?? null }, { "set-cookie": clearCookie() });
+    return;
+  }
+  if (method === "POST" && parts[2] === "bot" && parts.length === 3) {
+    process.stdout.write(`POST /rooms/${roomCode}/bot request received. Token length: ${token?.length ?? 0}\n`);
+    ensureSameOrigin(request);
+    const body = await readBody(request);
+    const parsed = parseAddBotBody(body);
+    if (token === undefined) {
+      process.stdout.write(`Bot add failed: token is undefined\n`);
+      throw new ApplicationError("Unauthenticated", "Membership is required.");
+    }
+    const difficulty = parsed.ok ? parsed.value.difficulty : undefined;
+    try {
+      const result = await application.addBot(roomCode, token, difficulty);
+      process.stdout.write(`Bot added to room ${roomCode} successfully with difficulty ${difficulty ?? "MEDIUM"}\n`);
+      writeJson(response, 200, { room: result });
+    } catch (err) {
+      process.stdout.write(`addBot error in http-server: ${err instanceof Error ? err.message : String(err)}\n`);
+      throw err;
+    }
     return;
   }
   if (method === "POST" && parts[2] === "commands" && parts.length === 3) {

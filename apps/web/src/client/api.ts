@@ -6,12 +6,14 @@ import type {
   WireRoomSettings,
   WireRoomView,
 } from "@shadow-council/protocol";
+import { session } from "../state/session.js";
 
 export const PROTOCOL_VERSION = "1" as const;
 
 export interface SessionResponse {
   readonly room: WireRoomView;
   readonly playerId: string;
+  readonly credential?: string;
 }
 
 export interface ViewResponse {
@@ -37,12 +39,19 @@ export class ApiError extends Error {
 }
 
 const requestJson = async <T>(path: string, init?: RequestInit): Promise<T> => {
+  const credential = session.getCredential();
+  const reqHeaders: Record<string, string> = {
+    "content-type": "application/json",
+    ...((init?.headers as Record<string, string>) ?? {}),
+  };
+  if (credential) {
+    reqHeaders["authorization"] = `Bearer ${credential}`;
+    reqHeaders["x-membership-token"] = credential;
+  }
   const response = await fetch(path, {
     ...init,
-    headers: {
-      "content-type": "application/json",
-      ...(init?.headers ?? {}),
-    },
+    credentials: "include",
+    headers: reqHeaders,
   });
   const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
   if (!response.ok) {
@@ -72,6 +81,19 @@ export const api = {
     return requestJson<{ readonly room: WireRoomView | null }>(
       `/rooms/${encodeURIComponent(roomCode)}/leave`,
       { method: "POST", body: "{}" },
+    );
+  },
+
+  async addBot(
+    roomCode: string,
+    difficulty?: "EASY" | "MEDIUM" | "HARD",
+  ): Promise<{ readonly room: WireRoomView }> {
+    return requestJson<{ readonly room: WireRoomView }>(
+      `/rooms/${encodeURIComponent(roomCode)}/bot`,
+      {
+        method: "POST",
+        body: JSON.stringify(difficulty ? { difficulty } : {}),
+      },
     );
   },
 

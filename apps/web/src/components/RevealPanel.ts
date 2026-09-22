@@ -22,13 +22,16 @@ export const renderRevealPanel = (
   const playerMap = new Map(players.map((p) => [p.playerId, p.displayName]));
   const attackerName = playerMap.get(String(revealedEvent.attackerId)) ?? "Attacker";
   const targetName = playerMap.get(String(revealedEvent.targetId)) ?? "Target";
-  const isGenuine = revealedEvent.genuine === true || revealedEvent.funding === 1;
+  const threat = revealedEvent.threat ?? 1;
+  const force = revealedEvent.force ?? (revealedEvent.funding as number | undefined) ?? 0;
+  const isGenuine = revealedEvent.genuine === true || force >= threat;
+
   const rawReaction = String(
     resolvedEvent.reaction ?? reactionEvent?.choice ?? "yield",
   ).toLowerCase();
   const reactionLabel =
     rawReaction === "guard"
-      ? t("reaction.guardTitle")
+      ? `${t("reaction.guardTitle")}${resolvedEvent.guardAmount ? ` (${resolvedEvent.guardAmount} Pw)` : ""}`
       : rawReaction === "challenge"
         ? t("reaction.challengeTitle")
         : t("reaction.yieldTitle");
@@ -48,6 +51,7 @@ export const renderRevealPanel = (
       verdictSummary = t("reveal.attackBlockedSummary", {
         attacker: escapeHtml(attackerName),
         target: escapeHtml(targetName),
+        force,
       });
     } else {
       verdictHeadline = t("reveal.bluffInducedGuardTitle");
@@ -66,6 +70,8 @@ export const renderRevealPanel = (
       verdictSummary = t("reveal.challengeCrushedSummary", {
         attacker: escapeHtml(attackerName),
         target: escapeHtml(targetName),
+        force,
+        threat,
       });
     } else {
       verdictHeadline = t("reveal.bluffCaughtTitle");
@@ -74,6 +80,8 @@ export const renderRevealPanel = (
       verdictSummary = t("reveal.bluffCaughtSummary", {
         attacker: escapeHtml(attackerName),
         target: escapeHtml(targetName),
+        force,
+        threat,
       });
     }
   } else {
@@ -101,7 +109,7 @@ export const renderRevealPanel = (
 
   const eliminationsHtml =
     eliminatedEvents.length > 0
-      ? `<div class="reveal-card__elimination">${eliminatedEvents
+      ? `<div class="reveal-card__elimination text-red-400 font-bold mt-2">${eliminatedEvents
           .map((e) =>
             t("reveal.eliminatedNotice", {
               player: escapeHtml(playerMap.get(String(e.playerId)) ?? "Player"),
@@ -111,29 +119,29 @@ export const renderRevealPanel = (
       : "";
 
   return `
-    <section class="reveal-section" aria-live="assertive" aria-label="${t("reveal.eyebrow")}">
-      <div class="reveal-card ${verdictClass}" data-outcome="${verdictOutcome}">
-        <div class="reveal-card__header">
-          <span class="reveal-card__eyebrow">${t("reveal.eyebrow")}</span>
-          <h3 class="reveal-card__title">${verdictHeadline}</h3>
+    <section class="reveal-section my-4" aria-live="assertive" aria-label="${t("reveal.eyebrow")}">
+      <div class="reveal-card ${verdictClass} border border-amber-500/40 bg-neutral-900/90 p-4 rounded-xl" data-outcome="${verdictOutcome}">
+        <div class="reveal-card__header mb-3">
+          <span class="reveal-card__eyebrow text-xs uppercase tracking-wider text-amber-400">${t("reveal.eyebrow")}</span>
+          <h3 class="reveal-card__title text-lg font-bold">${verdictHeadline}</h3>
         </div>
 
-        <div class="reveal-timeline">
+        <div class="reveal-timeline grid grid-cols-1 md:grid-cols-3 gap-2 mb-3 bg-neutral-950/60 p-3 rounded border border-neutral-800">
           <div class="timeline-step">
-            <span class="timeline-step__label">${t("reveal.stepThreat")}</span>
-            <span class="timeline-step__val">${t("reveal.stepThreatDesc", { attacker: escapeHtml(attackerName), target: escapeHtml(targetName) })}</span>
+            <span class="timeline-step__label block text-xs text-neutral-400">${t("reveal.stepThreat")}</span>
+            <span class="timeline-step__val text-sm font-semibold">${t("reveal.stepThreatDesc", { attacker: escapeHtml(attackerName), target: escapeHtml(targetName), threat })}</span>
           </div>
           <div class="timeline-step">
-            <span class="timeline-step__label">${t("reveal.stepReaction")}</span>
-            <span class="timeline-step__val">${t("reveal.stepReactionDesc", { target: escapeHtml(targetName), reaction: reactionLabel })}</span>
+            <span class="timeline-step__label block text-xs text-neutral-400">${t("reveal.stepReaction")}</span>
+            <span class="timeline-step__val text-sm font-semibold">${t("reveal.stepReactionDesc", { target: escapeHtml(targetName), reaction: reactionLabel })}</span>
           </div>
           <div class="timeline-step">
-            <span class="timeline-step__label">${t("reveal.stepTruth")}</span>
-            <span class="timeline-step__val"><strong>${isGenuine ? t("reveal.valGenuine") : t("reveal.valBluff")}</strong></span>
+            <span class="timeline-step__label block text-xs text-neutral-400">${t("reveal.stepTruth")}</span>
+            <span class="timeline-step__val text-sm"><strong>${isGenuine ? t("reveal.valGenuine", { force }) : t("reveal.valBluff", { force, threat })}</strong></span>
           </div>
         </div>
 
-        <p class="reveal-card__summary">${verdictSummary}</p>
+        <p class="reveal-card__summary text-sm text-neutral-300">${verdictSummary}</p>
         ${eliminationsHtml}
       </div>
     </section>

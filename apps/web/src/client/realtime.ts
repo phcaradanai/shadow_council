@@ -25,12 +25,13 @@ export class RealtimeClient {
     private readonly onStatusChange?: StatusHandler,
   ) {}
 
-  connect(roomCode: string): void {
+  connect(roomCode: string, credential?: string): void {
     this.disconnect();
     if (roomCode.trim().length === 0) return;
 
     this.onStatusChange?.("connecting");
-    const source = new EventSource(`/rooms/${encodeURIComponent(roomCode)}/events`);
+    const tokenQuery = credential ? `?token=${encodeURIComponent(credential)}` : "";
+    const source = new EventSource(`/rooms/${encodeURIComponent(roomCode)}/events${tokenQuery}`);
     this.source = source;
 
     source.onopen = () => {

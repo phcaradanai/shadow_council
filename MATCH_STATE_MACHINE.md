@@ -7,7 +7,7 @@ stateDiagram-v2
     [*] --> LOBBY
     LOBBY --> ACTIVE_TURN: host StartMatch / setup
     ACTIVE_TURN --> REACTION: Strike
-    ACTIVE_TURN --> ACTIVE_TURN: Recover or expiry / advance
+    ACTIVE_TURN --> ACTIVE_TURN: Recover, Scheme, or expiry / advance
     REACTION --> ACTIVE_TURN: React or expiry / resolve and advance
     REACTION --> FINISHED: resolution leaves one survivor
     FINISHED --> [*]
@@ -18,8 +18,8 @@ stateDiagram-v2
 | State / purpose | Allowed commands | Validation | Transition and events | Timeout |
 | --- | --- | --- | --- | --- |
 | LOBBY: assemble roster | CreateRoom (entry), JoinRoom, LeaveRoom, StartMatch; read/reconnect | Authenticated membership for member operations; capacity 6; unique seat; start by host with 2–6 connected members; serialized room update | RoomCreated/PlayerJoined/PlayerLeft/HostChanged application notifications. Start builds domain state: MatchStarted, RoundStarted, TurnStarted -> ACTIVE_TURN | No gameplay timer. Empty-room cleanup belongs to application. |
-| ACTIVE_TURN: one player chooses | Strike, Recover; internal ExpirePhase | Current living actor, correct phase token/revision; Strike funding 0/1, living non-self target and affordable commitment; Recover below cap | Strike: ActionCommitted -> REACTION. Recover: PowerRecovered, TurnEnded, optional RoundEnded/RoundStarted, TurnStarted -> ACTIVE_TURN | 45 seconds; ExpirePhase emits TurnPassed then the same turn-advance events; no Power gain. |
-| REACTION: target responds to concealed Strike | React; internal ExpirePhase | Current living target, correct token/revision, valid choice; Guard affordable. Commitment cannot be revised | ReactionCommitted, ActionRevealed, AttackResolved, optional BluffSucceeded, optional PlayerEliminated, TurnEnded; then VictoryAchieved -> FINISHED or advance events -> ACTIVE_TURN | 20 seconds; ExpirePhase resolves as Yield with timeout reason. |
+| ACTIVE_TURN: one player chooses | Strike, Recover, Scheme; internal ExpirePhase | Current living actor, correct phase token/revision; Strike threat 1–3, force 0–3 with affordable force; Recover below cap 3; Scheme costs 1 Power | Strike: ActionCommitted -> REACTION. Recover: PowerRecovered (+2 cap 3), TurnEnded, advance. Scheme: SchemePrepared, TurnEnded, advance -> ACTIVE_TURN | Configured turn timer; ExpirePhase emits TurnPassed then turn-advance events. |
+| REACTION: target responds to concealed Strike | React; internal ExpirePhase | Current living target, correct token/revision, valid choice (yield, challenge, guard 1–3); Guard affordable. | ReactionCommitted, ActionRevealed, AttackResolved, optional BluffSucceeded, optional PlayerEliminated, TurnEnded; then VictoryAchieved -> FINISHED or advance events -> ACTIVE_TURN | Configured reaction timer; ExpirePhase resolves as Yield with timeout reason. |
 | FINISHED: immutable result | Read/reconnect only | Caller has room membership for view; gameplay commands rejected | No outgoing gameplay transition; no further round/turn events | None. Rematch later creates a new MatchId; it never resets this state. |
 
 Read/GetView and reconnect do not alter domain state and are available in all room states. Leave during a match is a disconnection, not roster mutation. Start on an already started room is rejected (a retry with the same command ID returns its original receipt).

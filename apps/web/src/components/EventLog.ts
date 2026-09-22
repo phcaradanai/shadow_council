@@ -9,6 +9,12 @@ const escapeHtml = (value: string): string =>
     .replaceAll('"', "&quot;");
 
 const formatReactionChoice = (choice: unknown): string => {
+  if (typeof choice === "object" && choice !== null && "type" in choice) {
+    const obj = choice as { type: string; amount?: number };
+    if (obj.type === "guard") {
+      return `${t("rules.tableGuardName")} (${obj.amount ?? 1} Pw)`;
+    }
+  }
   const c = String(choice ?? "yield").toLowerCase();
   if (c === "guard") return t("rules.tableGuardName");
   if (c === "challenge") return t("rules.tableChallengeName");
@@ -24,6 +30,7 @@ const formatEvent = (event: WireDomainEvent, playerMap: Map<string, string>): st
       return t("log.actionCommitted", {
         attacker: escapeHtml(getName(event.attackerId)),
         target: escapeHtml(getName(event.targetId)),
+        threat: event.threat ?? 1,
       });
     case "ReactionCommitted":
       return t("log.reactionCommitted", {
@@ -32,7 +39,9 @@ const formatEvent = (event: WireDomainEvent, playerMap: Map<string, string>): st
         timeout: event.timedOut ? t("log.timeoutSuffix") : "",
       });
     case "ActionRevealed": {
-      const truth = event.genuine ? t("reveal.valGenuine") : t("reveal.valBluff");
+      const truth = event.genuine
+        ? t("reveal.valGenuine", { force: event.force ?? 1 })
+        : t("reveal.valBluff", { force: event.force ?? 0, threat: event.threat ?? 1 });
       return t("log.actionRevealed", {
         attacker: escapeHtml(getName(event.attackerId)),
         truth,
@@ -45,6 +54,11 @@ const formatEvent = (event: WireDomainEvent, playerMap: Map<string, string>): st
       });
     case "PowerRecovered":
       return t("log.powerRecovered", {
+        player: escapeHtml(getName(event.playerId)),
+        powerGained: event.powerGained ?? 2,
+      });
+    case "SchemePrepared":
+      return t("log.schemePrepared", {
         player: escapeHtml(getName(event.playerId)),
       });
     case "TurnPassed":
@@ -78,14 +92,14 @@ export const renderEventLog = (
   const latestEventText = latestEvent ? formatEvent(latestEvent, playerMap) : "";
 
   return `
-    <section class="event-log chronicle-drawer" aria-label="${t("log.title")}">
-      <details class="event-log__details" open>
-        <summary class="event-log__summary">
+    <section class="event-log chronicle-drawer my-4" aria-label="${t("log.title")}">
+      <details class="event-log__details bg-neutral-900/60 border border-neutral-800 rounded-lg p-3" open>
+        <summary class="event-log__summary cursor-pointer font-bold text-sm text-neutral-300">
           <span class="event-log__summary-main">📜 ${t("log.title")}</span>
-          ${latestEventText ? `<span class="event-log__summary-preview">${t("log.latest", { text: latestEventText })}</span>` : ""}
+          ${latestEventText ? `<span class="event-log__summary-preview ml-2 font-normal text-xs text-neutral-400">(${t("log.latest")}: ${latestEventText})</span>` : ""}
         </summary>
-        <ol class="event-log__list">
-          ${events.map((e) => `<li class="event-log__item">${formatEvent(e, playerMap)}</li>`).join("")}
+        <ol class="event-log__list mt-2 space-y-1 text-xs text-neutral-300 max-h-48 overflow-y-auto">
+          ${events.map((e) => `<li class="event-log__item py-0.5 border-b border-neutral-800/40">${formatEvent(e, playerMap)}</li>`).join("")}
         </ol>
       </details>
     </section>
