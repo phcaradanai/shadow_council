@@ -20,7 +20,12 @@ import {
 } from "./views/projection.js";
 import { RoomManager } from "./rooms/room-manager.js";
 import { MatchCoordinator } from "./matches/match-coordinator.js";
-import { botDelayMs, selectBotIntent } from "./bots/bot-policy.js";
+import {
+  botDecisionPlayerId,
+  botDelayMs,
+  buildBotDecisionContext,
+  selectBotIntent,
+} from "./bots/bot-policy.js";
 
 type Subscriber = (notification: ApplicationNotification) => void;
 
@@ -244,10 +249,12 @@ export class GameApplication {
     const stored = room.matchId === undefined ? undefined : this.ports.matches.get(room.matchId);
     if (stored === undefined || stored.state.phase.kind === "FINISHED") return;
 
-    const phase = stored.state.phase;
-    const activePlayerId = phase.activePlayerId;
+    const decisionPlayerId = botDecisionPlayerId(stored.state);
+    if (decisionPlayerId === undefined) return;
 
-    const botMember = room.members.find((m) => m.playerId === activePlayerId && m.isBot);
+    const botMember = room.members.find(
+      (member) => member.playerId === decisionPlayerId && member.isBot,
+    );
     if (botMember === undefined) return;
 
     const difficulty: BotDifficulty = botMember.botDifficulty ?? "MEDIUM";
@@ -265,7 +272,7 @@ export class GameApplication {
       `Bot ${botMember.displayName} (${activePlayerId}) [${difficulty}] thinking for ${delay.toFixed(0)}ms\n`,
     );
     setTimeout(() => {
-      void this.botMove(roomCode, activePlayerId, difficulty);
+      void this.botMove(roomCode, decisionPlayerId, difficulty);
     }, delay);
   }
 
@@ -279,7 +286,7 @@ export class GameApplication {
       if (room === undefined || room.status !== "PLAYING" || room.matchId === undefined) return;
       const stored = this.ports.matches.get(room.matchId);
       if (stored === undefined || stored.state.phase.kind === "FINISHED") return;
-      if (stored.state.phase.activePlayerId !== botPlayerId) return;
+      if (botDecisionPlayerId(stored.state) !== botPlayerId) return;
 
       const legal = legalIntentsFor(stored.state, botPlayerId);
       if (legal.length === 0) {
@@ -287,7 +294,9 @@ export class GameApplication {
         return;
       }
 
-      const intent = selectBotIntent(difficulty, stored.state, botPlayerId, legal);
+      const context = buildBotDecisionContext(stored.state, botPlayerId);
+      if (context === undefined) return;
+      const intent = selectBotIntent(difficulty, context, legal);
       if (intent === undefined) {
         process.stdout.write(`Bot ${botPlayerId} failed to select intent\n`);
         return;

@@ -2,15 +2,71 @@ import type {
   LegalIntentDescription,
   MatchState,
   PlayerId,
+  SchemeType,
+  Threat,
 } from "@shadow-council/domain";
 import type { BotDifficulty, SubmittedIntent } from "../contracts.js";
 
 export type BotRandom = () => number;
 
+export interface BotDecisionContext {
+  readonly own: {
+    readonly playerId: PlayerId;
+    readonly influence: number;
+    readonly power: number;
+    readonly activeScheme?: SchemeType;
+  };
+  readonly opponents: readonly {
+    readonly playerId: PlayerId;
+    readonly influence: number;
+  }[];
+  readonly phase:
+    | { readonly kind: "ACTIVE_TURN" }
+    | { readonly kind: "REACTION"; readonly threat: Threat };
+}
+
 const choose = <T>(items: readonly T[], random: BotRandom): T | undefined => {
   if (items.length === 0) return undefined;
   const index = Math.min(items.length - 1, Math.floor(random() * items.length));
   return items[index];
+};
+
+export const botDecisionPlayerId = (state: MatchState): PlayerId | undefined => {
+  if (state.phase.kind === "FINISHED") return undefined;
+  return state.phase.kind === "REACTION"
+    ? state.phase.pendingStrike.targetId
+    : state.phase.activePlayerId;
+};
+
+export const buildBotDecisionContext = (
+  state: MatchState,
+  botPlayerId: PlayerId,
+): BotDecisionContext | undefined => {
+  const own = state.players.find((player) => player.playerId === botPlayerId);
+  if (!own) return undefined;
+
+  const opponents = state.players
+    .filter((player) => player.playerId !== botPlayerId && player.influence > 0)
+    .map((player) => ({
+      playerId: player.playerId,
+      influence: player.influence,
+    }));
+
+  const phase: BotDecisionContext["phase"] =
+    state.phase.kind === "REACTION"
+      ? { kind: "REACTION", threat: state.phase.pendingStrike.threat }
+      : { kind: "ACTIVE_TURN" };
+
+  return {
+    own: {
+      playerId: own.playerId,
+      influence: own.influence,
+      power: own.power,
+      ...(own.activeScheme !== undefined ? { activeScheme: own.activeScheme } : {}),
+    },
+    opponents,
+    phase,
+  };
 };
 
 export const botDelayMs = (
@@ -30,8 +86,7 @@ export const botDelayMs = (
 
 export const selectBotIntent = (
   difficulty: BotDifficulty,
-  state: MatchState,
-  botPlayerId: PlayerId,
+  context: BotDecisionContext,
   legal: readonly LegalIntentDescription[],
   random: BotRandom = Math.random,
 ): SubmittedIntent | undefined => {
@@ -48,8 +103,7 @@ export const selectBotIntent = (
     | Extract<LegalIntentDescription, { type: "REACT" }>
     | undefined;
 
-  const botState = state.players.find((player) => player.playerId === botPlayerId);
-  const botPower = botState?.power ?? 0;
+  const botPower = context.own.power;
 
   if (reactOption) {
     const plans = reactOption.defensePlans ?? [];
@@ -73,10 +127,8 @@ export const selectBotIntent = (
                   ? yields
                   : plans;
       } else if (difficulty === "HARD") {
-        const publicThreat =
-          state.phase.kind === "REACTION" ? state.phase.pendingStrike.threat : 1;
-        const ownInfluence = botState?.influence ?? 3;
-        const wantsInsurance = publicThreat >= 2 || ownInfluence <= 1;
+        const publicThreat = context.phase.kind === "REACTION" ? context.phase.threat : 1;
+        const wantsInsurance = publicThreat >= 2 || context.own.influence <= 1;
         pool =
           wantsInsurance && hybrids.length > 0
             ? hybrids
@@ -99,7 +151,7 @@ export const selectBotIntent = (
     const availableTypes: ("STRIKE" | "RECOVER" | "SCHEME")[] = [];
     if (strikeOption && strikeOption.targetIds.length > 0) availableTypes.push("STRIKE");
     if (recoverOption) availableTypes.push("RECOVER");
-    if (schemeOption && schemeOption.schemeTypes.length > 0 && !botState?.activeScheme) {
+    if (schemeOption && schemeOption.schemeTypes.length > 0 && !context.own.activeScheme) {
       availableTypes.push("SCHEME");
     }
 
@@ -120,7 +172,12 @@ export const selectBotIntent = (
   }
 
   if (difficulty === "MEDIUM") {
-    if (schemeOption && botPower >= 1 && !botState?.activeScheme && random() < 0.25) {
+    if (
+      schemeOption &&
+      botPower >= 1 &&
+      !context.own.activeScheme &&
+      random() < 0.25
+    ) {
       return { type: "SCHEME", schemeType: random() < 0.5 ? "ambush" : "bulwark" };
     }
 
@@ -130,7 +187,7 @@ export const selectBotIntent = (
     }
 
     if (strikeOption && strikeOption.targetIds.length > 0) {
-      const opponents = state.players
+      const opponents = context.opponents
         .filter((player) => strikeOption.targetIds.includes(player.playerId))
         .sort((a, b) => b.influence - a.influence);
 
@@ -141,7 +198,6 @@ export const selectBotIntent = (
       if (targetId === undefined || threat === undefined) return undefined;
       const forces = (strikeOption.forces ?? [0]).filter((force) => force <= threat);
       const force = botPower >= threat && random() < 0.55 ? threat : (choose(forces, random) ?? 0);
-
       return { type: "STRIKE", targetId, threat, force, funding: force };
     }
 
@@ -151,18 +207,17 @@ export const selectBotIntent = (
   if (
     schemeOption &&
     botPower >= 1 &&
-    !botState?.activeScheme &&
-    (botState?.influence ?? 3) <= 2 &&
+    !context.own.activeScheme &&
+    context.own.influence <= 2 &&
     random() < 0.4
   ) {
     return { type: "SCHEME", schemeType: "bulwark" };
   }
 
   if (strikeOption && strikeOption.targetIds.length > 0) {
-    const opponents = state.players.filter((player) =>
-      strikeOption.targetIds.includes(player.playerId),
+    const vulnerable = context.opponents.find(
+      (player) => strikeOption.targetIds.includes(player.playerId) && player.influence === 1,
     );
-    const vulnerable = opponents.find((player) => player.influence === 1);
     if (vulnerable && random() < 0.9) {
       const threat = 1;
       const force = botPower >= 1 ? 1 : 0;
@@ -176,10 +231,9 @@ export const selectBotIntent = (
   }
 
   if (strikeOption && strikeOption.targetIds.length > 0) {
-    const opponents = state.players
+    const targetId = context.opponents
       .filter((player) => strikeOption.targetIds.includes(player.playerId))
-      .sort((a, b) => b.influence - a.influence);
-    const targetId = opponents[0]?.playerId;
+      .sort((a, b) => b.influence - a.influence)[0]?.playerId;
     if (targetId === undefined) return undefined;
 
     const threat = Math.min(2, Math.max(1, botPower)) as 1 | 2;

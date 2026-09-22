@@ -5,7 +5,12 @@ import {
   type LegalIntentDescription,
   type MatchState,
 } from "@shadow-council/domain";
-import { botDelayMs, selectBotIntent } from "./bot-policy.js";
+import {
+  botDecisionPlayerId,
+  botDelayMs,
+  buildBotDecisionContext,
+  selectBotIntent,
+} from "./bot-policy.js";
 
 const bot = asPlayerId("bot");
 const opponentA = asPlayerId("opponent-a");
@@ -50,9 +55,63 @@ const activeLegal: readonly LegalIntentDescription[] = [
 ];
 
 describe("bot policy", () => {
+  it("uses the target, not the attacker, as the decision player during REACTION", () => {
+    const reaction: MatchState = {
+      ...baseState(),
+      phase: {
+        kind: "REACTION",
+        activePlayerId: opponentA,
+        turnQueue: [opponentA, bot, opponentB],
+        turnCursor: 0,
+        phaseToken: "phase-react",
+        pendingStrike: {
+          attackerId: opponentA,
+          targetId: bot,
+          threat: 2,
+          force: 0,
+        },
+      },
+    };
+
+    expect(botDecisionPlayerId(reaction)).toBe(bot);
+  });
+
+  it("sanitizes opponent Power and pending Force out of the decision context", () => {
+    const reaction: MatchState = {
+      ...baseState([3, 2]),
+      phase: {
+        kind: "REACTION",
+        activePlayerId: opponentA,
+        turnQueue: [opponentA, bot, opponentB],
+        turnCursor: 0,
+        phaseToken: "phase-react",
+        pendingStrike: {
+          attackerId: opponentA,
+          targetId: bot,
+          threat: 2,
+          force: 2,
+        },
+      },
+    };
+
+    const context = buildBotDecisionContext(reaction, bot);
+    expect(context).toBeDefined();
+    expect(context?.phase).toEqual({ kind: "REACTION", threat: 2 });
+    expect(context?.opponents).toEqual([
+      { playerId: opponentA, influence: 3 },
+      { playerId: opponentB, influence: 3 },
+    ]);
+    expect(JSON.stringify(context?.opponents)).not.toContain("power");
+    expect(JSON.stringify(context?.phase)).not.toContain("force");
+  });
+
   it("does not change hard target selection when hidden opponent Power changes", () => {
-    const lowHigh = selectBotIntent("HARD", baseState([0, 3]), bot, activeLegal, () => 0.99);
-    const highLow = selectBotIntent("HARD", baseState([3, 0]), bot, activeLegal, () => 0.99);
+    const first = buildBotDecisionContext(baseState([0, 3]), bot);
+    const second = buildBotDecisionContext(baseState([3, 0]), bot);
+    if (!first || !second) throw new Error("missing context");
+
+    const lowHigh = selectBotIntent("HARD", first, activeLegal, () => 0.99);
+    const highLow = selectBotIntent("HARD", second, activeLegal, () => 0.99);
 
     expect(lowHigh).toMatchObject({ type: "STRIKE", targetId: opponentA });
     expect(highLow).toMatchObject({ type: "STRIKE", targetId: opponentA });
@@ -91,8 +150,12 @@ describe("bot policy", () => {
       },
     });
 
-    const bluff = selectBotIntent("HARD", reactionState(0), bot, legal, () => 0);
-    const backed = selectBotIntent("HARD", reactionState(2), bot, legal, () => 0);
+    const bluffContext = buildBotDecisionContext(reactionState(0), bot);
+    const backedContext = buildBotDecisionContext(reactionState(2), bot);
+    if (!bluffContext || !backedContext) throw new Error("missing context");
+
+    const bluff = selectBotIntent("HARD", bluffContext, legal, () => 0);
+    const backed = selectBotIntent("HARD", backedContext, legal, () => 0);
 
     expect(bluff).toEqual({ type: "REACT", choice: { guard: 1, challenge: true } });
     expect(backed).toEqual(bluff);
