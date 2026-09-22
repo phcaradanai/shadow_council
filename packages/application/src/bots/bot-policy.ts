@@ -9,6 +9,8 @@ import type { BotDifficulty, SubmittedIntent } from "../contracts.js";
 
 export type BotRandom = () => number;
 
+const DEFAULT_THREATS: readonly Threat[] = [1, 2, 3];
+
 export interface BotDecisionContext {
   readonly own: {
     readonly playerId: PlayerId;
@@ -161,7 +163,7 @@ export const selectBotIntent = (
     }
 
     const targetId = choose(strikeOption?.targetIds ?? [], random);
-    const threat = choose(strikeOption?.threats ?? [1, 2, 3], random);
+    const threat = choose(strikeOption?.threats ?? DEFAULT_THREATS, random);
     if (targetId === undefined || threat === undefined) return undefined;
     const legalForces = (strikeOption?.forces ?? [0]).filter((force) => force <= threat);
     const force = choose(legalForces, random) ?? 0;
@@ -186,7 +188,7 @@ export const selectBotIntent = (
       const randomTarget = choose(strikeOption.targetIds, random);
       const targetId =
         random() < 0.6 && opponents.length > 0 ? opponents[0]!.playerId : randomTarget;
-      const threat = choose(strikeOption.threats ?? [1, 2, 3], random);
+      const threat = choose(strikeOption.threats ?? DEFAULT_THREATS, random);
       if (targetId === undefined || threat === undefined) return undefined;
       const forces = (strikeOption.forces ?? [0]).filter((force) => force <= threat);
       const force = botPower >= threat && random() < 0.55 ? threat : (choose(forces, random) ?? 0);

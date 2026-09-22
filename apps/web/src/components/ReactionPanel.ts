@@ -21,14 +21,16 @@ export const renderReactionControls = (
   const reactIntent = match.legalIntents.find((intent) => intent.type === "REACT");
   if (!reactIntent) return "";
 
-  const legacyPlans: DefensePlan[] = reactIntent.choices.flatMap((choice) => {
-    if (choice === "yield") return [{ guard: 0, challenge: false } as const];
-    if (choice === "challenge") return [{ guard: 0, challenge: true } as const];
-    if (typeof choice === "object" && "type" in choice && choice.type === "guard") {
-      return [{ guard: choice.amount, challenge: false } as const];
+  const legacyPlans: DefensePlan[] = [];
+  for (const choice of reactIntent.choices) {
+    if (choice === "yield") {
+      legacyPlans.push({ guard: 0, challenge: false });
+    } else if (choice === "challenge") {
+      legacyPlans.push({ guard: 0, challenge: true });
+    } else if (typeof choice === "object" && "type" in choice && choice.type === "guard") {
+      legacyPlans.push({ guard: choice.amount, challenge: false });
     }
-    return [];
-  });
+  }
 
   const plans = (
     reactIntent.defensePlans?.length ? reactIntent.defensePlans : legacyPlans

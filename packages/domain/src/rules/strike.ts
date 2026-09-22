@@ -88,7 +88,10 @@ export const normalizeDefensePlan = (reaction: ReactionChoice): DefensePlan => {
   if (typeof reaction === "object" && "type" in reaction && reaction.type === "guard") {
     return { guard: reaction.amount, challenge: false };
   }
-  return reaction;
+  if (typeof reaction === "object" && "guard" in reaction && "challenge" in reaction) {
+    return { guard: reaction.guard, challenge: reaction.challenge };
+  }
+  throw new Error("Unsupported reaction shape after validation.");
 };
 
 export interface StrikeResolution {

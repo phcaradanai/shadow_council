@@ -235,10 +235,8 @@ describe("MatchStatsTracker", () => {
   });
 
   it("keeps hidden opponent Power unknown instead of reporting a false zero", () => {
-    const hiddenPlayers: WirePlayerView[] = [
-      samplePlayers[0]!,
-      { ...samplePlayers[1]!, power: undefined },
-    ];
+    const { power: _hiddenPower, ...hiddenOpponent } = samplePlayers[1]!;
+    const hiddenPlayers: WirePlayerView[] = [samplePlayers[0]!, hiddenOpponent];
     const summaries = tracker.getPlayerSummaries(hiddenPlayers, "p1");
     expect(summaries.find((summary) => summary.playerId === "p2")?.finalPower).toBeUndefined();
   });
