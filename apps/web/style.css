@@ -3264,3 +3264,46 @@ h4 {
     grid-template-columns: repeat(2, minmax(0,1fr));
   }
 }
+
+
+.reveal-scheme-trigger {
+  margin-top: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.35rem 0.65rem;
+  align-items: center;
+  border: 1px solid rgba(99, 102, 241, 0.28);
+  border-radius: 10px;
+  background: rgba(79, 70, 229, 0.1);
+}
+
+.reveal-scheme-trigger strong {
+  color: #c7d2fe;
+  font-size: 0.8rem;
+}
+
+.reveal-scheme-trigger span {
+  color: var(--text-main);
+  font-size: 0.78rem;
+}
+
+.reveal-scheme-trigger small {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+}
+
+.reveal-scheme-trigger[data-scheme="ambush"] {
+  border-color: rgba(239, 68, 68, 0.28);
+  background: rgba(127, 29, 29, 0.12);
+}
+
+.reveal-scheme-trigger[data-scheme="ambush"] strong {
+  color: #fca5a5;
+}
+
+@media (max-width: 520px) {
+  .reveal-scheme-trigger {
+    grid-template-columns: 1fr;
+  }
+}

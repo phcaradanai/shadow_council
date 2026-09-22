@@ -70,6 +70,12 @@ export const renderRevealPanel = (
   const attackerPowerCost = eventNumber(resolved, "attackerPowerCost");
   const timedOut = reaction?.timedOut === true;
   const timeoutText = timedOut ? t("log.timeoutSuffix") : "";
+  const triggeredScheme =
+    revealed.triggeredScheme === "ambush" || revealed.triggeredScheme === "bulwark"
+      ? revealed.triggeredScheme
+      : undefined;
+  const damageAbsorbed = eventNumber(resolved, "damageAbsorbed");
+  const ambushDamage = eventNumber(resolved, "ambushDamage");
 
   const reactionLabel =
     plan.guard > 0 && plan.challenge
@@ -152,6 +158,27 @@ export const renderRevealPanel = (
     outcome = "bluff-succeeded";
   }
 
+  const schemeFeedback =
+    triggeredScheme === undefined
+      ? ""
+      : `
+        <div class="reveal-scheme-trigger" data-scheme="${triggeredScheme}">
+          <strong>${t("reveal.schemeTriggered", { scheme: triggeredScheme })}</strong>
+          <span>${
+            triggeredScheme === "bulwark"
+              ? t("reveal.bulwarkAbsorbed")
+              : t("reveal.ambushRetaliated")
+          }</span>
+          ${
+            triggeredScheme === "bulwark" && damageAbsorbed > 0
+              ? `<small>+${Math.min(1, damageAbsorbed)} Guard</small>`
+              : triggeredScheme === "ambush" && ambushDamage > 0
+                ? `<small>+${ambushDamage} Influence pressure</small>`
+                : ""
+          }
+        </div>
+      `;
+
   const eliminations =
     eliminated.length === 0
       ? ""
@@ -198,6 +225,7 @@ export const renderRevealPanel = (
         </div>
 
         <p class="reveal-card__summary">${summary}</p>
+        ${schemeFeedback}
 
         <div class="reveal-impact">
           ${
