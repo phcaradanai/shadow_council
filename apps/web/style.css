@@ -3367,3 +3367,53 @@ h4 {
     display: none;
   }
 }
+
+
+/* Native stats dashboard: dependency-free, browser-module friendly */
+.stats-dashboard--native {
+  display: grid;
+  gap: 1rem;
+}
+
+.stats-svg {
+  width: 100%;
+  min-height: 220px;
+  overflow: visible;
+}
+
+.stats-svg__grid {
+  stroke: rgba(148, 163, 184, 0.14);
+  stroke-dasharray: 4 4;
+}
+
+.stats-svg__axis {
+  fill: var(--text-muted);
+  font-size: 10px;
+}
+
+.stats-native-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.85rem;
+  margin-top: 0.55rem;
+}
+
+.stats-native-legend__item {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.stats-native-legend__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.stats-dashboard--native .stats-metric-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}

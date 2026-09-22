@@ -2,11 +2,5 @@
   "name": "@shadow-council/web",
   "version": "0.1.0",
   "type": "module",
-  "private": true,
-  "dependencies": {
-    "@shadow-council/protocol": "0.1.0",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
-    "recharts": "^3.10.1"
-  }
+  "private": true
 }
