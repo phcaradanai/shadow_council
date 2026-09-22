@@ -107,7 +107,7 @@ export const renderEventLog = (
 
   return `
     <section class="event-log chronicle-drawer my-4" aria-label="${t("log.title")}">
-      <details class="event-log__details bg-neutral-900/60 border border-neutral-800 rounded-lg p-3" open>
+      <details class="event-log__details bg-neutral-900/60 border border-neutral-800 rounded-lg p-3">
         <summary class="event-log__summary cursor-pointer font-bold text-sm text-neutral-300">
           <span class="event-log__summary-main">📜 ${t("log.title")}</span>
           ${latestEventText ? `<span class="event-log__summary-preview ml-2 font-normal text-xs text-neutral-400">(${t("log.latest")}: ${latestEventText})</span>` : ""}

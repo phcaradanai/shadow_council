@@ -3307,3 +3307,63 @@ h4 {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Input focus and compact secondary information */
+.threat-seal input:focus-visible + .threat-seal__body,
+.force-stone input:focus-visible + .force-stone__body,
+.scheme-card input:focus-visible + span,
+.defense-choice input:focus-visible + .defense-choice__body,
+.challenge-toggle input:focus-visible + .challenge-toggle__body {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.player-card[role="button"]:focus-visible {
+  outline: 2px solid var(--power-cyan);
+  outline-offset: 3px;
+}
+
+.event-log__details:not([open]) .event-log__summary {
+  border-bottom: 0;
+}
+
+.event-log__details[open] .event-log__summary {
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.event-log__summary:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: -2px;
+}
+
+@media (max-width: 600px) {
+  .app-header {
+    align-items: flex-start;
+  }
+
+  .app-header__actions {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .decision-tray__subtitle {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.72rem;
+    line-height: 1.35;
+  }
+
+  .strike-step {
+    padding: 0.72rem;
+  }
+
+  .strike-plan-summary__grid {
+    gap: 0.4rem;
+  }
+
+  .event-log__summary-preview {
+    display: none;
+  }
+}
