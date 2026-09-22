@@ -85,6 +85,7 @@ export const validateStrike = (
 export const normalizeDefensePlan = (reaction: ReactionChoice): DefensePlan => {
   if (reaction === "yield") return { guard: 0, challenge: false };
   if (reaction === "challenge") return { guard: 0, challenge: true };
+  if (reaction === "guard") return { guard: 1, challenge: false };
   if (typeof reaction === "object" && "type" in reaction && reaction.type === "guard") {
     return { guard: reaction.amount, challenge: false };
   }

@@ -116,7 +116,7 @@ describe("MVP Gameplay Scenarios", () => {
     // Attacker caught: loses 1 influence
     const targetState = resolved.match.players.find((p) => p.playerId === targetId)!;
     expect(targetState.influence).toBe(3);
-    expect(targetState.power).toBe(2);
+    expect(targetState.power).toBe(1); // Challenge costs 1 Power
     expect(resolved.match.players.find((p) => p.playerId === attackerId)?.power).toBeUndefined(); // private
 
     const attackerView = await app.getView(activeTurn.roomCode, attackerCred);
@@ -163,7 +163,7 @@ describe("MVP Gameplay Scenarios", () => {
 
     const targetState = resolved.match.players.find((p) => p.playerId === targetId)!;
     expect(targetState.influence).toBe(1); // took 2 influence damage
-    expect(targetState.power).toBe(2);
+    expect(targetState.power).toBe(1); // Challenge costs 1 Power
     expect(resolved.match.players.find((p) => p.playerId === attackerId)?.power).toBeUndefined(); // private
 
     const attackerView = await app.getView(activeTurn.roomCode, attackerCred);

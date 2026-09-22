@@ -19,6 +19,7 @@ export interface DefensePlan {
 export type LegacyReactionChoice =
   | "yield"
   | "challenge"
+  | "guard"
   | { readonly type: "guard"; readonly amount: 1 | 2 | 3 };
 
 export type ReactionChoice = LegacyReactionChoice | DefensePlan;
