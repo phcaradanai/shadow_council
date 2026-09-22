@@ -23,7 +23,7 @@ export type LegacyReactionChoice =
 
 export type ReactionChoice = LegacyReactionChoice | DefensePlan;
 
-// Backward-compat alias for any code expecting Funding
+// Backward-compat alias for callers expecting Funding
 export type Funding = Force;
 
 export interface RandomState {

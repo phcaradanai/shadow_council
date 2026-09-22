@@ -142,7 +142,7 @@ export const resolveStrike = (
       attackerInfluenceLoss = usesAmbush ? 2 : 1;
       ambushDamage = usesAmbush ? 1 : 0;
     } else {
-      // Wrong call has fixed danger 2, but any committed Guard still mitigates it.
+      // Wrong call has fixed danger 2, while committed Guard still mitigates it.
       targetInfluenceLoss = Math.max(0, 2 - effectiveGuard);
       damageAbsorbed = Math.min(2, effectiveGuard);
     }

@@ -15,7 +15,7 @@ export interface PublicPlayerView {
   readonly displayName: string;
   readonly influence: number;
   readonly power?: number; // Secret: omitted for opponents
-  readonly hasScheme?: boolean; // Public indicator: whether player has any active scheme
+  readonly hasScheme?: boolean; // Public indicator: whether the player has an active scheme
   readonly activeScheme?: SchemeType; // Secret: only viewer's active scheme type
   readonly eliminated: boolean;
   readonly connected: boolean;
