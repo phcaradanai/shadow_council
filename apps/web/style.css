@@ -2866,3 +2866,401 @@ h4 {
     margin-inline: auto;
   }
 }
+
+
+/* Strike Planner — make the primary action feel like a wager, not a form */
+.action-options--game {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(240px, 0.75fr);
+  grid-template-areas:
+    "strike scheme"
+    "strike recover";
+  gap: 0.85rem;
+  align-items: stretch;
+}
+
+.action-card--strike-planner { grid-area: strike; }
+.action-card--scheme { grid-area: scheme; }
+.action-card--recover { grid-area: recover; }
+
+.action-card--strike-planner {
+  position: relative;
+  overflow: hidden;
+  padding: 1.1rem;
+  border-color: rgba(245, 158, 11, 0.34);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(245, 158, 11, 0.09), transparent 28%),
+    linear-gradient(155deg, rgba(25, 22, 24, 0.98), rgba(8, 12, 20, 0.98));
+  box-shadow: 0 16px 38px rgba(0,0,0,.28);
+}
+
+.decision-tray__eyebrow {
+  display: block;
+  margin-bottom: 0.16rem;
+  color: var(--text-gold);
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.strike-planner__subhead {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.strike-planner__power {
+  padding: 0.32rem 0.58rem;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.08);
+  color: #bae6fd;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.strike-planner {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 0.9rem;
+}
+
+.strike-step {
+  padding: 0.85rem;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 12px;
+  background: rgba(3, 6, 12, 0.34);
+}
+
+.strike-step--secret {
+  border-color: rgba(168, 85, 247, 0.18);
+  background:
+    radial-gradient(circle at right, rgba(126, 34, 206, 0.08), transparent 40%),
+    rgba(3, 6, 12, 0.4);
+}
+
+.strike-step__header {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 0.65rem;
+  align-items: start;
+  margin-bottom: 0.65rem;
+}
+
+.strike-step__number {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  border-radius: 50%;
+  color: var(--text-gold);
+  font-family: monospace;
+  font-size: 0.72rem;
+}
+
+.strike-step__header strong {
+  display: block;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.strike-step__header small {
+  display: block;
+  margin-top: 0.16rem;
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.strike-target-select {
+  min-height: 44px;
+  border-color: rgba(239, 68, 68, 0.2);
+  background: rgba(7, 10, 17, 0.92);
+}
+
+.threat-seals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.threat-seal,
+.force-stone {
+  cursor: pointer;
+  min-width: 0;
+}
+
+.threat-seal input,
+.force-stone input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.threat-seal__body,
+.force-stone__body {
+  min-height: 78px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 0.5rem;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 10px;
+  background: rgba(12, 16, 25, 0.9);
+  transition:
+    border-color 130ms ease,
+    background 130ms ease,
+    transform 130ms ease,
+    box-shadow 130ms ease;
+}
+
+.threat-seal:hover .threat-seal__body,
+.force-stone:not(.force-stone--disabled):hover .force-stone__body {
+  transform: translateY(-1px);
+}
+
+.threat-seal input:checked + .threat-seal__body {
+  border-color: rgba(245, 158, 11, 0.74);
+  background: rgba(120, 53, 15, 0.2);
+  box-shadow: 0 0 22px rgba(245, 158, 11, 0.11);
+}
+
+.threat-seal__icon {
+  color: #fbbf24;
+  font-size: 1.1rem;
+}
+
+.threat-seal__body strong,
+.force-stone__body strong {
+  margin-top: 0.2rem;
+  color: #fff;
+  font-size: 0.82rem;
+}
+
+.threat-seal__body small,
+.force-stone__body small {
+  margin-top: 0.14rem;
+  color: var(--text-dim);
+  font-size: 0.67rem;
+}
+
+.force-stones {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.force-stone input:checked + .force-stone__body {
+  border-color: rgba(168, 85, 247, 0.75);
+  background: rgba(88, 28, 135, 0.2);
+  box-shadow: 0 0 22px rgba(168, 85, 247, 0.12);
+}
+
+.force-stone--disabled,
+.force-stone--unaffordable {
+  cursor: not-allowed;
+}
+
+.force-stone--disabled .force-stone__body,
+.force-stone--unaffordable .force-stone__body {
+  opacity: 0.3;
+  filter: grayscale(0.5);
+}
+
+.force-stone__icon {
+  font-size: 1rem;
+}
+
+.strike-plan-summary {
+  padding: 0.9rem;
+  border: 1px solid rgba(212, 175, 55, 0.16);
+  border-radius: 12px;
+  background:
+    linear-gradient(130deg, rgba(31, 24, 18, 0.78), rgba(6, 10, 17, 0.78));
+}
+
+.strike-plan-summary__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+
+.strike-plan-summary__header strong {
+  color: #fff;
+  font-size: 0.86rem;
+}
+
+.strike-plan-summary__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 0.55rem;
+  margin-top: 0.65rem;
+}
+
+.strike-plan-summary__grid > div {
+  min-width: 0;
+  padding: 0.5rem;
+  border-radius: 8px;
+  background: rgba(0,0,0,.18);
+}
+
+.strike-plan-summary__grid span {
+  display: block;
+  color: var(--text-dim);
+  font-size: 0.64rem;
+}
+
+.strike-plan-summary__grid strong {
+  display: block;
+  margin-top: 0.12rem;
+  overflow: hidden;
+  color: #fff;
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.strike-plan-summary__secret {
+  border: 1px dashed rgba(168, 85, 247, 0.18);
+}
+
+.strike-plan-read {
+  margin-top: 0.65rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.strike-planner[data-strike-style="pure-bluff"] .strike-plan-summary {
+  border-color: rgba(168, 85, 247, 0.38);
+}
+
+.strike-planner[data-strike-style="partial-bluff"] .strike-plan-summary {
+  border-color: rgba(245, 158, 11, 0.34);
+}
+
+.strike-planner[data-strike-style="fully-backed"] .strike-plan-summary {
+  border-color: rgba(34, 197, 94, 0.34);
+}
+
+.strike-lock-btn {
+  min-height: 50px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.action-card--scheme,
+.action-card--recover {
+  padding: 0.95rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-color: rgba(148,163,184,.12);
+  background: linear-gradient(160deg, rgba(19, 25, 38, 0.93), rgba(8, 12, 20, 0.96));
+}
+
+.scheme-types {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.7rem 0 0.8rem;
+}
+
+.scheme-card {
+  cursor: pointer;
+  position: relative;
+}
+
+.scheme-card input {
+  position: absolute;
+  opacity: 0;
+}
+
+.scheme-card > span {
+  display: block;
+  padding: 0.62rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 9px;
+  background: rgba(0,0,0,.18);
+}
+
+.scheme-card input:checked + span {
+  border-color: rgba(99, 102, 241, 0.56);
+  background: rgba(79, 70, 229, 0.11);
+}
+
+.scheme-card strong,
+.scheme-card small {
+  display: block;
+}
+
+.scheme-card strong {
+  color: #c7d2fe;
+  font-size: 0.8rem;
+}
+
+.scheme-card small {
+  margin-top: 0.18rem;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  line-height: 1.35;
+}
+
+.action-secondary-btn {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 0.7rem;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(30, 41, 59, 0.9);
+  color: #fff;
+}
+
+.recover-meter {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.85rem;
+}
+
+.recover-meter__pip {
+  height: 6px;
+  flex: 1;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+}
+
+.recover-meter__pip--filled {
+  background: rgba(34, 197, 94, 0.72);
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.15);
+}
+
+@media (max-width: 860px) {
+  .action-options--game {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "strike"
+      "scheme"
+      "recover";
+  }
+}
+
+@media (max-width: 520px) {
+  .threat-seals {
+    grid-template-columns: repeat(3, minmax(84px, 1fr));
+    overflow-x: auto;
+  }
+
+  .force-stones {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .strike-plan-summary__grid {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+}

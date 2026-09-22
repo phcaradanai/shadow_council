@@ -11,6 +11,7 @@ import { renderRulesModal, attachRulesModalListeners } from "../components/Rules
 import { t, getLocale, renderLanguageSwitcher, getLocalizedErrorMessage } from "../i18n/index.js";
 import { mountStatsDashboard } from "../components/StatsDashboard.js";
 import { matchStatsTracker } from "../presentation/match-stats.js";
+import { attachStrikePlanner } from "../presentation/strike-planner.js";
 
 const escapeHtml = (value: string): string =>
   value
@@ -175,120 +176,7 @@ export const renderGameScreen = (
     callbacks.onLeaveRoom();
   });
 
-  // Direct card-click targeting & synchronization
-  const targetSelect = container.querySelector<HTMLSelectElement>("#strike-target");
-  const targetableCards = container.querySelectorAll<HTMLElement>(
-    ".player-card[data-targetable='true']",
-  );
-
-  const syncTargetHighlights = (selectedId?: string) => {
-    targetableCards.forEach((c) => {
-      const isSelected = Boolean(selectedId && c.dataset.playerId === selectedId);
-      c.classList.toggle("player-card--selected-target", isSelected);
-      if (isSelected) {
-        c.setAttribute("aria-selected", "true");
-      } else {
-        c.removeAttribute("aria-selected");
-      }
-    });
-  };
-
-  targetableCards.forEach((card) => {
-    card.setAttribute("tabindex", "0");
-    card.setAttribute("role", "button");
-    card.addEventListener("click", () => {
-      const targetId = card.dataset.playerId;
-      if (!targetId || !targetSelect) return;
-      targetSelect.value = targetId;
-      syncTargetHighlights(targetId);
-      targetSelect.dispatchEvent(new Event("change", { bubbles: true }));
-      sounds.click();
-    });
-    card.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        card.click();
-      }
-    });
-  });
-
-  if (targetSelect?.value) {
-    syncTargetHighlights(targetSelect.value);
-  }
-
-  targetSelect?.addEventListener("change", () => {
-    syncTargetHighlights(targetSelect.value);
-  });
-
-  // Threat & Force are explicit commitments. Force may never exceed the public Threat.
-  const syncForceOptionsToThreat = () => {
-    const selectedThreat = container.querySelector<HTMLInputElement>('input[name="threat"]:checked');
-    const threat = selectedThreat ? Number(selectedThreat.value) : undefined;
-    container.querySelectorAll<HTMLInputElement>('input[name="force"]').forEach((radio) => {
-      const force = Number(radio.dataset.force ?? radio.value);
-      const affordable = radio.dataset.affordable !== "0";
-      const legalForThreat = threat !== undefined && force <= threat;
-      radio.disabled = isSubmitting || !affordable || !legalForThreat;
-      const label = radio.closest<HTMLLabelElement>(".radio-card");
-      label?.classList.toggle("radio-card--disabled", !affordable || !legalForThreat);
-      if (radio.checked && !legalForThreat) radio.checked = false;
-    });
-  };
-
-  container.querySelectorAll<HTMLInputElement>('input[name="threat"], input[name="force"]').forEach((radio) => {
-    radio.addEventListener("change", () => {
-      sounds.click();
-      syncForceOptionsToThreat();
-    });
-  });
-  syncForceOptionsToThreat();
-
-  // Strike form validation and submit
-  const strikeForm = container.querySelector<HTMLFormElement>("#strike-form");
-  if (strikeForm) {
-    const updateStrikeButtonState = () => {
-      const submitBtn = strikeForm.querySelector<HTMLButtonElement>("#btn-strike");
-      if (!submitBtn) return;
-      const targetVal = targetSelect?.value ?? "";
-      const threatInput = strikeForm.querySelector<HTMLInputElement>('input[name="threat"]:checked');
-      const forceInput = strikeForm.querySelector<HTMLInputElement>('input[name="force"]:checked');
-      const threat = threatInput ? Number(threatInput.value) : undefined;
-      const force = forceInput ? Number(forceInput.value) : undefined;
-      const canSubmit = Boolean(
-        targetVal &&
-          threat !== undefined &&
-          force !== undefined &&
-          force <= threat &&
-          !forceInput?.disabled &&
-          !isSubmitting,
-      );
-      submitBtn.disabled = !canSubmit;
-    };
-
-    strikeForm.addEventListener("change", () => {
-      syncForceOptionsToThreat();
-      updateStrikeButtonState();
-    });
-    strikeForm.addEventListener("input", updateStrikeButtonState);
-    updateStrikeButtonState();
-
-    strikeForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      if (isSubmitting) return;
-      const fd = new FormData(strikeForm);
-      const targetId = String(fd.get("targetId") ?? "");
-      const rawThreat = fd.get("threat");
-      const rawForce = fd.get("force");
-      if (!targetId || rawThreat === null || rawForce === null) return;
-      const threatVal = Number(rawThreat);
-      const forceVal = Number(rawForce);
-      if (threatVal < 1 || threatVal > 3 || forceVal < 0 || forceVal > threatVal) return;
-      const threat = threatVal as 1 | 2 | 3;
-      const force = forceVal as 0 | 1 | 2 | 3;
-      sounds.threat();
-      callbacks.onStrike(targetId, threat, force);
-    });
-  }
+  attachStrikePlanner(container, isSubmitting, callbacks.onStrike);
 
   // Scheme click
   const schemeBtn = container.querySelector<HTMLButtonElement>("#btn-scheme");

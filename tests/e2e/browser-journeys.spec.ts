@@ -53,6 +53,31 @@ test.describe("Browser E2E: Real Gameplay Journeys", () => {
     await expect(guest.page.locator(".player-card--self .player-card__name")).toHaveText("Bo");
   });
 
+  test("Strike Planner prevents over-commit and labels the bluff posture", async ({ browser }) => {
+    host = await createPlayer(browser, "Ari");
+    guest = await createPlayer(browser, "Bo");
+
+    const roomCode = await createRoom(host);
+    await joinRoom(guest, roomCode);
+    await startMatch(host);
+
+    const { active, nonActive } = await findActivePlayer([host, guest]);
+    const target = nonActive[0]!;
+    const targetId = await getPlayerIdFromCard(active.page, target.name);
+
+    await active.page.locator("#strike-target").selectOption(targetId);
+    await active.page.locator('input[name="threat"][value="1"]').check();
+
+    await expect(active.page.locator('input[name="force"][value="2"]')).toBeDisabled();
+
+    await active.page.locator('input[name="threat"][value="2"]').check();
+    await active.page.locator('input[name="force"][value="1"]').check();
+
+    await expect(active.page.locator("#strike-plan-style")).toContainText("Partial Bluff");
+    await expect(active.page.locator("#strike-plan-power")).toHaveText("1 ⚡");
+    await expect(active.page.locator("#btn-strike")).toBeEnabled();
+  });
+
   test("Journey B & C: Combat Resolution - Bluff Caught & Genuine Guard", async ({ browser }) => {
     host = await createPlayer(browser, "Ari");
     guest = await createPlayer(browser, "Bo");
