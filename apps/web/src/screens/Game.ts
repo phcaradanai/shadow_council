@@ -23,7 +23,7 @@ export interface GameCallbacks {
   onStrike: (targetId: string, threat: 1 | 2 | 3, force: 0 | 1 | 2 | 3) => void;
   onRecover: () => void;
   onScheme: (schemeType: "ambush" | "bulwark") => void;
-  onReact: (choice: { type: "guard"; amount: 1 | 2 | 3 } | "challenge" | "yield") => void;
+  onReact: (plan: { guard: 0 | 1 | 2 | 3; challenge: boolean }) => void;
   onLeaveRoom: () => void;
 }
 
@@ -279,33 +279,104 @@ export const renderGameScreen = (
     callbacks.onRecover();
   });
 
-  // Reaction clicks
-  container.querySelectorAll<HTMLButtonElement>(".btn-guard-amount").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      if (isSubmitting) return;
-      const amount = Number(btn.dataset.amount ?? 1) as 1 | 2 | 3;
-      sounds.click();
-      callbacks.onReact({ type: "guard", amount });
-    });
-  });
+  // Defense Planner: Guard and Challenge can be committed together.
+  const defensePlanner = container.querySelector<HTMLElement>(".defense-planner");
+  const defenseForm = container.querySelector<HTMLFormElement>("#defense-form");
+  if (defensePlanner && defenseForm) {
+    const legalPlans = new Set((defensePlanner.dataset.legalPlans ?? "").split(",").filter(Boolean));
+    const challengeCost = Number(defensePlanner.dataset.challengeCost ?? "1");
+    const ownPower = Number(defensePlanner.dataset.power ?? "0");
+    const influence = Number(defensePlanner.dataset.influence ?? "0");
+    const hasBulwark = defensePlanner.dataset.bulwark === "1";
 
-  container.querySelectorAll<HTMLButtonElement>(".reaction-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      if (isSubmitting) return;
-      const choice = btn.dataset.choice as "guard" | "challenge" | "yield" | undefined;
-      if (choice === "guard") {
-        const amount = Number(btn.dataset.amount ?? 1) as 1 | 2 | 3;
-        sounds.click();
-        callbacks.onReact({ type: "guard", amount });
-      } else if (choice === "challenge") {
-        sounds.challenge();
-        callbacks.onReact("challenge");
-      } else if (choice === "yield") {
-        sounds.click();
-        callbacks.onReact("yield");
+    const selectedPlan = (): { guard: 0 | 1 | 2 | 3; challenge: boolean } | undefined => {
+      const guardInput = defenseForm.querySelector<HTMLInputElement>(
+        'input[name="defenseGuard"]:checked',
+      );
+      if (!guardInput) return undefined;
+      const guard = Number(guardInput.value) as 0 | 1 | 2 | 3;
+      const challenge =
+        defenseForm.querySelector<HTMLInputElement>("#defense-challenge")?.checked ?? false;
+      return { guard, challenge };
+    };
+
+    const updateDefensePlan = () => {
+      const plan = selectedPlan();
+      const submit = defenseForm.querySelector<HTMLButtonElement>("#btn-lock-defense");
+      const mode = defenseForm.querySelector<HTMLElement>("#defense-plan-mode");
+      const costEl = defenseForm.querySelector<HTMLElement>("#defense-plan-cost");
+      const preview = defenseForm.querySelector<HTMLElement>("#defense-plan-preview");
+      if (!submit || !mode || !costEl || !preview) return;
+
+      if (!plan) {
+        submit.disabled = true;
+        mode.textContent = t("reaction.selectDefense");
+        costEl.textContent = "0";
+        preview.innerHTML = `<p>${t("reaction.selectDefenseHint")}</p>`;
+        return;
       }
+
+      const key = `${plan.guard}:${plan.challenge ? 1 : 0}`;
+      const cost = plan.guard + (plan.challenge ? challengeCost : 0);
+      const legal = legalPlans.has(key) && cost <= ownPower;
+      const effectiveGuard = plan.guard + (hasBulwark && plan.guard > 0 ? 1 : 0);
+      const failedChallengeDamage = Math.max(0, 2 - effectiveGuard);
+      const remainingIfWrong = Math.max(0, influence - failedChallengeDamage);
+
+      costEl.textContent = String(cost);
+      submit.disabled = !legal || isSubmitting;
+
+      if (plan.guard === 0 && !plan.challenge) {
+        mode.textContent = t("reaction.modeYield");
+        preview.innerHTML = `<p>${t("reaction.previewYield", { influence: Math.max(0, influence - 1) })}</p>`;
+      } else if (plan.guard > 0 && !plan.challenge) {
+        mode.textContent = t("reaction.modeGuard", { guard: plan.guard });
+        preview.innerHTML = `<p>${t("reaction.previewGuard", { guard: effectiveGuard })}</p>`;
+      } else if (plan.guard === 0) {
+        mode.textContent = t("reaction.modeChallenge");
+        preview.innerHTML = `
+          <p class="preview-good">${t("reaction.previewBluffCaught")}</p>
+          <p class="${remainingIfWrong === 0 ? "preview-lethal" : "preview-risk"}">
+            ${t("reaction.previewChallengeWrong", { damage: failedChallengeDamage, influence: remainingIfWrong })}
+          </p>
+        `;
+      } else {
+        mode.textContent = t("reaction.modeHybrid", { guard: plan.guard });
+        preview.innerHTML = `
+          <p class="preview-good">${t("reaction.previewBluffCaught")}</p>
+          <p class="${remainingIfWrong === 0 ? "preview-lethal" : "preview-risk"}">
+            ${t("reaction.previewHybridWrong", {
+              guard: effectiveGuard,
+              damage: failedChallengeDamage,
+              influence: remainingIfWrong,
+            })}
+          </p>
+        `;
+      }
+
+      if (!legal) {
+        preview.innerHTML += `<p class="preview-lethal">${t("reaction.planTooExpensive")}</p>`;
+      }
+    };
+
+    defenseForm.addEventListener("change", () => {
+      sounds.click();
+      updateDefensePlan();
     });
-  });
+    updateDefensePlan();
+
+    defenseForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (isSubmitting) return;
+      const plan = selectedPlan();
+      if (!plan) return;
+      const key = `${plan.guard}:${plan.challenge ? 1 : 0}`;
+      if (!legalPlans.has(key)) return;
+      if (plan.challenge) sounds.challenge();
+      else sounds.click();
+      callbacks.onReact(plan);
+    });
+  }
 
   // Start ticker
   const stopTicker = startCountdownTicker(container);

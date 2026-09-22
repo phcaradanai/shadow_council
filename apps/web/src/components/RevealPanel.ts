@@ -24,17 +24,35 @@ export const renderRevealPanel = (
   const targetName = playerMap.get(String(revealedEvent.targetId)) ?? "Target";
   const threat = revealedEvent.threat ?? 1;
   const force = revealedEvent.force ?? (revealedEvent.funding as number | undefined) ?? 0;
-  const isGenuine = revealedEvent.genuine === true || force >= threat;
+  const isGenuine = revealedEvent.genuine === true || force === threat;
 
-  const rawReaction = String(
-    resolvedEvent.reaction ?? reactionEvent?.choice ?? "yield",
-  ).toLowerCase();
+  const rawReaction = resolvedEvent.reaction ?? reactionEvent?.choice ?? "yield";
+  const plan =
+    typeof rawReaction === "object" &&
+    rawReaction !== null &&
+    "guard" in rawReaction &&
+    "challenge" in rawReaction
+      ? {
+          guard: Number(rawReaction.guard) as 0 | 1 | 2 | 3,
+          challenge: rawReaction.challenge === true,
+        }
+      : plan.challenge
+        ? { guard: 0 as const, challenge: true }
+        : typeof rawReaction === "object" &&
+            rawReaction !== null &&
+            "type" in rawReaction &&
+            rawReaction.type === "guard"
+          ? { guard: Number(rawReaction.amount) as 1 | 2 | 3, challenge: false }
+          : { guard: 0 as const, challenge: false };
+
   const reactionLabel =
-    rawReaction === "guard"
-      ? `${t("reaction.guardTitle")}${resolvedEvent.guardAmount ? ` (${resolvedEvent.guardAmount} Pw)` : ""}`
-      : rawReaction === "challenge"
+    plan.guard > 0 && plan.challenge
+      ? t("reaction.modeHybrid", { guard: plan.guard })
+      : plan.challenge
         ? t("reaction.challengeTitle")
-        : t("reaction.yieldTitle");
+        : plan.guard > 0
+          ? t("reaction.modeGuard", { guard: plan.guard })
+          : t("reaction.yieldTitle");
   const timedOut = reactionEvent?.timedOut === true;
   const timeoutText = timedOut ? t("log.timeoutSuffix") : "";
 
@@ -43,7 +61,7 @@ export const renderRevealPanel = (
   let verdictOutcome = "";
   let verdictSummary = "";
 
-  if (rawReaction === "guard") {
+  if (plan.guard > 0 && !plan.challenge) {
     if (isGenuine) {
       verdictHeadline = t("reveal.attackBlockedTitle");
       verdictClass = "reveal-card--blocked";
@@ -62,7 +80,7 @@ export const renderRevealPanel = (
         target: escapeHtml(targetName),
       });
     }
-  } else if (rawReaction === "challenge") {
+  } else if (plan.challenge) {
     if (isGenuine) {
       verdictHeadline = t("reveal.challengeCrushedTitle");
       verdictClass = "reveal-card--punished";
@@ -142,6 +160,15 @@ export const renderRevealPanel = (
         </div>
 
         <p class="reveal-card__summary text-sm text-neutral-300">${verdictSummary}</p>
+        <div class="reveal-impact">
+          <span>${t("reveal.damageResult", {
+            damage: Number(resolvedEvent.targetInfluenceLoss ?? 0),
+            remaining: Number(resolvedEvent.targetInfluence ?? 0),
+          })}</span>
+          <span>${t("reveal.powerSpent", {
+            power: Number(resolvedEvent.targetPowerCost ?? 0),
+          })}</span>
+        </div>
         ${eliminationsHtml}
       </div>
     </section>

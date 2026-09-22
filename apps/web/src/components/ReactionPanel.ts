@@ -1,134 +1,131 @@
 import type { WireMatchView } from "@shadow-council/protocol";
 import { t } from "../i18n/index.js";
 
+interface DefensePlan {
+  readonly guard: 0 | 1 | 2 | 3;
+  readonly challenge: boolean;
+}
+
+const planKey = (plan: DefensePlan): string => `${plan.guard}:${plan.challenge ? 1 : 0}`;
+
 export const renderReactionControls = (
   match: WireMatchView,
   viewerId: string,
   isSubmitting: boolean,
 ): string => {
-  if (match.phase.kind !== "REACTION" || match.phase.targetId !== viewerId) {
-    return "";
-  }
+  if (match.phase.kind !== "REACTION" || match.phase.targetId !== viewerId) return "";
 
-  const selfPlayer = match.players.find((p) => p.playerId === viewerId);
+  const selfPlayer = match.players.find((player) => player.playerId === viewerId);
   if (!selfPlayer || selfPlayer.eliminated) return "";
 
-  const reactIntent = match.legalIntents.find((i) => i.type === "REACT");
-  const choices = reactIntent?.choices ?? [];
-  const guardChoices = choices.filter(
-    (c) => typeof c === "object" && c.type === "guard",
-  ) as { type: "guard"; amount: 1 | 2 | 3 }[];
+  const reactIntent = match.legalIntents.find((intent) => intent.type === "REACT");
+  if (!reactIntent) return "";
 
-  const canGuard = guardChoices.length > 0;
+  const legacyPlans: DefensePlan[] = reactIntent.choices.flatMap((choice) => {
+    if (choice === "yield") return [{ guard: 0, challenge: false } as const];
+    if (choice === "challenge") return [{ guard: 0, challenge: true } as const];
+    if (typeof choice === "object" && "type" in choice && choice.type === "guard") {
+      return [{ guard: choice.amount, challenge: false } as const];
+    }
+    return [];
+  });
+
+  const plans = (reactIntent.defensePlans?.length ? reactIntent.defensePlans : legacyPlans) as
+    readonly DefensePlan[];
+  const legalPlanKeys = plans.map(planKey).join(",");
+  const guardAmounts = [...new Set(plans.map((plan) => plan.guard))].sort((a, b) => a - b);
   const currentThreat = match.phase.threat ?? 1;
+  const ownPower = selfPlayer.power ?? 0;
+  const forceValues = Array.from({ length: currentThreat + 1 }, (_, index) => index).join(" / ");
+  const challengeCost = reactIntent.challengeCost ?? 1;
 
   return `
-    <section class="reaction-panel decision-tray decision-tray--danger" aria-label="${t("reaction.title")}">
-      <div class="decision-tray__header mb-4">
-        <div class="flex justify-between items-center">
-          <h3 class="reaction-panel__title text-lg font-bold text-red-300">🛡️ ${t("reaction.title")}</h3>
-          <span class="bg-red-950 text-red-400 font-extrabold px-3 py-1 rounded border border-red-800 text-sm">
-            ${t("reaction.threatIncoming", { threat: currentThreat })}
-          </span>
-        </div>
-        <p class="reaction-panel__hint text-sm text-neutral-400 mt-1">${t("reaction.hint")}</p>
+    <section
+      class="reaction-panel defense-planner"
+      aria-label="${t("reaction.title")}"
+      data-legal-plans="${legalPlanKeys}"
+      data-challenge-cost="${challengeCost}"
+      data-threat="${currentThreat}"
+      data-power="${ownPower}"
+      data-influence="${selfPlayer.influence}"
+      data-bulwark="${selfPlayer.activeScheme === "bulwark" ? "1" : "0"}"
+    >
+      <div class="defense-planner__threat">
+        <span class="defense-planner__eyebrow">${t("reaction.incomingClaim")}</span>
+        <strong class="defense-planner__threat-value">${t("reaction.threatIncoming", { threat: currentThreat })}</strong>
+        <p>${t("reaction.hiddenForceRange", { values: forceValues })}</p>
       </div>
 
-      <div class="reaction-grid grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Guard -->
-        <div class="reaction-card ${!canGuard ? "reaction-card--disabled opacity-50" : ""} border border-blue-900/60 bg-neutral-900/80 p-4 rounded-xl flex flex-col justify-between" data-reaction="guard">
-          <div>
-            <div class="reaction-card__top flex justify-between items-start mb-2">
-              <div class="reaction-card__title-group">
-                <h4 class="reaction-card__name font-bold text-blue-200">🛡️ ${t("reaction.guardTitle")}</h4>
-                <span class="reaction-card__cost text-xs text-blue-400 font-mono">${t("reaction.guardCost")}</span>
-              </div>
-            </div>
-            <p class="reaction-card__desc text-xs text-neutral-400 mb-3">${t("reaction.guardDesc")}</p>
-
-            ${
-              canGuard
-                ? `
-              <div class="guard-levels mb-3">
-                <label class="block text-xs font-semibold text-neutral-300 mb-1">${t("reaction.guardAmountLabel")}</label>
-                <div class="grid grid-cols-3 gap-1">
-                  ${guardChoices
-                    .map(
-                      (g) => `
-                    <button
-                      type="button"
-                      class="btn-guard-amount py-1 px-2 text-xs rounded border border-blue-700 bg-blue-950/60 text-blue-200 hover:bg-blue-800 transition font-bold"
-                      data-choice="guard"
-                      data-amount="${g.amount}"
-                      ${isSubmitting ? "disabled" : ""}
-                    >
-                      🛡️ ${g.amount} Pw
-                    </button>
-                  `,
-                    )
-                    .join("")}
-                </div>
-              </div>
-            `
-                : `
-              <p class="text-xs text-neutral-500 italic mb-3">${t("reaction.guardBtnDisabled")}</p>
-            `
-            }
-          </div>
-
-          <button
-            type="button"
-            class="btn btn--guard reaction-btn w-full py-2.5 rounded font-semibold bg-blue-700 hover:bg-blue-600 text-white transition ${!canGuard ? "cursor-not-allowed" : ""}"
-            data-choice="guard"
-            data-amount="${guardChoices.length > 0 ? guardChoices[guardChoices.length - 1]!.amount : 1}"
-            ${!canGuard || isSubmitting ? "disabled" : ""}
-          >
-            ${!canGuard ? t("reaction.guardBtnDisabled") : isSubmitting ? t("reaction.guardBtnSubmitting") : `${t("reaction.guardBtn")} (Max)`}
-          </button>
+      <form id="defense-form" class="defense-planner__form">
+        <div class="defense-planner__resource">
+          <span>${t("reaction.powerAvailable")}</span>
+          <strong>⚡ ${ownPower}</strong>
         </div>
 
-        <!-- Challenge -->
-        <div class="reaction-card reaction-card--challenge border border-purple-900/60 bg-neutral-900/80 p-4 rounded-xl flex flex-col justify-between" data-reaction="challenge">
-          <div>
-            <div class="reaction-card__top flex justify-between items-start mb-2">
-              <div class="reaction-card__title-group">
-                <h4 class="reaction-card__name font-bold text-purple-200">👁️ ${t("reaction.challengeTitle")}</h4>
-                <span class="reaction-card__cost text-xs text-purple-400 font-mono">${t("reaction.challengeCost")}</span>
-              </div>
-            </div>
-            <p class="reaction-card__desc text-xs text-neutral-400 mb-3">${t("reaction.challengeDesc")}</p>
+        <fieldset class="defense-planner__section">
+          <legend>🛡️ ${t("reaction.guardAmountLabel")}</legend>
+          <p class="defense-planner__helper">${t("reaction.guardPlannerDesc")}</p>
+          <div class="defense-guard-options" role="radiogroup" aria-label="${t("reaction.guardAmountLabel")}">
+            ${guardAmounts
+              .map(
+                (amount) => `
+                <label class="defense-choice ${amount === 0 ? "defense-choice--yield" : ""}">
+                  <input
+                    type="radio"
+                    name="defenseGuard"
+                    value="${amount}"
+                    ${isSubmitting ? "disabled" : ""}
+                  />
+                  <span class="defense-choice__body">
+                    <strong>${amount === 0 ? t("reaction.noGuard") : t("reaction.guardPoints", { amount })}</strong>
+                    <small>${amount === 0 ? t("reaction.noGuardDesc") : t("reaction.guardPointsDesc", { amount })}</small>
+                  </span>
+                </label>
+              `,
+              )
+              .join("")}
           </div>
-          <button
-            type="button"
-            class="btn btn--challenge reaction-btn w-full py-2.5 rounded font-semibold bg-purple-700 hover:bg-purple-600 text-white transition"
-            data-choice="challenge"
-            ${isSubmitting ? "disabled" : ""}
-          >
-            ${isSubmitting ? t("reaction.challengeBtnSubmitting") : t("reaction.challengeBtn")}
-          </button>
+        </fieldset>
+
+        <fieldset class="defense-planner__section defense-planner__challenge">
+          <legend>👁️ ${t("reaction.challengeTitle")}</legend>
+          <label class="challenge-toggle">
+            <input
+              type="checkbox"
+              id="defense-challenge"
+              name="defenseChallenge"
+              ${isSubmitting ? "disabled" : ""}
+            />
+            <span class="challenge-toggle__body">
+              <strong>${t("reaction.challengePlannerTitle", { cost: challengeCost })}</strong>
+              <small>${t("reaction.challengePlannerDesc", { threat: currentThreat })}</small>
+            </span>
+          </label>
+        </fieldset>
+
+        <div class="defense-plan-summary" aria-live="polite">
+          <div class="defense-plan-summary__header">
+            <span>${t("reaction.planTitle")}</span>
+            <strong id="defense-plan-mode">${t("reaction.selectDefense")}</strong>
+          </div>
+          <div class="defense-plan-summary__cost">
+            <span>${t("reaction.totalCost")}</span>
+            <strong><span id="defense-plan-cost">0</span> / ${ownPower} ⚡</strong>
+          </div>
+          <div id="defense-plan-preview" class="defense-plan-preview">
+            <p>${t("reaction.selectDefenseHint")}</p>
+          </div>
         </div>
 
-        <!-- Yield -->
-        <div class="reaction-card reaction-card--yield border border-neutral-700 bg-neutral-900/80 p-4 rounded-xl flex flex-col justify-between" data-reaction="yield">
-          <div>
-            <div class="reaction-card__top flex justify-between items-start mb-2">
-              <div class="reaction-card__title-group">
-                <h4 class="reaction-card__name font-bold text-neutral-200">🏳️ ${t("reaction.yieldTitle")}</h4>
-                <span class="reaction-card__cost text-xs text-neutral-400 font-mono">${t("reaction.yieldCost")}</span>
-              </div>
-            </div>
-            <p class="reaction-card__desc text-xs text-neutral-400 mb-3">${t("reaction.yieldDesc")}</p>
-          </div>
-          <button
-            type="button"
-            class="btn btn--yield reaction-btn w-full py-2.5 rounded font-semibold bg-neutral-700 hover:bg-neutral-600 text-white transition"
-            data-choice="yield"
-            ${isSubmitting ? "disabled" : ""}
-          >
-            ${isSubmitting ? t("reaction.yieldBtnSubmitting") : t("reaction.yieldBtn")}
-          </button>
-        </div>
-      </div>
+        <button
+          type="submit"
+          id="btn-lock-defense"
+          class="btn btn--primary btn--large defense-lock-btn"
+          disabled
+        >
+          ${isSubmitting ? t("reaction.lockingPlan") : t("reaction.lockPlan")}
+        </button>
+      </form>
     </section>
   `;
 };
