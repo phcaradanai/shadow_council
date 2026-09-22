@@ -251,6 +251,14 @@ export const en: TranslationDictionary = {
   "reveal.ambushRetaliated": "🗡️ Ambush dealt +1 bonus damage to attacker!",
   "reveal.damageResult": "Influence lost: {damage} · Remaining: {remaining}",
   "reveal.powerSpent": "Defense Power spent: {power}",
+  "reveal.attackerPowerSpent": "Attacker Force spent: {power}",
+  "reveal.attackerDamageResult": "{attacker} lost {damage} Influence · {remaining} remaining",
+  "reveal.guardHeldTitle": "🛡️ GUARD HELD!",
+  "reveal.guardHeldSummary": "{target} committed Guard {guard} against Force {force} and stopped the strike.",
+  "reveal.guardBreachedTitle": "⚔️ GUARD BREACHED!",
+  "reveal.guardBreachedSummary": "Force {force} exceeded {target}'s Guard {guard}. {target} loses {damage} Influence.",
+  "reveal.challengeGuardedTitle": "🛡️ WRONG CALL — GUARD SAVED YOU",
+  "reveal.challengeGuardedSummary": "{target}'s Challenge was wrong, but committed Guard {guard} absorbed the full penalty.",
 
   // Event Log
   "log.title": "📜 Chronicle (Recent Events)",

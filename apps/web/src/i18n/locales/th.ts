@@ -250,6 +250,14 @@ export const th: TranslationDictionary = {
   "reveal.ambushRetaliated": "🗡️ ซุ่มโจมตีสร้างความเสียหายสวนกลับ +1 แก่ผู้โจมตี!",
   "reveal.damageResult": "เสียอิทธิพล: {damage} · เหลือ: {remaining}",
   "reveal.powerSpent": "พลังที่ใช้ตั้งรับ: {power}",
+  "reveal.attackerPowerSpent": "พลังจริงที่ผู้โจมตีใช้: {power}",
+  "reveal.attackerDamageResult": "{attacker} เสีย {damage} อิทธิพล · เหลือ {remaining}",
+  "reveal.guardHeldTitle": "🛡️ ป้องกันสำเร็จ!",
+  "reveal.guardHeldSummary": "{target} ลงป้องกัน {guard} รับพลังจริง {force} ได้ทั้งหมด",
+  "reveal.guardBreachedTitle": "⚔️ การป้องกันถูกทะลวง!",
+  "reveal.guardBreachedSummary": "พลังจริง {force} สูงกว่าการป้องกัน {guard} ของ {target} จึงเสีย {damage} อิทธิพล",
+  "reveal.challengeGuardedTitle": "🛡️ จับบลัฟพลาด แต่การป้องกันช่วยไว้!",
+  "reveal.challengeGuardedSummary": "{target} อ่านผิด แต่พลังป้องกัน {guard} รับโทษจากการจับบลัฟพลาดไว้ได้ทั้งหมด",
 
   // Event Log
   "log.title": "📜 บันทึกเหตุการณ์ (ล่าสุด)",
