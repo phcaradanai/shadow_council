@@ -9,6 +9,7 @@ import {
   type StartMatchBody,
   type UpdateSettingsBody,
   type WireIntent,
+  type WireDefensePlan,
   type WireReactionChoice,
 } from "./types.js";
 
@@ -111,9 +112,21 @@ export const parseUpdateSettingsBody = (value: unknown): ParseResult<UpdateSetti
   };
 };
 
-const parseReactionChoice = (value: unknown): ParseResult<WireReactionChoice> => {
+const parseReactionChoice = (
+  value: unknown,
+): ParseResult<WireReactionChoice | WireDefensePlan> => {
   if (value === "yield" || value === "challenge" || value === "guard") {
     return { ok: true, value };
+  }
+  if (
+    isRecord(value) &&
+    (value.guard === 0 || value.guard === 1 || value.guard === 2 || value.guard === 3) &&
+    typeof value.challenge === "boolean"
+  ) {
+    return {
+      ok: true,
+      value: { guard: value.guard, challenge: value.challenge },
+    };
   }
   if (isRecord(value) && value.type === "guard") {
     const amount = value.amount;

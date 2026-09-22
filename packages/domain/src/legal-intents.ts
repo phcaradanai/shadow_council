@@ -1,4 +1,12 @@
-import type { Force, MatchState, PlayerId, ReactionChoice, SchemeType, Threat } from "./model.js";
+import type {
+  DefensePlan,
+  Force,
+  LegacyReactionChoice,
+  MatchState,
+  PlayerId,
+  SchemeType,
+  Threat,
+} from "./model.js";
 import { POWER_CAP } from "./rules/recover.js";
 import { SCHEME_POWER_COST } from "./rules/scheme.js";
 import { validateStrike } from "./rules/strike.js";
@@ -15,7 +23,12 @@ export type LegalIntentDescription =
     }
   | { readonly type: "RECOVER" }
   | { readonly type: "SCHEME"; readonly schemeTypes: readonly SchemeType[] }
-  | { readonly type: "REACT"; readonly choices: readonly ReactionChoice[] };
+  | {
+      readonly type: "REACT";
+      readonly choices: readonly LegacyReactionChoice[];
+      readonly defensePlans: readonly DefensePlan[];
+      readonly challengeCost: 1;
+    };
 
 export const legalIntentsFor = (
   state: MatchState,
@@ -68,13 +81,25 @@ export const legalIntentsFor = (
   const target = state.players.find((player) => player.playerId === viewerId);
   if (target === undefined || !isAlive(target)) return [];
 
-  const choices: ReactionChoice[] = ["challenge", "yield"];
+  const choices: LegacyReactionChoice[] = ["yield"];
+  const defensePlans: DefensePlan[] = [{ guard: 0, challenge: false }];
   const maxGuard = Math.min(3, target.power);
-  for (let g = 1; g <= maxGuard; g++) {
-    choices.push({ type: "guard", amount: g as 1 | 2 | 3 });
+
+  if (target.power >= 1) {
+    choices.unshift("challenge");
+    defensePlans.push({ guard: 0, challenge: true });
   }
 
-  return [{ type: "REACT", choices }];
+  for (let g = 1; g <= maxGuard; g++) {
+    const guard = g as 1 | 2 | 3;
+    choices.push({ type: "guard", amount: guard });
+    defensePlans.push({ guard, challenge: false });
+    if (g + 1 <= target.power) {
+      defensePlans.push({ guard, challenge: true });
+    }
+  }
+
+  return [{ type: "REACT", choices, defensePlans, challengeCost: 1 }];
 };
 
 export const getLegalIntents = legalIntentsFor;

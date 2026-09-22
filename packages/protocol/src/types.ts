@@ -26,6 +26,11 @@ export interface UpdateSettingsBody {
   readonly turnTimeSeconds?: number;
 }
 
+export interface WireDefensePlan {
+  readonly guard: 0 | 1 | 2 | 3;
+  readonly challenge: boolean;
+}
+
 export type WireReactionChoice =
   | "yield"
   | "challenge"
@@ -44,7 +49,7 @@ export type WireIntent =
   | { readonly type: "SCHEME"; readonly schemeType: "ambush" | "bulwark" }
   | {
       readonly type: "REACT";
-      readonly choice: WireReactionChoice;
+      readonly choice: WireReactionChoice | WireDefensePlan;
     };
 
 export interface CommandEnvelope {
@@ -106,6 +111,8 @@ export type WireLegalIntent =
   | {
       readonly type: "REACT";
       readonly choices: readonly WireReactionChoice[];
+      readonly defensePlans?: readonly WireDefensePlan[];
+      readonly challengeCost?: 1;
     };
 
 export type WirePhaseView =

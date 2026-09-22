@@ -9,10 +9,19 @@ export const asPlayerId = (value: string): PlayerId => value as PlayerId;
 export type Threat = 1 | 2 | 3;
 export type Force = 0 | 1 | 2 | 3;
 export type SchemeType = "ambush" | "bulwark";
-export type ReactionChoice =
+export type GuardAmount = 0 | 1 | 2 | 3;
+
+export interface DefensePlan {
+  readonly guard: GuardAmount;
+  readonly challenge: boolean;
+}
+
+export type LegacyReactionChoice =
   | "yield"
   | "challenge"
   | { readonly type: "guard"; readonly amount: 1 | 2 | 3 };
+
+export type ReactionChoice = LegacyReactionChoice | DefensePlan;
 
 // Backward-compat alias for any code expecting Funding
 export type Funding = Force;

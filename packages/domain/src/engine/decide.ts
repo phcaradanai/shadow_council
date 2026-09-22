@@ -15,7 +15,7 @@ import type { RandomProvider } from "../random/random-provider.js";
 import { recoverPower } from "../rules/recover.js";
 import { prepareScheme } from "../rules/scheme.js";
 import { advanceAfterTurn, phaseTokenFor } from "../rules/turn.js";
-import { resolveStrike, validateStrike } from "../rules/strike.js";
+import { normalizeDefensePlan, resolveStrike, validateStrike } from "../rules/strike.js";
 import { soleSurvivor } from "../rules/victory.js";
 
 const nextRevision = (state: MatchState): number => state.revision + 1;
@@ -69,21 +69,21 @@ const resolveReaction = (
     return failure({ code: "InvalidTarget", message: "The reaction target is no longer living." });
   }
 
-  // Validate Guard power
-  if (typeof choice === "object" && choice.type === "guard") {
-    if (choice.amount !== 1 && choice.amount !== 2 && choice.amount !== 3) {
-      return failure({ code: "InvalidReaction", message: "Guard amount must be 1, 2, or 3." });
-    }
-    if (target.power < choice.amount) {
-      return failure({
-        code: "InsufficientPower",
-        message: `Guard (${choice.amount}) requires ${choice.amount} Power (you have ${target.power}).`,
-      });
-    }
-  } else if ((choice as unknown) === "guard") {
-    if (target.power < 1) {
-      return failure({ code: "InsufficientPower", message: "Guard requires 1 Power." });
-    }
+  const plan = normalizeDefensePlan(choice);
+  if (
+    plan.guard !== 0 &&
+    plan.guard !== 1 &&
+    plan.guard !== 2 &&
+    plan.guard !== 3
+  ) {
+    return failure({ code: "InvalidReaction", message: "Guard must be between 0 and 3." });
+  }
+  const defensePowerCost = plan.guard + (plan.challenge ? 1 : 0);
+  if (target.power < defensePowerCost) {
+    return failure({
+      code: "InsufficientPower",
+      message: `Defense plan requires ${defensePowerCost} Power (you have ${target.power}).`,
+    });
   }
 
   const threat = phase.pendingStrike.threat ?? (phase.pendingStrike.funding === 0 ? 1 : (phase.pendingStrike.funding as 1));
@@ -95,16 +95,16 @@ const resolveReaction = (
     phase.pendingStrike.targetId,
     threat,
     force,
-    choice,
+    plan,
   );
   const revision = nextRevision(state);
-  const genuine = force >= threat;
+  const genuine = force === threat;
 
   const inputs: DomainEventData[] = [
     {
       type: "ReactionCommitted",
       targetId: phase.pendingStrike.targetId,
-      choice,
+      choice: plan,
       ...(timedOut ? { timedOut: true } : {}),
     },
     {
@@ -115,7 +115,11 @@ const resolveReaction = (
       force,
       funding: force,
       genuine,
-      triggeredScheme: target.activeScheme,
+      ...(resolution.events.some(
+        (event) => event.type === "AttackResolved" && event.damageAbsorbed !== undefined,
+      ) && target.activeScheme !== undefined
+        ? { triggeredScheme: target.activeScheme }
+        : {}),
     },
     ...resolution.events,
     { type: "TurnEnded", playerId: phase.pendingStrike.attackerId },
@@ -274,7 +278,9 @@ export const decide = (
     const isValidChoice =
       command.choice === "yield" ||
       command.choice === "challenge" ||
-      (typeof command.choice === "object" && command.choice.type === "guard") ||
+      (typeof command.choice === "object" &&
+        (("type" in command.choice && command.choice.type === "guard") ||
+          ("guard" in command.choice && typeof command.choice.challenge === "boolean"))) ||
       (command.choice as unknown) === "guard";
     if (!isValidChoice) {
       return failure({ code: "InvalidReaction", message: "That reaction is not supported." });
@@ -286,7 +292,7 @@ export const decide = (
     if (command.phaseToken !== phase.phaseToken) {
       return failure({ code: "StalePhase", message: "That phase has already advanced." });
     }
-    return resolveReaction(state, "yield", true);
+    return resolveReaction(state, { guard: 0, challenge: false }, true);
   }
   return failure({ code: "WrongPhase", message: "That command is not valid during a reaction." });
 };
