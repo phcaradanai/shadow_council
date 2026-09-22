@@ -106,8 +106,8 @@ test.describe("Browser E2E: Real Gameplay Journeys", () => {
     await reactToStrike(target.page, "guard");
 
     // Both observe Attack Blocked outcome
-    await expect(active.page.locator(".reveal-card__title")).toHaveText("🛡️ ATTACK BLOCKED!");
-    await expect(target.page.locator(".reveal-card__title")).toHaveText("🛡️ ATTACK BLOCKED!");
+    await expect(active.page.locator(".reveal-card__title")).toHaveText("🛡️ GUARD HELD!");
+    await expect(target.page.locator(".reveal-card__title")).toHaveText("🛡️ GUARD HELD!");
 
     // Challenge now costs 1 Power. After the first exchange, the new attacker had 1 Power,
     // spends it on the genuine Strike, while the defender spends 1 Power on Guard.
