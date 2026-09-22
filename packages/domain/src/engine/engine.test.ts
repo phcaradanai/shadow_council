@@ -97,6 +97,44 @@ describe("Strike and reactions", () => {
     },
   );
 
+  it("rejects Force above the declared Threat without changing state", () => {
+    const initial = setup();
+    if (initial.state.phase.kind !== "ACTIVE_TURN") throw new Error("expected active");
+    const attacker = initial.state.phase.activePlayerId;
+    const target = initial.state.seatOrder.find((id) => id !== attacker);
+    if (target === undefined) throw new Error("missing target");
+
+    const invalid = decide(initial.state, strike(attacker, target, 1, 2), provider);
+    expect(invalid.ok).toBe(false);
+    expect(invalid.ok ? undefined : invalid.error.code).toBe("InvalidForce");
+    expect(initial.state.revision).toBe(0);
+  });
+
+  it("uses fixed Challenge punishment so Threat 2 / Force 2 leaves 3 Influence at 1", () => {
+    const initial = setup();
+    if (initial.state.phase.kind !== "ACTIVE_TURN") throw new Error("expected active");
+    const attacker = initial.state.phase.activePlayerId;
+    const target = initial.state.seatOrder.find((id) => id !== attacker);
+    if (target === undefined) throw new Error("missing target");
+
+    const committed = play(initial.state, strike(attacker, target, 2, 2));
+    const resolved = play(committed.state, react(target, "challenge"));
+    expect(findPlayer(resolved.state, target).influence).toBe(1);
+    expect(resolved.state.phase.kind).not.toBe("FINISHED");
+  });
+
+  it("makes Yield a controlled 1 Influence loss regardless of Threat", () => {
+    const initial = setup();
+    if (initial.state.phase.kind !== "ACTIVE_TURN") throw new Error("expected active");
+    const attacker = initial.state.phase.activePlayerId;
+    const target = initial.state.seatOrder.find((id) => id !== attacker);
+    if (target === undefined) throw new Error("missing target");
+
+    const committed = play(initial.state, strike(attacker, target, 2, 2));
+    const resolved = play(committed.state, react(target, "yield"));
+    expect(findPlayer(resolved.state, target).influence).toBe(2);
+  });
+
   it("keeps funding private in state until reaction and rejects non-target reaction", () => {
     const initial = setup();
     if (initial.state.phase.kind !== "ACTIVE_TURN") throw new Error("expected active");

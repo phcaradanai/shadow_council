@@ -65,6 +65,12 @@ export const validateStrike = (
     return failure({ code: "InvalidThreat", message: "Threat and Force must be specified." });
   }
 
+  if (force > threat) {
+    return failure({
+      code: "InvalidForce",
+      message: `Committed Force (${force}) cannot exceed declared Threat (${threat}).`,
+    });
+  }
   if (actor.power < force) {
     return failure({
       code: "InsufficientPower",
@@ -111,24 +117,14 @@ export const resolveStrike = (
   // Ambush: if reaction === "challenge" and force === 0 (bluff caught), ambush deals +1 damage to attacker!
 
   if (reaction === "yield") {
-    // Yield: Target takes Threat damage. If target has Bulwark, absorb 1 damage.
-    let effectiveDamage: number = threat;
-    if (targetScheme === "bulwark") {
-      triggeredScheme = "bulwark";
-      damageAbsorbed = 1;
-      effectiveDamage = Math.max(0, effectiveDamage - 1);
-    }
-    targetInfluenceLoss = effectiveDamage;
+    // Yield is the predictable safe option: accept exactly 1 Influence loss and spend no Power.
+    // Defensive Schemes do not trigger unless their matching reaction is actually used.
+    targetInfluenceLoss = 1;
   } else if (reaction === "challenge") {
-    if (force >= threat) {
-      // Genuine Strike: Target takes (Threat + 1) damage. Bulwark absorbs 1 damage.
-      let effectiveDamage: number = threat + 1;
-      if (targetScheme === "bulwark") {
-        triggeredScheme = "bulwark";
-        damageAbsorbed = 1;
-        effectiveDamage = Math.max(0, effectiveDamage - 1);
-      }
-      targetInfluenceLoss = effectiveDamage;
+    if (force === threat) {
+      // A failed bluff call has a fixed cost. A full-health player cannot be one-shot by
+      // an ordinary failed Challenge.
+      targetInfluenceLoss = 2;
     } else {
       // Bluff caught: Attacker takes 1 damage.
       // If target had Ambush active, Ambush triggers: Attacker takes +1 damage (total 2).
