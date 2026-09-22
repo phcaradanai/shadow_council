@@ -117,6 +117,7 @@ export class MatchStatsTracker {
   private snapshots: InfluenceSnapshot[] = [];
   private currentMatchId = "";
   private combatByPlayer: Record<string, CombatCounters> = {};
+  private processedEventKeys = new Set<string>();
 
   constructor() {
     this.restoreFromStorage();
@@ -145,11 +146,13 @@ export class MatchStatsTracker {
       const parsed = JSON.parse(raw) as {
         snapshots?: InfluenceSnapshot[];
         combatByPlayer?: Record<string, CombatCounters>;
+        processedEventKeys?: string[];
         strikesDealt?: Record<string, number>;
         strikesReceived?: Record<string, number>;
       };
       this.snapshots = parsed.snapshots ?? [];
       this.combatByPlayer = parsed.combatByPlayer ?? {};
+      this.processedEventKeys = new Set(parsed.processedEventKeys ?? []);
 
       // Migrate older local snapshots that only tracked strike totals.
       for (const [playerId, count] of Object.entries(parsed.strikesDealt ?? {})) {
@@ -172,6 +175,7 @@ export class MatchStatsTracker {
         JSON.stringify({
           snapshots: this.snapshots,
           combatByPlayer: this.combatByPlayer,
+          processedEventKeys: [...this.processedEventKeys],
         }),
       );
     } catch {
@@ -182,8 +186,16 @@ export class MatchStatsTracker {
   reset(matchId?: string): void {
     this.snapshots = [];
     this.combatByPlayer = {};
+    this.processedEventKeys.clear();
     this.currentMatchId = matchId ?? "";
     if (matchId) this.persistToStorage();
+  }
+
+  private eventKey(event: WireDomainEvent): string {
+    if (event.revision !== undefined && event.ordinal !== undefined) {
+      return `${event.matchId ?? this.currentMatchId}:${event.revision}:${event.ordinal}`;
+    }
+    return JSON.stringify(event);
   }
 
   private recordCombatEvent(event: WireDomainEvent): void {
@@ -236,10 +248,16 @@ export class MatchStatsTracker {
       this.currentMatchId = match.matchId;
       this.snapshots = [];
       this.combatByPlayer = {};
+      this.processedEventKeys.clear();
       this.restoreFromStorage();
     }
 
-    for (const event of events) this.recordCombatEvent(event);
+    for (const event of events) {
+      const key = this.eventKey(event);
+      if (this.processedEventKeys.has(key)) continue;
+      this.processedEventKeys.add(key);
+      this.recordCombatEvent(event);
+    }
 
     const influences: Record<string, number> = {};
     const powers: Record<string, number | null> = {};

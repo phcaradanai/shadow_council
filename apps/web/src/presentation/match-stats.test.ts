@@ -172,10 +172,28 @@ describe("MatchStatsTracker", () => {
       status: "PLAYING",
     };
 
-    tracker.recordMatchState(matchView, [
-      { type: "ActionCommitted", attackerId: "p1", targetId: "p2", threat: 2 },
-      { type: "ReactionCommitted", targetId: "p2", choice: { guard: 1, challenge: true } },
+    const events = [
       {
+        matchId: "test-match-1",
+        revision: 2,
+        ordinal: 0,
+        type: "ActionCommitted",
+        attackerId: "p1",
+        targetId: "p2",
+        threat: 2,
+      },
+      {
+        matchId: "test-match-1",
+        revision: 2,
+        ordinal: 1,
+        type: "ReactionCommitted",
+        targetId: "p2",
+        choice: { guard: 1, challenge: true },
+      },
+      {
+        matchId: "test-match-1",
+        revision: 2,
+        ordinal: 2,
         type: "ActionRevealed",
         attackerId: "p1",
         targetId: "p2",
@@ -184,6 +202,9 @@ describe("MatchStatsTracker", () => {
         genuine: false,
       },
       {
+        matchId: "test-match-1",
+        revision: 2,
+        ordinal: 3,
         type: "AttackResolved",
         attackerId: "p1",
         targetId: "p2",
@@ -191,7 +212,10 @@ describe("MatchStatsTracker", () => {
         attackerInfluenceLoss: 1,
         targetInfluenceLoss: 0,
       },
-    ]);
+    ] as const;
+
+    tracker.recordMatchState(matchView, events);
+    tracker.recordMatchState(matchView, events);
 
     const summaries = tracker.getPlayerSummaries(samplePlayers, "p1");
     const attacker = summaries.find((summary) => summary.playerId === "p1");
@@ -204,6 +228,10 @@ describe("MatchStatsTracker", () => {
     expect(defender?.challengesWon).toBe(1);
     expect(defender?.guardsCommitted).toBe(1);
     expect(defender?.hybridDefenses).toBe(1);
+
+    // Replaying the same command response/realtime batch must be idempotent.
+    expect(attacker?.strikesDealt).toBe(1);
+    expect(defender?.challengesMade).toBe(1);
   });
 
   it("keeps hidden opponent Power unknown instead of reporting a false zero", () => {
