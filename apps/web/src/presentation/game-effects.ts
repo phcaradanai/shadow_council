@@ -38,6 +38,7 @@ const drawAttackLink = (
   attackerId: string,
   targetId: string,
   threat: number,
+  preview = false,
 ): (() => void) => {
   const svg = root.querySelector<SVGSVGElement>(".game-vfx__connections");
   const attacker = root.querySelector<HTMLElement>(`#player-${CSS.escape(attackerId)}`);
@@ -57,11 +58,11 @@ const drawAttackLink = (
         </filter>
       </defs>
       <line
-        class="game-vfx__attack-line game-vfx__attack-line--threat-${Math.min(3, Math.max(1, threat))}"
+        class="game-vfx__attack-line game-vfx__attack-line--threat-${Math.min(3, Math.max(1, threat))} ${preview ? "game-vfx__attack-line--preview" : ""}"
         x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}"
         filter="url(#attack-glow)"
       />
-      <circle class="game-vfx__attack-pulse" cx="${to.x}" cy="${to.y}" r="24" />
+      <circle class="game-vfx__attack-pulse ${preview ? "game-vfx__attack-pulse--preview" : ""}" cx="${to.x}" cy="${to.y}" r="24" />
     `;
   };
 
@@ -176,6 +177,61 @@ export const attachGameEffects = (
   }
 
   triggerRevealEffects(root, layer, events);
+
+  let previewLinkCleanup: (() => void) | undefined;
+  const onTargetPreview = (event: Event) => {
+    if (phase.kind !== "ACTIVE_TURN" || phase.activePlayerId !== viewerId) return;
+    const detail = (event as CustomEvent<{ targetId?: string; threat?: number }>).detail;
+    previewLinkCleanup?.();
+    previewLinkCleanup = undefined;
+    if (!detail?.targetId) return;
+    previewLinkCleanup = drawAttackLink(
+      root,
+      viewerId,
+      detail.targetId,
+      detail.threat ?? 1,
+      true,
+    );
+  };
+  root.addEventListener("sc:target-preview", onTargetPreview as EventListener);
+  cleanup.push(() => {
+    root.removeEventListener("sc:target-preview", onTargetPreview as EventListener);
+    previewLinkCleanup?.();
+  });
+
+  let defenseAura: HTMLElement | undefined;
+  const renderDefenseAura = (guard: number, challenge: boolean) => {
+    defenseAura?.remove();
+    defenseAura = undefined;
+    if (phase.kind !== "REACTION" || phase.targetId !== viewerId) return;
+
+    const seat = root.querySelector<HTMLElement>(`#player-${CSS.escape(viewerId)}`);
+    if (!seat) return;
+    const seatRect = seat.getBoundingClientRect();
+    const rootRect = root.getBoundingClientRect();
+    const aura = document.createElement("div");
+    aura.className = `vfx-defense-aura ${challenge ? "vfx-defense-aura--challenge" : ""}`;
+    aura.dataset.guard = String(guard);
+    aura.style.left = `${seatRect.left - rootRect.left + seatRect.width / 2}px`;
+    aura.style.top = `${seatRect.top - rootRect.top + seatRect.height / 2}px`;
+    aura.innerHTML = `
+      <span class="vfx-defense-aura__ring"></span>
+      <span class="vfx-defense-aura__ring vfx-defense-aura__ring--two"></span>
+      ${challenge ? '<span class="vfx-defense-aura__eye">👁</span>' : ""}
+    `;
+    layer.append(aura);
+    defenseAura = aura;
+  };
+
+  const onDefensePreview = (event: Event) => {
+    const detail = (event as CustomEvent<{ guard?: number; challenge?: boolean }>).detail;
+    renderDefenseAura(detail?.guard ?? 0, detail?.challenge === true);
+  };
+  root.addEventListener("sc:defense-preview", onDefensePreview as EventListener);
+  cleanup.push(() => {
+    root.removeEventListener("sc:defense-preview", onDefensePreview as EventListener);
+    defenseAura?.remove();
+  });
 
   const onPointerMove = (event: PointerEvent) => {
     if (prefersReducedMotion()) return;

@@ -3737,3 +3737,112 @@ h4 {
     transform: none !important;
   }
 }
+
+
+/* Local-only targeting preview and live defense visualization */
+.game-vfx__attack-line--preview {
+  stroke: rgba(212, 175, 55, 0.72);
+  stroke-width: 2;
+  stroke-dasharray: 3 10;
+  opacity: 0.78;
+  animation-duration: 1.25s;
+}
+
+.game-vfx__attack-pulse--preview {
+  stroke: rgba(212, 175, 55, 0.72);
+}
+
+.vfx-defense-aura {
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  translate: -50% -50%;
+  z-index: 31;
+  pointer-events: none;
+}
+
+.vfx-defense-aura__ring {
+  position: absolute;
+  inset: 16%;
+  border: 2px solid rgba(56, 189, 248, 0.55);
+  border-radius: 50%;
+  box-shadow:
+    0 0 18px rgba(56, 189, 248, 0.18),
+    inset 0 0 18px rgba(56, 189, 248, 0.08);
+  animation: vfx-shield-ring 1.45s ease-in-out infinite;
+}
+
+.vfx-defense-aura__ring--two {
+  inset: 4%;
+  opacity: calc(.18 + min(var(--guard-level, 0), 3) * .18);
+  animation-delay: -0.7s;
+}
+
+.vfx-defense-aura[data-guard="0"] {
+  opacity: 0.22;
+}
+
+.vfx-defense-aura[data-guard="1"] { --guard-level: 1; }
+.vfx-defense-aura[data-guard="2"] { --guard-level: 2; }
+.vfx-defense-aura[data-guard="3"],
+.vfx-defense-aura[data-guard="4"] { --guard-level: 3; }
+
+.vfx-defense-aura--challenge .vfx-defense-aura__ring {
+  border-color: rgba(245, 158, 11, 0.68);
+  box-shadow:
+    0 0 22px rgba(245, 158, 11, 0.16),
+    inset 0 0 16px rgba(168, 85, 247, 0.12);
+}
+
+.vfx-defense-aura__eye {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  translate: -50% -50%;
+  font-size: 1.5rem;
+  filter: drop-shadow(0 0 8px rgba(168,85,247,.6));
+  animation: vfx-eye-float 1.15s ease-in-out infinite alternate;
+}
+
+@keyframes vfx-shield-ring {
+  0%, 100% { transform: scale(.9); opacity: .45; }
+  50% { transform: scale(1.03); opacity: .9; }
+}
+
+@keyframes vfx-eye-float {
+  from { transform: translateY(-2px) scale(.95); }
+  to { transform: translateY(2px) scale(1.06); }
+}
+
+/* Last-five-second digital tension */
+.game-time-critical .countdown {
+  position: relative;
+  z-index: 34;
+  border-color: rgba(239,68,68,.75);
+  box-shadow:
+    0 0 0 1px rgba(239,68,68,.16),
+    0 0 30px rgba(239,68,68,.16);
+  animation: vfx-clock-beat 1s ease-in-out infinite;
+}
+
+.game-time-critical .countdown__seconds {
+  color: #fecaca;
+  text-shadow: 0 0 12px rgba(239,68,68,.6);
+}
+
+.game-time-critical .game-vfx__vignette {
+  background: radial-gradient(circle at center, transparent 50%, rgba(69,10,10,.38) 100%);
+}
+
+@keyframes vfx-clock-beat {
+  0%, 100% { transform: scale(1); }
+  48% { transform: scale(1.008); }
+  55% { transform: scale(.997); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vfx-defense-aura__ring,
+  .vfx-defense-aura__eye,
+  .game-time-critical .countdown {
+    animation: none !important;
+  }
+}

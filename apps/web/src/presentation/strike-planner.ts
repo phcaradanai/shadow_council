@@ -71,6 +71,15 @@ export const attachStrikePlanner = (
       if (selected) card.setAttribute("aria-selected", "true");
       else card.removeAttribute("aria-selected");
     });
+
+    root.querySelector<HTMLElement>(".screen--game")?.dispatchEvent(
+      new CustomEvent("sc:target-preview", {
+        detail: {
+          targetId: selectedId || undefined,
+          threat: selectedThreat() ?? 1,
+        },
+      }),
+    );
   };
 
   const syncForceOptions = (): void => {
@@ -165,6 +174,7 @@ export const attachStrikePlanner = (
     input.addEventListener("change", () => {
       syncForceOptions();
       renderPlan();
+      syncTargetHighlights();
       sounds.click();
     });
   });

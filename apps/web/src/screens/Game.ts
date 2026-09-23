@@ -245,6 +245,9 @@ export const renderGameScreen = (
         mode.textContent = t("reaction.selectDefense");
         costEl.textContent = "0";
         preview.innerHTML = `<p>${t("reaction.selectDefenseHint")}</p>`;
+        container.querySelector<HTMLElement>(".screen--game")?.dispatchEvent(
+          new CustomEvent("sc:defense-preview", { detail: { guard: 0, challenge: false } }),
+        );
         return;
       }
 
@@ -257,6 +260,11 @@ export const renderGameScreen = (
 
       costEl.textContent = String(cost);
       submit.disabled = !legal || isSubmitting;
+      container.querySelector<HTMLElement>(".screen--game")?.dispatchEvent(
+        new CustomEvent("sc:defense-preview", {
+          detail: { guard: effectiveGuard, challenge: plan.challenge },
+        }),
+      );
 
       if (plan.guard === 0 && !plan.challenge) {
         mode.textContent = t("reaction.modeYield");
