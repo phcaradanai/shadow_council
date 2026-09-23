@@ -3430,3 +3430,606 @@ h4 {
   justify-content: space-between;
   gap: 0.5rem;
 }
+
+/* Digital-first game stage & VFX */
+.screen--game {
+  --parallax-x: 0;
+  --parallax-y: 0;
+  position: relative;
+  isolation: isolate;
+  perspective: 1100px;
+}
+
+.screen--game::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 24%, rgba(212, 175, 55, 0.07), transparent 26%),
+    radial-gradient(circle at 18% 72%, rgba(91, 33, 182, 0.07), transparent 30%),
+    radial-gradient(circle at 82% 65%, rgba(127, 29, 29, 0.08), transparent 32%), #05070b;
+}
+
+.game-vfx-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.game-vfx__ambient {
+  position: absolute;
+  inset: -8%;
+  opacity: 0.7;
+  will-change: transform;
+  transition: transform 120ms ease-out;
+}
+
+.game-vfx__ambient--far {
+  background: radial-gradient(circle at 24% 18%, rgba(212, 175, 55, 0.07), transparent 24%),
+    radial-gradient(circle at 78% 34%, rgba(56, 189, 248, 0.045), transparent 26%);
+  transform: translate(calc(var(--parallax-x) * -8px), calc(var(--parallax-y) * -6px));
+}
+
+.game-vfx__ambient--near {
+  opacity: 0.33;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.17) 0 1px, transparent 1.4px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(circle at 50% 45%, #000 0 36%, transparent 75%);
+  transform: translate(calc(var(--parallax-x) * 14px), calc(var(--parallax-y) * 10px));
+}
+
+.game-vfx__connections {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.game-vfx__attack-line {
+  stroke: rgba(239, 68, 68, 0.68);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 8 12;
+  animation: vfx-dash 0.8s linear infinite;
+}
+
+.game-vfx__attack-line--threat-2 {
+  stroke-width: 3;
+  stroke: rgba(245, 158, 11, 0.8);
+}
+
+.game-vfx__attack-line--threat-3 {
+  stroke-width: 4;
+  stroke: rgba(239, 68, 68, 0.95);
+}
+
+.game-vfx__attack-pulse {
+  fill: none;
+  stroke: rgba(239, 68, 68, 0.72);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: vfx-target-pulse 1.2s ease-out infinite;
+}
+
+.game-vfx__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent 48%, rgba(0, 0, 0, 0.42) 100%);
+  mix-blend-mode: multiply;
+}
+
+@keyframes vfx-dash {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+
+@keyframes vfx-target-pulse {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.65);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.75);
+  }
+}
+
+.vfx-burst {
+  position: absolute;
+  left: 50%;
+  top: 36%;
+  width: 1px;
+  height: 1px;
+}
+
+.vfx-particle {
+  --vx: 0px;
+  --vy: 0px;
+  --delay: 0ms;
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: #f8fafc;
+  box-shadow: 0 0 16px currentColor;
+  animation: vfx-particle-fly 720ms cubic-bezier(0.14, 0.7, 0.24, 1) var(--delay) both;
+}
+
+.vfx-burst--danger .vfx-particle {
+  color: #ef4444;
+  background: #fb7185;
+}
+.vfx-burst--success .vfx-particle {
+  color: #22c55e;
+  background: #86efac;
+}
+.vfx-burst--mystery .vfx-particle {
+  color: #a855f7;
+  background: #c084fc;
+}
+
+@keyframes vfx-particle-fly {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.25) rotate(0deg);
+  }
+  22% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--vx), var(--vy)) scale(0.9) rotate(220deg);
+  }
+}
+
+.vfx-reveal-flash::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.18), transparent 48%);
+  animation: vfx-flash 520ms ease-out both;
+}
+
+@keyframes vfx-flash {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.vfx-screen-shake .council-chamber {
+  animation: vfx-shake 420ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes vfx-shake {
+  10%,
+  90% {
+    transform: translateX(-1px);
+  }
+  20%,
+  80% {
+    transform: translateX(2px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-4px);
+  }
+  40%,
+  60% {
+    transform: translateX(4px);
+  }
+}
+
+.vfx-under-attack .game-vfx__vignette {
+  background: radial-gradient(circle at center, transparent 42%, rgba(127, 29, 29, 0.42) 100%);
+  animation: vfx-danger-vignette 760ms ease-out;
+}
+
+@keyframes vfx-danger-vignette {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+.screen--game[data-phase="reaction"] .council-stage {
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.42),
+    inset 0 0 60px rgba(127, 29, 29, 0.055);
+}
+
+.screen--game.game-view--target .defense-planner {
+  position: relative;
+  z-index: 35;
+}
+
+.screen--game.game-view--actor .action-panel {
+  box-shadow:
+    0 20px 52px rgba(0, 0, 0, 0.4),
+    0 0 38px rgba(212, 175, 55, 0.07);
+}
+
+.council-seat {
+  transform: perspective(800px) rotateX(var(--seat-tilt-x, 0deg)) rotateY(var(--seat-tilt-y, 0deg))
+    translateZ(0);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.council-seat__sigil,
+.council-seat__body {
+  transform: translateZ(14px);
+}
+
+.player-card--active {
+  animation: game-active-seat 2.2s ease-in-out infinite;
+}
+
+@keyframes game-active-seat {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.12);
+  }
+}
+
+.turn-banner {
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  border-left-width: 1px;
+}
+
+.turn-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.05) 47%,
+    transparent 64%
+  );
+  transform: translateX(-110%);
+  animation: game-banner-sheen 4.5s ease-in-out infinite;
+}
+
+@keyframes game-banner-sheen {
+  0%,
+  65% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(110%);
+  }
+}
+
+.turn-banner--your-turn .turn-banner__headline,
+.turn-banner--targeted .turn-banner__headline {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.55rem, 4vw, 2.2rem);
+}
+
+.action-panel,
+.reaction-panel {
+  position: sticky;
+  bottom: 0.65rem;
+  z-index: 24;
+  backdrop-filter: blur(16px);
+  background: linear-gradient(180deg, rgba(18, 24, 38, 0.94), rgba(8, 12, 20, 0.96));
+}
+
+.threat-seal__body,
+.force-stone__body,
+.defense-choice__body,
+.challenge-toggle__body,
+.scheme-card > span,
+.btn {
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.threat-seal:active .threat-seal__body,
+.force-stone:active .force-stone__body,
+.defense-choice:active .defense-choice__body,
+.challenge-toggle:active .challenge-toggle__body,
+.scheme-card:active > span,
+.btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-vfx__ambient,
+  .game-vfx__attack-line,
+  .game-vfx__attack-pulse,
+  .vfx-particle,
+  .vfx-reveal-flash::after,
+  .vfx-screen-shake .council-chamber,
+  .vfx-under-attack .game-vfx__vignette,
+  .player-card--active,
+  .turn-banner::before {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .council-seat {
+    transform: none !important;
+  }
+}
+
+/* Local-only targeting preview and live defense visualization */
+.game-vfx__attack-line--preview {
+  stroke: rgba(212, 175, 55, 0.72);
+  stroke-width: 2;
+  stroke-dasharray: 3 10;
+  opacity: 0.78;
+  animation-duration: 1.25s;
+}
+
+.game-vfx__attack-pulse--preview {
+  stroke: rgba(212, 175, 55, 0.72);
+}
+
+.vfx-defense-aura {
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  translate: -50% -50%;
+  z-index: 31;
+  pointer-events: none;
+}
+
+.vfx-defense-aura__ring {
+  position: absolute;
+  inset: 16%;
+  border: 2px solid rgba(56, 189, 248, 0.55);
+  border-radius: 50%;
+  box-shadow:
+    0 0 18px rgba(56, 189, 248, 0.18),
+    inset 0 0 18px rgba(56, 189, 248, 0.08);
+  animation: vfx-shield-ring 1.45s ease-in-out infinite;
+}
+
+.vfx-defense-aura__ring--two {
+  inset: 4%;
+  opacity: 0.36;
+  animation-delay: -0.7s;
+}
+
+.vfx-defense-aura[data-guard="0"] {
+  opacity: 0.22;
+}
+
+.vfx-defense-aura[data-guard="1"] {
+  --guard-level: 1;
+}
+.vfx-defense-aura[data-guard="2"] {
+  --guard-level: 2;
+}
+.vfx-defense-aura[data-guard="3"],
+.vfx-defense-aura[data-guard="4"] {
+  --guard-level: 3;
+}
+
+.vfx-defense-aura--challenge .vfx-defense-aura__ring {
+  border-color: rgba(245, 158, 11, 0.68);
+  box-shadow:
+    0 0 22px rgba(245, 158, 11, 0.16),
+    inset 0 0 16px rgba(168, 85, 247, 0.12);
+}
+
+.vfx-defense-aura__eye {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  translate: -50% -50%;
+  font-size: 1.5rem;
+  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.6));
+  animation: vfx-eye-float 1.15s ease-in-out infinite alternate;
+}
+
+@keyframes vfx-shield-ring {
+  0%,
+  100% {
+    transform: scale(0.9);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 0.9;
+  }
+}
+
+@keyframes vfx-eye-float {
+  from {
+    transform: translateY(-2px) scale(0.95);
+  }
+  to {
+    transform: translateY(2px) scale(1.06);
+  }
+}
+
+/* Last-five-second digital tension */
+.game-time-critical .countdown {
+  position: relative;
+  z-index: 34;
+  border-color: rgba(239, 68, 68, 0.75);
+  box-shadow:
+    0 0 0 1px rgba(239, 68, 68, 0.16),
+    0 0 30px rgba(239, 68, 68, 0.16);
+  animation: vfx-clock-beat 1s ease-in-out infinite;
+}
+
+.game-time-critical .countdown__seconds {
+  color: #fecaca;
+  text-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+}
+
+.game-time-critical .game-vfx__vignette {
+  background: radial-gradient(circle at center, transparent 50%, rgba(69, 10, 10, 0.38) 100%);
+}
+
+@keyframes vfx-clock-beat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  48% {
+    transform: scale(1.008);
+  }
+  55% {
+    transform: scale(0.997);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vfx-defense-aura__ring,
+  .vfx-defense-aura__eye,
+  .game-time-critical .countdown {
+    animation: none !important;
+  }
+}
+
+/* Cinematic focus during a clash: public Threat only, no secret Force */
+.screen--game[data-phase="reaction"]
+  .council-seat:not(.player-card--active):not(.player-card--target) {
+  opacity: 0.58;
+  filter: saturate(0.55) brightness(0.78);
+  transform: perspective(800px) rotateX(var(--seat-tilt-x, 0deg)) rotateY(var(--seat-tilt-y, 0deg))
+    scale(0.985);
+}
+
+.screen--game[data-phase="reaction"] .player-card--active,
+.screen--game[data-phase="reaction"] .player-card--target {
+  opacity: 1;
+  z-index: 4;
+}
+
+.vfx-threat-pressure {
+  position: absolute;
+  left: 50%;
+  top: 24%;
+  translate: -50% -50%;
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(127, 29, 29, 0.26),
+    rgba(15, 8, 12, 0.18) 60%,
+    transparent 72%
+  );
+  box-shadow:
+    0 0 42px rgba(239, 68, 68, 0.13),
+    inset 0 0 25px rgba(239, 68, 68, 0.08);
+  animation: vfx-threat-pressure 1.6s ease-in-out infinite;
+}
+
+.vfx-threat-pressure span {
+  position: absolute;
+  top: 16px;
+  color: rgba(252, 165, 165, 0.72);
+  font-size: 0.9rem;
+}
+
+.vfx-threat-pressure strong {
+  color: #fff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2.2rem;
+  line-height: 1;
+  text-shadow:
+    0 0 12px rgba(239, 68, 68, 0.55),
+    0 2px 12px rgba(0, 0, 0, 0.8);
+}
+
+@keyframes vfx-threat-pressure {
+  0%,
+  100% {
+    transform: scale(0.94);
+    opacity: 0.72;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+}
+
+.player-card--eliminated {
+  overflow: hidden;
+}
+
+.player-card--eliminated::before {
+  content: "";
+  position: absolute;
+  inset: -35%;
+  z-index: 6;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 46%,
+    rgba(239, 68, 68, 0.22) 49%,
+    rgba(255, 255, 255, 0.18) 50%,
+    rgba(239, 68, 68, 0.22) 51%,
+    transparent 54%
+  );
+  transform: rotate(-8deg);
+}
+
+.reveal-card {
+  overflow: hidden;
+}
+
+.reveal-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 -35%;
+  width: 28%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.055), transparent);
+  transform: skewX(-16deg);
+  animation: reveal-sweep 2.8s ease-in-out infinite;
+}
+
+@keyframes reveal-sweep {
+  0%,
+  62% {
+    left: -35%;
+  }
+  100% {
+    left: 125%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vfx-threat-pressure,
+  .reveal-card::before {
+    animation: none !important;
+  }
+}
+
+.vfx-defense-aura[data-guard="2"] .vfx-defense-aura__ring--two {
+  opacity: 0.62;
+}
+
+.vfx-defense-aura[data-guard="3"] .vfx-defense-aura__ring--two,
+.vfx-defense-aura[data-guard="4"] .vfx-defense-aura__ring--two {
+  opacity: 0.82;
+}

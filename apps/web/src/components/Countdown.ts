@@ -37,6 +37,9 @@ export const startCountdownTicker = (container: HTMLElement): (() => void) => {
   const secondsEl = el.querySelector<HTMLElement>(".countdown__seconds");
   const fillEl = el.querySelector<HTMLElement>(".countdown__bar-fill");
 
+  const screen = container.querySelector<HTMLElement>(".screen--game");
+  let hapticTriggered = false;
+
   const interval = setInterval(() => {
     const remainingMs = Math.max(0, deadlineAt - Date.now());
     const seconds = Math.ceil(remainingMs / 1000);
@@ -44,11 +47,25 @@ export const startCountdownTicker = (container: HTMLElement): (() => void) => {
     if (fillEl) fillEl.style.width = `${Math.min(100, (seconds / 45) * 100)}%`;
     if (seconds <= 5) {
       el.classList.add("countdown--urgent");
+      screen?.classList.add("game-time-critical");
+      if (!hapticTriggered && seconds <= 5 && seconds > 0) {
+        hapticTriggered = true;
+        try {
+          navigator.vibrate?.(22);
+        } catch {
+          // Optional haptics only.
+        }
+      }
+    } else {
+      screen?.classList.remove("game-time-critical");
     }
     if (remainingMs <= 0) {
       clearInterval(interval);
     }
   }, 500);
 
-  return () => clearInterval(interval);
+  return () => {
+    clearInterval(interval);
+    screen?.classList.remove("game-time-critical");
+  };
 };

@@ -12,6 +12,7 @@ import { t, getLocale, renderLanguageSwitcher, getLocalizedErrorMessage } from "
 import { mountStatsDashboard } from "../components/StatsDashboard.js";
 import { matchStatsTracker } from "../presentation/match-stats.js";
 import { attachStrikePlanner } from "../presentation/strike-planner.js";
+import { attachGameEffects } from "../presentation/game-effects.js";
 
 const escapeHtml = (value: string): string =>
   value
@@ -44,6 +45,12 @@ export const renderGameScreen = (
 
   container.innerHTML = `
     <div class="screen screen--game">
+      <div class="game-vfx-layer" aria-hidden="true">
+        <div class="game-vfx__ambient game-vfx__ambient--far"></div>
+        <div class="game-vfx__ambient game-vfx__ambient--near"></div>
+        <svg class="game-vfx__connections" preserveAspectRatio="none"></svg>
+        <div class="game-vfx__vignette"></div>
+      </div>
       <!-- Header -->
       <header class="app-header">
         <div class="app-header__brand">
@@ -238,6 +245,11 @@ export const renderGameScreen = (
         mode.textContent = t("reaction.selectDefense");
         costEl.textContent = "0";
         preview.innerHTML = `<p>${t("reaction.selectDefenseHint")}</p>`;
+        container
+          .querySelector<HTMLElement>(".screen--game")
+          ?.dispatchEvent(
+            new CustomEvent("sc:defense-preview", { detail: { guard: 0, challenge: false } }),
+          );
         return;
       }
 
@@ -250,6 +262,11 @@ export const renderGameScreen = (
 
       costEl.textContent = String(cost);
       submit.disabled = !legal || isSubmitting;
+      container.querySelector<HTMLElement>(".screen--game")?.dispatchEvent(
+        new CustomEvent("sc:defense-preview", {
+          detail: { guard: effectiveGuard, challenge: plan.challenge },
+        }),
+      );
 
       if (plan.guard === 0 && !plan.challenge) {
         mode.textContent = t("reaction.modeYield");
@@ -303,7 +320,11 @@ export const renderGameScreen = (
     });
   }
 
-  // Start ticker
+  // Start ticker and presentation effects.
   const stopTicker = startCountdownTicker(container);
-  return stopTicker;
+  const stopEffects = attachGameEffects(container, match, viewerId, recentEvents);
+  return () => {
+    stopTicker();
+    stopEffects();
+  };
 };
