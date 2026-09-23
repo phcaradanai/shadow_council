@@ -110,14 +110,16 @@ export const renderPlayerCard = (
 
         <div class="player-card__stats seat-resources">
           <div class="stat-row seat-resource" data-stat="influence">
-            <span class="stat-label" aria-hidden="true">◆</span>
+            <span class="seat-resource__icon" aria-hidden="true">◆</span>
+            <span class="stat-label seat-resource__sr-label">${t("player.influenceLabel")}</span>
             <span class="stat-value" aria-label="${t("player.influenceAria", { current: player.influence, max: 3 })}">
               ${renderInfluencePips(player.influence)}
               <span class="stat-num">(${player.influence}/3)</span>
             </span>
           </div>
           <div class="stat-row seat-resource seat-resource--power" data-stat="power">
-            <span class="stat-label" aria-hidden="true">⚡</span>
+            <span class="seat-resource__icon" aria-hidden="true">⚡</span>
+            <span class="stat-label seat-resource__sr-label">${t("player.powerLabel")}</span>
             ${
               player.power !== undefined
                 ? `<span class="stat-value" aria-label="${t("player.powerAria", { current: player.power, max: 3 })}">
