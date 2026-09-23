@@ -168,7 +168,10 @@ test.describe("Browser E2E: Thai Localization & Language Switcher", () => {
     await expect(
       host.page.locator('.player-card--self .stat-row[data-stat="influence"] .stat-label'),
     ).toHaveText("Influence (Survival):");
-    await expect(host.page.locator(".app-header #btn-rules-open")).toContainText("Rules");
+    await expect(host.page.locator(".app-header #btn-rules-open")).toHaveAttribute(
+      "aria-label",
+      /Rules/,
+    );
 
     // Guest remains independently in Thai
     await expect(guest.page.locator("html")).toHaveAttribute("lang", "th");

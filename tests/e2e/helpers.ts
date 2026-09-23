@@ -60,12 +60,16 @@ export const declareStrike = async (
   const declaredThreat = threat ?? ((force === 0 ? 1 : force) as 1 | 2 | 3);
 
   await page.locator("#strike-target").selectOption(targetId);
-  await page.locator(`input[name="threat"][value="${declaredThreat}"]`).check();
+  await page
+    .locator(`label.threat-seal:has(input[name="threat"][value="${declaredThreat}"])`)
+    .click();
   await expect(strikeBtn).toBeDisabled();
 
   const forceInput = page.locator(`input[name="force"][value="${force}"]`);
   await expect(forceInput).toBeEnabled();
-  await forceInput.check();
+  await page
+    .locator(`label.force-stone:has(input[name="force"][value="${force}"])`)
+    .click();
 
   await expect(strikeBtn).toBeEnabled();
   await strikeBtn.click();
@@ -76,13 +80,14 @@ export const defendStrike = async (
   plan: { guard: 0 | 1 | 2 | 3; challenge: boolean },
 ): Promise<void> => {
   await page.waitForSelector("#defense-form");
-  await page.locator(`input[name="defenseGuard"][value="${plan.guard}"]`).check();
+  await page
+    .locator(`label.defense-choice:has(input[name="defenseGuard"][value="${plan.guard}"])`)
+    .click();
 
   const challenge = page.locator("#defense-challenge");
-  if (plan.challenge) {
-    await challenge.check();
-  } else if (await challenge.isChecked()) {
-    await challenge.uncheck();
+  const isChallengeChecked = await challenge.isChecked();
+  if (plan.challenge !== isChallengeChecked) {
+    await page.locator("label.challenge-toggle").click();
   }
 
   const submit = page.locator("#btn-lock-defense");
