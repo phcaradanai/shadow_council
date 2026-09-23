@@ -1,0 +1,505 @@
+/* v0.2.6 — game-board density, character identity, and space usage pass */
+
+/* The normal app remains compact. The live match gets the room a board game needs. */
+#app:has(.screen--game) {
+  max-width: 1480px;
+  padding: 0.65rem clamp(0.65rem, 2vw, 1.8rem) 1.25rem;
+}
+
+.screen--game {
+  position: relative;
+  isolation: isolate;
+}
+
+.screen--game .app-header {
+  align-items: center;
+  min-height: 46px;
+  margin-bottom: 0.55rem;
+  padding: 0.15rem 0 0.5rem;
+  border-bottom-color: rgba(148, 163, 184, 0.08);
+}
+
+.screen--game .app-header__brand {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.screen--game .app-title {
+  font-size: clamp(0.95rem, 1.6vw, 1.2rem);
+  letter-spacing: 0.08em;
+}
+
+.screen--game .app-header__meta {
+  margin-top: 0;
+  gap: 0.32rem;
+}
+
+.screen--game .meta-tag {
+  padding: 0.15rem 0.42rem;
+  border-color: rgba(148, 163, 184, 0.08);
+  background: rgba(10, 14, 23, 0.62);
+  font-size: 0.67rem;
+}
+
+.screen--game .app-header__actions {
+  gap: 0.3rem;
+}
+
+.screen--game .app-header__actions .btn--icon,
+.screen--game .app-header__actions .btn--sm {
+  min-height: 30px;
+}
+
+.council-chamber {
+  display: grid;
+  grid-template-rows: auto minmax(330px, 1fr) auto;
+  gap: 0.45rem;
+  min-height: calc(100svh - 88px);
+}
+
+.chamber-zone {
+  min-width: 0;
+}
+
+.chamber-zone--situation {
+  margin-bottom: 0;
+}
+
+.chamber-zone--table {
+  min-height: 0;
+  display: grid;
+  align-items: stretch;
+}
+
+.council-table,
+.council-table__arena {
+  height: 100%;
+}
+
+.council-table__arena {
+  min-height: clamp(330px, 48vh, 510px);
+}
+
+.council-table__surface {
+  inset: 8% 7% 10%;
+  border-radius: 48%;
+  transform: perspective(1100px) rotateX(7deg);
+}
+
+.council-table__surface::before {
+  inset: 7%;
+}
+
+.council-table__surface::after {
+  inset: 22%;
+}
+
+.council-table__crest {
+  top: 50%;
+  width: clamp(112px, 10vw, 154px);
+  background:
+    radial-gradient(circle at 50% 45%, rgba(212, 175, 55, 0.12), transparent 42%),
+    radial-gradient(circle, rgba(212, 175, 55, 0.05), transparent 68%);
+  box-shadow:
+    0 0 48px rgba(212, 175, 55, 0.08),
+    inset 0 0 32px rgba(212, 175, 55, 0.05);
+}
+
+.council-table__crest-mark {
+  color: rgba(243, 208, 122, 0.48);
+  font:
+    800 clamp(1.1rem, 2vw, 1.6rem)/1 Georgia,
+    serif;
+  letter-spacing: 0.12em;
+}
+
+/* Seats become character pieces instead of information cards. */
+.council-seat {
+  width: clamp(205px, 18vw, 255px);
+  min-height: 118px;
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: 0.72rem;
+  padding: 0.72rem 0.82rem;
+  overflow: visible;
+  border-radius: 20px;
+  border-color: rgba(148, 163, 184, 0.16);
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018), transparent 28%),
+    linear-gradient(145deg, rgba(20, 27, 42, 0.96), rgba(6, 9, 16, 0.97));
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.38),
+    inset 0 1px rgba(255, 255, 255, 0.045);
+}
+
+.council-seat[data-seat-role="self"] {
+  width: clamp(260px, 24vw, 330px);
+  min-height: 126px;
+  grid-template-columns: 82px minmax(0, 1fr);
+  bottom: -2%;
+  border-color: rgba(56, 189, 248, 0.42);
+  box-shadow:
+    0 20px 54px rgba(0, 0, 0, 0.44),
+    0 0 30px rgba(56, 189, 248, 0.07),
+    inset 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.council-seat__sigil {
+  width: 70px;
+  height: 82px;
+  border-radius: 18px;
+  overflow: hidden;
+  border-color: rgba(212, 175, 55, 0.25);
+  background:
+    radial-gradient(circle at 50% 22%, rgba(255, 255, 255, 0.09), transparent 28%),
+    linear-gradient(180deg, rgba(27, 35, 52, 0.96), rgba(7, 10, 17, 0.98));
+}
+
+.council-seat[data-seat-role="self"] .council-seat__sigil {
+  width: 78px;
+  height: 90px;
+  border-color: rgba(56, 189, 248, 0.38);
+}
+
+.council-portrait {
+  --portrait-accent: #d4af37;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.council-portrait__halo {
+  position: absolute;
+  left: 50%;
+  top: 11px;
+  width: 45px;
+  height: 45px;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--portrait-accent) 24%, transparent), transparent 66%);
+  box-shadow: 0 0 26px color-mix(in srgb, var(--portrait-accent) 12%, transparent);
+}
+
+.council-portrait__shoulders {
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+  width: 62px;
+  height: 43px;
+  translate: -50% 0;
+  border-radius: 52% 52% 16% 16%;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.07), transparent 30%),
+    linear-gradient(180deg, color-mix(in srgb, var(--portrait-accent) 24%, #111827), #070b12 72%);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.council-portrait__head {
+  position: absolute;
+  left: 50%;
+  top: 19px;
+  width: 29px;
+  height: 36px;
+  translate: -50% 0;
+  border-radius: 47% 47% 42% 42%;
+  background:
+    linear-gradient(110deg, rgba(255, 255, 255, 0.16), transparent 38%),
+    linear-gradient(180deg, #293244, #111827 68%);
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.34),
+    inset 0 -7px 12px rgba(0, 0, 0, 0.26);
+}
+
+.council-portrait__mask {
+  position: absolute;
+  left: 50%;
+  top: 34px;
+  width: 31px;
+  height: 12px;
+  translate: -50% 0;
+  border-top: 2px solid color-mix(in srgb, var(--portrait-accent) 76%, #fff);
+  border-radius: 50%;
+  opacity: 0.85;
+  box-shadow: 0 -5px 14px color-mix(in srgb, var(--portrait-accent) 15%, transparent);
+}
+
+.council-portrait__monogram {
+  position: absolute;
+  right: 5px;
+  bottom: 4px;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 50%;
+  background: rgba(3, 6, 12, 0.82);
+  color: #f8fafc;
+  font:
+    800 0.62rem/1 Georgia,
+    serif;
+}
+
+.council-portrait--0 {
+  --portrait-accent: #f59e0b;
+}
+.council-portrait--1 {
+  --portrait-accent: #38bdf8;
+}
+.council-portrait--2 {
+  --portrait-accent: #a78bfa;
+}
+.council-portrait--3 {
+  --portrait-accent: #fb7185;
+}
+.council-portrait--4 {
+  --portrait-accent: #34d399;
+}
+.council-portrait--5 {
+  --portrait-accent: #f3d07a;
+}
+
+.council-portrait--1 .council-portrait__head,
+.council-portrait--4 .council-portrait__head {
+  border-radius: 50% 50% 34% 34%;
+}
+
+.council-portrait--2 .council-portrait__mask,
+.council-portrait--5 .council-portrait__mask {
+  width: 24px;
+  border-top-width: 3px;
+}
+
+.player-card__name {
+  font-size: clamp(0.88rem, 1.1vw, 1rem);
+  letter-spacing: 0.01em;
+}
+
+.seat-resources {
+  gap: 0.34rem;
+  margin-top: 0.48rem;
+}
+
+.seat-resource {
+  min-height: 28px;
+  padding: 0.22rem 0.4rem;
+  background: rgba(1, 4, 9, 0.36);
+}
+
+.seat-resource .pip {
+  font-size: 0.66rem;
+}
+
+.seat-resource .stat-num {
+  font-size: 0.64rem;
+}
+
+.player-card--active {
+  border-color: rgba(243, 208, 122, 0.52);
+  box-shadow:
+    0 0 0 1px rgba(243, 208, 122, 0.1),
+    0 0 34px rgba(212, 175, 55, 0.12),
+    0 20px 48px rgba(0, 0, 0, 0.4);
+}
+
+.player-card--selectable {
+  cursor: crosshair;
+}
+
+.player-card--selectable:hover {
+  transform: translateY(-3px);
+}
+
+.player-card--selected-target {
+  border-color: rgba(248, 113, 113, 0.78);
+  background:
+    radial-gradient(circle at 18% 50%, rgba(239, 68, 68, 0.14), transparent 32%),
+    linear-gradient(145deg, rgba(42, 21, 28, 0.98), rgba(8, 9, 15, 0.98));
+}
+
+.council-seat__prompt {
+  right: 9px;
+  top: 9px;
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(248, 113, 113, 0.22);
+  border-radius: 50%;
+  background: rgba(69, 10, 10, 0.42);
+}
+
+/* Spread 3–5 opponents around more of the available board. */
+.council-stage[data-opponent-count="3"] .council-seat:nth-child(1) {
+  left: 3%;
+  top: 13%;
+}
+
+.council-stage[data-opponent-count="3"] .council-seat:nth-child(2) {
+  left: 50%;
+  top: -1%;
+}
+
+.council-stage[data-opponent-count="3"] .council-seat:nth-child(3) {
+  right: 3%;
+  top: 13%;
+}
+
+.council-stage[data-opponent-count="4"] .council-seat:nth-child(1),
+.council-stage[data-opponent-count="5"] .council-seat:nth-child(1) {
+  left: 1%;
+  top: 9%;
+}
+
+.council-stage[data-opponent-count="4"] .council-seat:nth-child(2) {
+  right: 1%;
+  top: 9%;
+}
+
+.council-stage[data-opponent-count="4"] .council-seat:nth-child(3) {
+  left: 7%;
+  bottom: 12%;
+}
+
+.council-stage[data-opponent-count="4"] .council-seat:nth-child(4) {
+  right: 7%;
+  bottom: 12%;
+}
+
+/* Command deck: visual groups read as one game control, not four form boxes. */
+.command-deck {
+  padding: 0.55rem;
+  border-color: rgba(148, 163, 184, 0.1);
+  border-radius: 16px;
+}
+
+.command-deck__rail {
+  margin-bottom: 0.42rem;
+}
+
+.strike-console {
+  grid-template-columns: minmax(165px, 0.72fr) minmax(390px, 1.7fr) minmax(300px, 1.12fr);
+  gap: 0.5rem;
+}
+
+.strike-console__target,
+.strike-console__choices,
+.strike-console__footer {
+  padding: 0.5rem;
+  border-color: rgba(255, 255, 255, 0.045);
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.strike-console .threat-seal__body,
+.strike-console .force-stone__body {
+  min-height: 50px;
+}
+
+.strike-console .threat-seal__icon,
+.strike-console .force-stone__icon {
+  filter: saturate(0.85);
+}
+
+.strike-console .strike-lock-btn {
+  min-width: 132px;
+  background:
+    linear-gradient(180deg, rgba(99, 102, 241, 0.98), rgba(67, 56, 202, 0.98));
+  box-shadow:
+    0 8px 24px rgba(79, 70, 229, 0.24),
+    inset 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.command-deck__secondary {
+  margin-top: 0.35rem;
+}
+
+.quick-command {
+  min-height: 45px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.decision-tray-zone {
+  position: relative;
+  z-index: 10;
+}
+
+/* Wide screens should feel like a table, not a centered dashboard column. */
+@media (min-width: 1180px) {
+  .council-stage[data-opponent-count="2"] .council-seat:nth-child(1) {
+    left: 9%;
+    top: 9%;
+  }
+
+  .council-stage[data-opponent-count="2"] .council-seat:nth-child(2) {
+    right: 9%;
+    top: 9%;
+  }
+}
+
+@media (max-width: 980px) {
+  #app:has(.screen--game) {
+    padding-inline: 0.65rem;
+  }
+
+  .council-chamber {
+    grid-template-rows: auto auto auto;
+    min-height: 0;
+  }
+
+  .council-table__arena {
+    min-height: 360px;
+  }
+
+  .strike-console {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .screen--game .app-header {
+    align-items: flex-start;
+  }
+
+  .screen--game .app-header__brand {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+  }
+
+  .council-seat,
+  .council-seat[data-seat-role="self"] {
+    min-height: 104px;
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .council-seat__sigil,
+  .council-seat[data-seat-role="self"] .council-seat__sigil {
+    width: 62px;
+    height: 74px;
+  }
+}
+
+@media (max-width: 520px) {
+  #app:has(.screen--game) {
+    padding: 0.4rem 0.38rem 0.8rem;
+  }
+
+  .council-seat,
+  .council-seat[data-seat-role="self"] {
+    min-height: 98px;
+    grid-template-columns: 58px minmax(0, 1fr);
+    padding: 0.58rem;
+  }
+
+  .council-seat__sigil,
+  .council-seat[data-seat-role="self"] .council-seat__sigil {
+    width: 56px;
+    height: 66px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-card--selectable:hover {
+    transform: none;
+  }
+}

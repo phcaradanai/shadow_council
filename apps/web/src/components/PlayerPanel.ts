@@ -33,6 +33,28 @@ const visualSeatOrder = (
   return [...opponents, players[viewerIndex]!];
 };
 
+const characterVariant = (player: WirePlayerView): number => {
+  const seed = `${player.playerId}:${player.displayName}`;
+  let hash = 0;
+  for (const char of seed) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  return hash % 6;
+};
+
+const renderCouncilPortrait = (player: WirePlayerView): string => {
+  const initial = player.displayName.trim().charAt(0).toUpperCase() || "C";
+  const variant = characterVariant(player);
+
+  return `
+    <div class="council-portrait council-portrait--${variant}" aria-hidden="true">
+      <span class="council-portrait__halo"></span>
+      <span class="council-portrait__shoulders"></span>
+      <span class="council-portrait__head"></span>
+      <span class="council-portrait__mask"></span>
+      <span class="council-portrait__monogram">${escapeHtml(initial)}</span>
+    </div>
+  `;
+};
+
 export const renderPlayerCard = (
   player: WirePlayerView,
   match: WireMatchView,
@@ -82,7 +104,6 @@ export const renderPlayerCard = (
     .filter(Boolean)
     .join("");
 
-  const initial = player.displayName.trim().charAt(0).toUpperCase() || "C";
   const schemeBadge = player.hasScheme
     ? `<span class="seat-scheme" title="${t("player.schemeHidden")}">♟</span>`
     : "";
@@ -92,12 +113,13 @@ export const renderPlayerCard = (
       class="${classes}"
       id="player-${escapeHtml(player.playerId)}"
       data-seat-role="${isSelf ? "self" : "opponent"}"
+      data-character-variant="${characterVariant(player)}"
       ${isSelectableTarget ? `data-targetable="true" data-player-id="${escapeHtml(player.playerId)}" role="button" tabindex="0"` : `tabindex="0"`}
       aria-label="Player ${escapeHtml(player.displayName)}${isSelectedTarget ? ` (${t("player.selectedTarget")})` : ""}"
     >
       <div class="seat-target-ring" aria-hidden="true"></div>
       <div class="council-seat__sigil" aria-hidden="true">
-        <span class="council-seat__initial">${escapeHtml(initial)}</span>
+        ${renderCouncilPortrait(player)}
         ${schemeBadge}
         ${isSelectedTarget ? '<span class="council-seat__target-crosshair">⌖</span>' : ""}
       </div>
