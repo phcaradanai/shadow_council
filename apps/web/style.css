@@ -4832,3 +4832,89 @@ h4 {
     grid-column: auto;
   }
 }
+
+
+/* v0.2.5 — HUD polish and semantic feedback */
+.command-deck,
+.reaction-console {
+  animation: game-dock-enter 280ms cubic-bezier(.2,.75,.25,1) both;
+  transform-origin: 50% 100%;
+}
+
+@keyframes game-dock-enter {
+  from { opacity: 0; transform: translateY(10px) scale(.992); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.game-turn-enter .turn-banner--your-turn {
+  animation: game-turn-stinger 480ms cubic-bezier(.18,.8,.2,1) both;
+}
+
+@keyframes game-turn-stinger {
+  0% { opacity: .3; transform: scale(.97); filter: brightness(.8); }
+  55% { opacity: 1; transform: scale(1.012); filter: brightness(1.18); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+.chronicle-drawer {
+  position: relative;
+  width: fit-content;
+  max-width: min(440px, calc(100vw - 1rem));
+  margin: .35rem 0 0 auto !important;
+  z-index: 28;
+}
+
+.chronicle-drawer .event-log__details {
+  position: relative;
+  padding: .28rem .5rem !important;
+  border: 1px solid rgba(148,163,184,.09) !important;
+  border-radius: 999px !important;
+  background: rgba(6,9,15,.72) !important;
+  backdrop-filter: blur(12px);
+}
+
+.chronicle-drawer .event-log__summary {
+  display: flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 !important;
+  font-size: .65rem !important;
+  color: var(--text-muted) !important;
+}
+
+.chronicle-drawer .event-log__summary-preview {
+  display: none;
+}
+
+.chronicle-drawer .event-log__details[open] {
+  border-radius: 12px !important;
+}
+
+.chronicle-drawer .event-log__list {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + .4rem);
+  width: min(420px, calc(100vw - 1rem));
+  max-height: 210px;
+  margin: 0 !important;
+  padding: .6rem .7rem;
+  overflow: auto;
+  border: 1px solid rgba(148,163,184,.12);
+  border-radius: 12px;
+  background: rgba(6,9,15,.96);
+  box-shadow: 0 20px 48px rgba(0,0,0,.45);
+  backdrop-filter: blur(18px);
+}
+
+.chronicle-drawer .event-log__item {
+  padding: .28rem 0 !important;
+  font-size: .65rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .command-deck,
+  .reaction-console,
+  .game-turn-enter .turn-banner--your-turn {
+    animation: none !important;
+  }
+}

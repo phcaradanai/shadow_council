@@ -24,6 +24,7 @@ const eventKey = (event: WireDomainEvent | undefined): string | undefined => {
 
 let lastRevealKey: string | undefined;
 let lastReactionKey: string | undefined;
+let lastTurnKey: string | undefined;
 
 const centerOf = (element: HTMLElement, surface: SVGSVGElement): Point => {
   const rect = element.getBoundingClientRect();
@@ -165,6 +166,16 @@ export const attachGameEffects = (
     "game-view--attacker",
     phase.kind === "REACTION" && phase.attackerId === viewerId,
   );
+
+  if (phase.kind === "ACTIVE_TURN" && phase.activePlayerId === viewerId) {
+    const turnKey = `${match.matchId}:${match.revision}:${viewerId}`;
+    if (turnKey !== lastTurnKey) {
+      lastTurnKey = turnKey;
+      root.classList.add("game-turn-enter");
+      sounds.turn();
+      window.setTimeout(() => root.classList.remove("game-turn-enter"), 520);
+    }
+  }
 
   if (phase.kind === "REACTION") {
     cleanup.push(drawAttackLink(root, phase.attackerId, phase.targetId, phase.threat ?? 1));

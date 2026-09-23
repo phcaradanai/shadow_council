@@ -71,13 +71,39 @@ class SoundManager {
     this.playTone(600, 0.04, "sine", 0.05);
   }
 
+  targetLock(): void {
+    this.playTone(760, 0.045, "square", 0.035);
+    setTimeout(() => this.playTone(920, 0.055, "square", 0.03), 45);
+  }
+
+  turn(): void {
+    this.playTone(420, 0.09, "triangle", 0.035);
+    setTimeout(() => this.playTone(630, 0.13, "triangle", 0.04), 70);
+  }
+
   threat(): void {
     this.playTone(180, 0.35, "sawtooth", 0.08);
+  }
+
+  guard(): void {
+    this.playTone(260, 0.12, "triangle", 0.05);
+    setTimeout(() => this.playTone(220, 0.18, "triangle", 0.045), 70);
   }
 
   challenge(): void {
     this.playTone(520, 0.2, "square", 0.08);
     setTimeout(() => this.playTone(680, 0.25, "square", 0.08), 80);
+  }
+
+  recover(): void {
+    this.playTone(320, 0.08, "sine", 0.04);
+    setTimeout(() => this.playTone(480, 0.1, "sine", 0.045), 70);
+    setTimeout(() => this.playTone(640, 0.14, "sine", 0.04), 145);
+  }
+
+  scheme(): void {
+    this.playTone(210, 0.14, "triangle", 0.035);
+    setTimeout(() => this.playTone(315, 0.18, "triangle", 0.03), 100);
   }
 
   reveal(): void {
