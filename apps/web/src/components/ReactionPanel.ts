@@ -23,11 +23,9 @@ export const renderReactionControls = (
 
   const legacyPlans: DefensePlan[] = [];
   for (const choice of reactIntent.choices) {
-    if (choice === "yield") {
-      legacyPlans.push({ guard: 0, challenge: false });
-    } else if (choice === "challenge") {
-      legacyPlans.push({ guard: 0, challenge: true });
-    } else if (typeof choice === "object" && "type" in choice && choice.type === "guard") {
+    if (choice === "yield") legacyPlans.push({ guard: 0, challenge: false });
+    else if (choice === "challenge") legacyPlans.push({ guard: 0, challenge: true });
+    else if (typeof choice === "object" && "type" in choice && choice.type === "guard") {
       legacyPlans.push({ guard: choice.amount, challenge: false });
     }
   }
@@ -39,12 +37,11 @@ export const renderReactionControls = (
   const guardAmounts = [...new Set(plans.map((plan) => plan.guard))].sort((a, b) => a - b);
   const currentThreat = match.phase.threat ?? 1;
   const ownPower = selfPlayer.power ?? 0;
-  const forceValues = Array.from({ length: currentThreat + 1 }, (_, index) => index).join(" / ");
   const challengeCost = reactIntent.challengeCost ?? 1;
 
   return `
     <section
-      class="reaction-panel defense-planner"
+      class="reaction-panel defense-planner reaction-console"
       aria-label="${t("reaction.title")}"
       data-legal-plans="${legalPlanKeys}"
       data-challenge-cost="${challengeCost}"
@@ -53,79 +50,60 @@ export const renderReactionControls = (
       data-influence="${selfPlayer.influence}"
       data-bulwark="${selfPlayer.activeScheme === "bulwark" ? "1" : "0"}"
     >
-      <div class="defense-planner__threat">
-        <span class="defense-planner__eyebrow">${t("reaction.incomingClaim")}</span>
-        <strong class="defense-planner__threat-value">${t("reaction.threatIncoming", { threat: currentThreat })}</strong>
-        <p>${t("reaction.hiddenForceRange", { values: forceValues })}</p>
+      <div class="reaction-console__incoming">
+        <span class="reaction-console__warning">${t("reaction.incomingClaim")}</span>
+        <div class="reaction-console__threat-orb">
+          <span>⚔</span>
+          <strong>${currentThreat}</strong>
+        </div>
+        <small>⚡ ${ownPower}</small>
       </div>
 
-      <form id="defense-form" class="defense-planner__form">
-        <div class="defense-planner__resource">
-          <span>${t("reaction.powerAvailable")}</span>
-          <strong>⚡ ${ownPower}</strong>
-        </div>
-
-        <fieldset class="defense-planner__section">
-          <legend>🛡️ ${t("reaction.guardAmountLabel")}</legend>
-          <p class="defense-planner__helper">${t("reaction.guardPlannerDesc")}</p>
+      <form id="defense-form" class="defense-planner__form reaction-console__form">
+        <div class="reaction-console__guard">
+          <span class="reaction-console__label">🛡 ${t("reaction.guardAmountLabel")}</span>
           <div class="defense-guard-options" role="radiogroup" aria-label="${t("reaction.guardAmountLabel")}">
             ${guardAmounts
               .map(
                 (amount) => `
-                <label class="defense-choice ${amount === 0 ? "defense-choice--yield" : ""}">
-                  <input
-                    type="radio"
-                    name="defenseGuard"
-                    value="${amount}"
-                    ${isSubmitting ? "disabled" : ""}
-                  />
-                  <span class="defense-choice__body">
-                    <strong>${amount === 0 ? t("reaction.noGuard") : t("reaction.guardPoints", { amount })}</strong>
-                    <small>${amount === 0 ? t("reaction.noGuardDesc") : t("reaction.guardPointsDesc", { amount })}</small>
-                  </span>
-                </label>
-              `,
+                  <label class="defense-choice ${amount === 0 ? "defense-choice--yield" : ""}">
+                    <input type="radio" name="defenseGuard" value="${amount}" ${isSubmitting ? "disabled" : ""} />
+                    <span class="defense-choice__body">
+                      <strong>${amount}</strong>
+                      <small>${amount === 0 ? t("reaction.noGuard") : "Guard"}</small>
+                    </span>
+                  </label>
+                `,
               )
               .join("")}
           </div>
-        </fieldset>
+        </div>
 
-        <fieldset class="defense-planner__section defense-planner__challenge">
-          <legend>👁️ ${t("reaction.challengeTitle")}</legend>
-          <label class="challenge-toggle">
-            <input
-              type="checkbox"
-              id="defense-challenge"
-              name="defenseChallenge"
-              ${isSubmitting ? "disabled" : ""}
-            />
-            <span class="challenge-toggle__body">
-              <strong>${t("reaction.challengePlannerTitle", { cost: challengeCost })}</strong>
-              <small>${t("reaction.challengePlannerDesc", { threat: currentThreat })}</small>
-            </span>
-          </label>
-        </fieldset>
+        <label class="challenge-toggle reaction-console__challenge">
+          <input
+            type="checkbox"
+            id="defense-challenge"
+            name="defenseChallenge"
+            ${isSubmitting ? "disabled" : ""}
+          />
+          <span class="challenge-toggle__body">
+            <span class="challenge-toggle__eye">👁</span>
+            <strong>${t("reaction.challengeTitle")}</strong>
+            <small>-${challengeCost} ⚡</small>
+          </span>
+        </label>
 
-        <div class="defense-plan-summary" aria-live="polite">
+        <div class="defense-plan-summary reaction-console__summary" aria-live="polite">
           <div class="defense-plan-summary__header">
-            <span>${t("reaction.planTitle")}</span>
             <strong id="defense-plan-mode">${t("reaction.selectDefense")}</strong>
-          </div>
-          <div class="defense-plan-summary__cost">
-            <span>${t("reaction.totalCost")}</span>
-            <strong><span id="defense-plan-cost">0</span> / ${ownPower} ⚡</strong>
+            <span><span id="defense-plan-cost">0</span> / ${ownPower} ⚡</span>
           </div>
           <div id="defense-plan-preview" class="defense-plan-preview">
             <p>${t("reaction.selectDefenseHint")}</p>
           </div>
         </div>
 
-        <button
-          type="submit"
-          id="btn-lock-defense"
-          class="btn btn--primary btn--large defense-lock-btn"
-          disabled
-        >
+        <button type="submit" id="btn-lock-defense" class="btn btn--primary btn--large defense-lock-btn" disabled>
           ${isSubmitting ? t("reaction.lockingPlan") : t("reaction.lockPlan")}
         </button>
       </form>
