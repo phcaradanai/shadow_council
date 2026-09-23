@@ -153,7 +153,7 @@ export const attachStrikePlanner = (
       targetSelect.value = targetId;
       syncTargetHighlights();
       renderPlan();
-      sounds.click();
+      sounds.targetLock();
     };
     card.addEventListener("click", chooseCard);
     card.addEventListener("keydown", (event) => {
@@ -167,7 +167,7 @@ export const attachStrikePlanner = (
   targetSelect.addEventListener("change", () => {
     syncTargetHighlights();
     renderPlan();
-    sounds.click();
+    sounds.targetLock();
   });
 
   form.querySelectorAll<HTMLInputElement>('input[name="threat"]').forEach((input) => {

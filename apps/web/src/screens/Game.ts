@@ -197,7 +197,7 @@ export const renderGameScreen = (
     const schemeType = (selectedSchemeRadio?.value === "bulwark" ? "bulwark" : "ambush") as
       | "ambush"
       | "bulwark";
-    sounds.click();
+    sounds.scheme();
     callbacks.onScheme(schemeType);
   });
 
@@ -205,7 +205,7 @@ export const renderGameScreen = (
   const recoverBtn = container.querySelector<HTMLButtonElement>("#btn-recover");
   recoverBtn?.addEventListener("click", () => {
     if (isSubmitting) return;
-    sounds.click();
+    sounds.recover();
     callbacks.onRecover();
   });
 
@@ -315,6 +315,7 @@ export const renderGameScreen = (
       const key = `${plan.guard}:${plan.challenge ? 1 : 0}`;
       if (!legalPlans.has(key)) return;
       if (plan.challenge) sounds.challenge();
+      else if (plan.guard > 0) sounds.guard();
       else sounds.click();
       callbacks.onReact(plan);
     });

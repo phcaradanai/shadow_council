@@ -32,102 +32,65 @@ export const renderActionControls = (
   const currentPower = selfPlayer.power ?? 0;
 
   return `
-    <section class="action-panel decision-tray" aria-label="${t("action.title")}">
-      <div class="decision-tray__header">
-        <div>
-          <span class="decision-tray__eyebrow">${t("action.turnEyebrow")}</span>
-          <h3 class="action-panel__title">⚡ ${t("action.title")}</h3>
-        </div>
-        <span class="decision-tray__subtitle">${t("action.strikePlannerHint")}</span>
+    <section class="action-panel decision-tray command-deck" aria-label="${t("action.title")}">
+      <div class="command-deck__rail" aria-hidden="true">
+        <span class="command-deck__pulse"></span>
+        <strong>${t("game.turnYourTurn")}</strong>
+        <span>⚡ ${currentPower}</span>
       </div>
 
-      <div class="action-options action-options--game">
-        <div class="action-card action-card--strike action-card--strike-planner" data-action="strike">
-          <div class="action-card__header">
-            <div class="action-card__badge-row">
-              <span class="action-card__icon" aria-hidden="true">⚔️</span>
-              <div>
-                <h4>${t("action.strikeTitle")}</h4>
-                <span class="strike-planner__subhead">${t("action.strikeBadge")}</span>
-              </div>
-            </div>
-            <span class="strike-planner__power">⚡ ${t("action.powerAvailable", { power: currentPower })}</span>
+      <div class="command-deck__primary">
+        <form id="strike-form" class="strike-planner strike-console" data-current-power="${currentPower}">
+          <div class="strike-console__target">
+            <span class="strike-console__label">⌖ ${t("action.planTarget")}</span>
+            <select
+              id="strike-target"
+              name="targetId"
+              class="form-select strike-target-select"
+              required
+              ${isSubmitting ? "disabled" : ""}
+            >
+              <option value="" disabled selected>${t("action.targetPlaceholder")}</option>
+              ${targets
+                .map(
+                  (target) => `
+                    <option
+                      value="${escapeHtml(target.playerId)}"
+                      data-name="${escapeHtml(target.displayName)}"
+                      ${selectedTargetId === target.playerId ? "selected" : ""}
+                    >
+                      ${escapeHtml(target.displayName)} · ◆${target.influence}
+                    </option>
+                  `,
+                )
+                .join("")}
+            </select>
           </div>
 
-          <p class="action-card__desc">${t("action.strikeDesc")}</p>
-
-          <form id="strike-form" class="strike-planner" data-current-power="${currentPower}">
-            <section class="strike-step strike-step--target">
-              <div class="strike-step__header">
-                <span class="strike-step__number">01</span>
-                <div>
-                  <strong>${t("action.chooseTarget")}</strong>
-                  <small>${t("action.targetHint")}</small>
-                </div>
-              </div>
-              <select
-                id="strike-target"
-                name="targetId"
-                class="form-select strike-target-select"
-                required
-                ${isSubmitting ? "disabled" : ""}
-              >
-                <option value="" disabled selected>${t("action.targetPlaceholder")}</option>
-                ${targets
-                  .map(
-                    (target) => `
-                      <option
-                        value="${escapeHtml(target.playerId)}"
-                        data-name="${escapeHtml(target.displayName)}"
-                        ${selectedTargetId === target.playerId ? "selected" : ""}
-                      >
-                        ${escapeHtml(target.displayName)} · ◆${target.influence}
-                      </option>
-                    `,
-                  )
-                  .join("")}
-              </select>
-            </section>
-
-            <section class="strike-step">
-              <div class="strike-step__header">
-                <span class="strike-step__number">02</span>
-                <div>
-                  <strong>${t("action.threatLabel")}</strong>
-                  <small>${t("action.threatDesc")}</small>
-                </div>
-              </div>
+          <div class="strike-console__choices">
+            <div class="strike-console__group">
+              <span class="strike-console__label">${t("action.threatLabel")}</span>
               <div class="threat-seals" role="radiogroup" aria-label="${t("action.threatLabel")}">
                 ${threats
                   .map(
                     (threat) => `
                       <label class="threat-seal">
-                        <input
-                          type="radio"
-                          name="threat"
-                          value="${threat}"
-                          ${isSubmitting ? "disabled" : ""}
-                        />
+                        <input type="radio" name="threat" value="${threat}" ${isSubmitting ? "disabled" : ""} />
                         <span class="threat-seal__body">
                           <span class="threat-seal__icon">⚔</span>
-                          <strong>${t("action.threatOption", { threat })}</strong>
-                          <small>${t("action.claimPressure", { threat })}</small>
+                          <strong>${threat}</strong>
                         </span>
                       </label>
                     `,
                   )
                   .join("")}
               </div>
-            </section>
+            </div>
 
-            <section class="strike-step strike-step--secret">
-              <div class="strike-step__header">
-                <span class="strike-step__number">03</span>
-                <div>
-                  <strong>🔒 ${t("action.secretCommitment")}</strong>
-                  <small>${t("action.forceDesc")}</small>
-                </div>
-              </div>
+            <div class="strike-console__versus" aria-hidden="true">VS</div>
+
+            <div class="strike-console__group strike-console__group--secret">
+              <span class="strike-console__label">🔒 ${t("action.planSecret")}</span>
               <div class="force-stones" role="radiogroup" aria-label="${t("action.forceLabel")}">
                 ${[0, 1, 2, 3]
                   .map((force) => {
@@ -144,43 +107,29 @@ export const renderActionControls = (
                         />
                         <span class="force-stone__body">
                           <span class="force-stone__icon">${force === 0 ? "🎭" : "◆"}</span>
-                          <strong>${
-                            force === 0 ? t("action.forceZero") : t("action.forceValue", { force })
-                          }</strong>
-                          <small>${t("action.forceCost", { force })}</small>
+                          <strong>${force}</strong>
                         </span>
                       </label>
                     `;
                   })
                   .join("")}
               </div>
-            </section>
+            </div>
+          </div>
 
-            <aside class="strike-plan-summary" aria-live="polite">
+          <div class="strike-console__footer">
+            <div class="strike-plan-summary" aria-live="polite">
               <div class="strike-plan-summary__header">
-                <span>${t("action.planTitle")}</span>
                 <strong id="strike-plan-style">${t("action.planAwaiting")}</strong>
               </div>
               <div class="strike-plan-summary__grid">
-                <div>
-                  <span>${t("action.planTarget")}</span>
-                  <strong id="strike-plan-target">—</strong>
-                </div>
-                <div>
-                  <span>${t("action.planClaim")}</span>
-                  <strong id="strike-plan-threat">—</strong>
-                </div>
-                <div class="strike-plan-summary__secret">
-                  <span>🔒 ${t("action.planSecret")}</span>
-                  <strong id="strike-plan-force">—</strong>
-                </div>
-                <div>
-                  <span>${t("action.planRemaining")}</span>
-                  <strong id="strike-plan-power">${currentPower} ⚡</strong>
-                </div>
+                <div><span>${t("action.planTarget")}</span><strong id="strike-plan-target">—</strong></div>
+                <div><span>${t("action.planClaim")}</span><strong id="strike-plan-threat">—</strong></div>
+                <div class="strike-plan-summary__secret"><span>🔒 ${t("action.planSecret")}</span><strong id="strike-plan-force">—</strong></div>
+                <div><span>${t("action.planRemaining")}</span><strong id="strike-plan-power">${currentPower} ⚡</strong></div>
               </div>
               <p id="strike-plan-read" class="strike-plan-read">${t("action.planHint")}</p>
-            </aside>
+            </div>
 
             <button
               type="submit"
@@ -188,66 +137,38 @@ export const renderActionControls = (
               class="btn btn--primary btn--large btn--strike strike-lock-btn"
               disabled
             >
-              ${isSubmitting ? t("action.declaringStrike") : t("action.declareStrike")}
+              <span class="strike-lock-btn__icon">⚔</span>
+              <span>${isSubmitting ? t("action.declaringStrike") : t("action.declareStrike")}</span>
             </button>
-          </form>
-        </div>
+          </div>
+        </form>
+      </div>
 
-        <div class="action-card action-card--scheme" data-action="scheme">
-          <div>
-            <div class="action-card__header">
-              <div class="action-card__badge-row">
-                <span class="action-card__icon" aria-hidden="true">♟️</span>
-                <h4>${t("action.schemeTitle")}</h4>
-              </div>
-              <span class="action-card__badge">${t("action.schemeBadge")}</span>
-            </div>
-            <p class="action-card__desc">${t("action.schemeDesc")}</p>
-
+      <div class="command-deck__secondary">
+        <div class="quick-command quick-command--scheme" data-action="scheme">
+          <div class="quick-command__icon">♟</div>
+          <div class="quick-command__body">
+            <strong>${t("action.schemeTitle")}</strong>
             <div class="scheme-types">
               <label class="scheme-card">
                 <input type="radio" name="schemeType" value="ambush" checked ${!canScheme || isSubmitting ? "disabled" : ""} />
-                <span>
-                  <strong>${t("action.schemeAmbushTitle")}</strong>
-                  <small>${t("action.schemeAmbushDesc")}</small>
-                </span>
+                <span>${t("action.schemeAmbushTitle")}</span>
               </label>
               <label class="scheme-card">
                 <input type="radio" name="schemeType" value="bulwark" ${!canScheme || isSubmitting ? "disabled" : ""} />
-                <span>
-                  <strong>${t("action.schemeBulwarkTitle")}</strong>
-                  <small>${t("action.schemeBulwarkDesc")}</small>
-                </span>
+                <span>${t("action.schemeBulwarkTitle")}</span>
               </label>
             </div>
           </div>
-
-          <button
-            type="button"
-            id="btn-scheme"
-            class="btn btn--large action-secondary-btn"
-            ${!canScheme || isSubmitting ? "disabled" : ""}
-          >
-            ${
-              !canScheme
-                ? t("action.schemeBtnDisabled")
-                : isSubmitting
-                  ? t("action.schemingBtn")
-                  : t("action.schemeBtn")
-            }
+          <button type="button" id="btn-scheme" class="btn quick-command__button" ${!canScheme || isSubmitting ? "disabled" : ""}>
+            ${!canScheme ? t("action.schemeBtnDisabled") : t("action.schemeBtn")}
           </button>
         </div>
 
-        <div class="action-card action-card--recover ${!canRecover ? "action-card--disabled" : ""}" data-action="recover">
-          <div>
-            <div class="action-card__header">
-              <div class="action-card__badge-row">
-                <span class="action-card__icon" aria-hidden="true">⚡</span>
-                <h4>${t("action.recoverTitle")}</h4>
-              </div>
-              <span class="action-card__badge">${t("action.recoverBadge")}</span>
-            </div>
-            <p class="action-card__desc">${t("action.recoverDesc")}</p>
+        <div class="quick-command quick-command--recover ${!canRecover ? "action-card--disabled" : ""}" data-action="recover">
+          <div class="quick-command__icon">⚡</div>
+          <div class="quick-command__body">
+            <strong>${t("action.recoverTitle")}</strong>
             <div class="recover-meter" aria-hidden="true">
               ${[1, 2, 3]
                 .map(
@@ -257,19 +178,8 @@ export const renderActionControls = (
                 .join("")}
             </div>
           </div>
-          <button
-            type="button"
-            id="btn-recover"
-            class="btn btn--large action-secondary-btn"
-            ${!canRecover || isSubmitting ? "disabled" : ""}
-          >
-            ${
-              !canRecover
-                ? t("action.recoverBtnDisabled")
-                : isSubmitting
-                  ? t("action.recoveringBtn")
-                  : t("action.recoverBtn")
-            }
+          <button type="button" id="btn-recover" class="btn quick-command__button" ${!canRecover || isSubmitting ? "disabled" : ""}>
+            ${!canRecover ? t("action.recoverBtnDisabled") : t("action.recoverBtn")}
           </button>
         </div>
       </div>
