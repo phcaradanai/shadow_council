@@ -24,7 +24,7 @@
     "test:application": "vitest run packages/application/src/**/*.test.ts",
     "test:e2e": "playwright test",
     "lint": "npm run typecheck",
-    "format:check": "node scripts/capture-prettier-output.mjs",
+    "format:check": "prettier --check package.json tsconfig.json tsconfig.base.json vitest.config.ts .prettierrc.json packages apps scripts tests",
     "architecture:check": "node scripts/check-architecture.mjs",
     "size:check": "node scripts/check-size.mjs",
     "start:server": "node apps/server/dist/main.js"
