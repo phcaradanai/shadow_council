@@ -50,41 +50,60 @@ export const startMatch = async (host: PlayerSession): Promise<void> => {
 export const declareStrike = async (
   page: Page,
   targetId: string,
-  funding: 0 | 1,
+  force: 0 | 1 | 2 | 3,
+  threat?: 1 | 2 | 3,
 ): Promise<void> => {
   await page.waitForSelector("#strike-form");
   const strikeBtn = page.locator("#btn-strike");
-
-  // Verify Declare Strike is disabled before deliberate selection
   await expect(strikeBtn).toBeDisabled();
 
-  // Select target
+  const declaredThreat = threat ?? ((force === 0 ? 1 : force) as 1 | 2 | 3);
+
   await page.locator("#strike-target").selectOption(targetId);
+  await page
+    .locator(`label.threat-seal:has(input[name="threat"][value="${declaredThreat}"])`)
+    .click();
+  await expect(strikeBtn).toBeDisabled();
 
-  // Still disabled if no funding selected
-  const hasFundingChecked = await page.evaluate(() => {
-    return document.querySelector('input[name="funding"]:checked') !== null;
-  });
-  if (!hasFundingChecked) {
-    await expect(strikeBtn).toBeDisabled();
-  }
+  const forceInput = page.locator(`input[name="force"][value="${force}"]`);
+  await expect(forceInput).toBeEnabled();
+  await page.locator(`label.force-stone:has(input[name="force"][value="${force}"])`).click();
 
-  // Explicitly select funding
-  await page.locator(`input[name="funding"][value="${funding}"]`).check();
-
-  // Now enabled
   await expect(strikeBtn).toBeEnabled();
   await strikeBtn.click();
+};
+
+export const defendStrike = async (
+  page: Page,
+  plan: { guard: 0 | 1 | 2 | 3; challenge: boolean },
+): Promise<void> => {
+  await page.waitForSelector("#defense-form");
+  await page
+    .locator(`label.defense-choice:has(input[name="defenseGuard"][value="${plan.guard}"])`)
+    .click();
+
+  const challenge = page.locator("#defense-challenge");
+  const isChallengeChecked = await challenge.isChecked();
+  if (plan.challenge !== isChallengeChecked) {
+    await page.locator("label.challenge-toggle").click();
+  }
+
+  const submit = page.locator("#btn-lock-defense");
+  await expect(submit).toBeEnabled();
+  await submit.click();
 };
 
 export const reactToStrike = async (
   page: Page,
   choice: "guard" | "challenge" | "yield",
 ): Promise<void> => {
-  const btn = page.locator(`.reaction-btn[data-choice="${choice}"]`);
-  await expect(btn).toBeVisible();
-  await expect(btn).toBeEnabled();
-  await btn.click();
+  if (choice === "guard") {
+    await defendStrike(page, { guard: 1, challenge: false });
+  } else if (choice === "challenge") {
+    await defendStrike(page, { guard: 0, challenge: true });
+  } else {
+    await defendStrike(page, { guard: 0, challenge: false });
+  }
 };
 
 export const getPlayerStat = async (

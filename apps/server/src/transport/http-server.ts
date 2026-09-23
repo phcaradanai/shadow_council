@@ -108,7 +108,8 @@ const membershipToken = (request: IncomingMessage, requestUrl?: URL): string | u
 const cookie = (token: string): string =>
   `${COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; SameSite=None; Secure; Path=/`;
 
-const clearCookie = (): string => `${COOKIE_NAME}=; HttpOnly; SameSite=None; Secure; Max-Age=0; Path=/`;
+const clearCookie = (): string =>
+  `${COOKIE_NAME}=; HttpOnly; SameSite=None; Secure; Max-Age=0; Path=/`;
 
 const readBody = (request: IncomingMessage): Promise<unknown> =>
   new Promise((resolve, reject) => {
@@ -176,9 +177,7 @@ const wireIntent = (intent: WireIntent): SubmittedIntent => {
   if (intent.type === "RECOVER") return { type: "RECOVER" };
   if (intent.type === "SCHEME") return { type: "SCHEME", schemeType: intent.schemeType };
   const choice =
-    intent.choice === "guard"
-      ? ({ type: "guard", amount: 1 } as const)
-      : intent.choice;
+    intent.choice === "guard" ? ({ type: "guard", amount: 1 } as const) : intent.choice;
   return { type: "REACT", choice };
 };
 
@@ -274,7 +273,9 @@ const handleRequest = async (
         { "set-cookie": cookie(result.credential) },
       );
     } catch (err) {
-      process.stdout.write(`createRoom error: ${err instanceof Error ? err.message : String(err)}\n`);
+      process.stdout.write(
+        `createRoom error: ${err instanceof Error ? err.message : String(err)}\n`,
+      );
       throw err;
     }
     return;
@@ -350,7 +351,9 @@ const handleRequest = async (
     return;
   }
   if (method === "POST" && parts[2] === "bot" && parts.length === 3) {
-    process.stdout.write(`POST /rooms/${roomCode}/bot request received. Token length: ${token?.length ?? 0}\n`);
+    process.stdout.write(
+      `POST /rooms/${roomCode}/bot request received. Token length: ${token?.length ?? 0}\n`,
+    );
     ensureSameOrigin(request);
     const body = await readBody(request);
     const parsed = parseAddBotBody(body);
@@ -361,10 +364,14 @@ const handleRequest = async (
     const difficulty = parsed.ok ? parsed.value.difficulty : undefined;
     try {
       const result = await application.addBot(roomCode, token, difficulty);
-      process.stdout.write(`Bot added to room ${roomCode} successfully with difficulty ${difficulty ?? "MEDIUM"}\n`);
+      process.stdout.write(
+        `Bot added to room ${roomCode} successfully with difficulty ${difficulty ?? "MEDIUM"}\n`,
+      );
       writeJson(response, 200, { room: result });
     } catch (err) {
-      process.stdout.write(`addBot error in http-server: ${err instanceof Error ? err.message : String(err)}\n`);
+      process.stdout.write(
+        `addBot error in http-server: ${err instanceof Error ? err.message : String(err)}\n`,
+      );
       throw err;
     }
     return;

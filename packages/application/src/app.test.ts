@@ -476,10 +476,7 @@ describe("application room and match flow", () => {
   it("ensures bots execute before turn timer expires without causing timeout", async () => {
     const app = makeApplication();
     const host = await app.createRoom({ displayName: "Host" });
-    const bot = await app.addBot(host.room.roomCode, host.credential, {
-      displayName: "Bot1",
-      difficulty: "EASY",
-    });
+    await app.addBot(host.room.roomCode, host.credential, "EASY");
 
     const started = await app.startMatch(host.room.roomCode, host.credential);
     const view = await app.getView(host.room.roomCode, host.credential);

@@ -62,10 +62,10 @@ describe("domain setup", () => {
 describe("Strike and reactions", () => {
   it.each([
     ["guard", 1, 1, 1, 3, 3],
-    ["challenge", 1, 1, 2, 1, 3],
+    ["challenge", 1, 1, 1, 1, 3],
     ["yield", 1, 1, 2, 2, 3],
     ["guard", 0, 2, 1, 3, 3],
-    ["challenge", 0, 2, 2, 3, 2],
+    ["challenge", 0, 2, 1, 3, 2],
     ["yield", 0, 2, 2, 2, 3],
   ] as const)(
     "resolves %s with funding %d",
@@ -88,7 +88,7 @@ describe("Strike and reactions", () => {
       const attackerState = findPlayer(resolved.state, attacker);
       const targetState = findPlayer(resolved.state, target);
       expect(attackerState.power).toBe(2 - funding);
-      expect(targetState.power).toBe(2 - (choice === "guard" ? 1 : 0));
+      expect(targetState.power).toBe(2 - (choice === "guard" || choice === "challenge" ? 1 : 0));
       expect(attackerState.power).toBe(expectedAttackerPower);
       expect(targetState.power).toBe(expectedTargetPower);
       expect(targetState.influence).toBe(expectedTargetInfluence);
@@ -96,6 +96,84 @@ describe("Strike and reactions", () => {
       expect(resolved.events.map((event) => event.type)).toContain("ActionRevealed");
     },
   );
+
+  it("rejects Force above the declared Threat without changing state", () => {
+    const initial = setup();
+    if (initial.state.phase.kind !== "ACTIVE_TURN") throw new Error("expected active");
+    const attacker = initial.state.phase.activePlayerId;
+    const target = initial.state.seatOrder.find((id) => id !== attacker);
+    if (target === undefined) throw new Error("missing target");
+
+    const invalid = decide(initial.state, strike(attacker, target, 1, 2), provider);
+    expect(invalid.ok).toBe(false);
+    expect(invalid.ok ? undefined : invalid.error.code).toBe("InvalidForce");
+    expect(initial.state.revision).toBe(0);
+  });
+
+  it("uses fixed Challenge punishment so Threat 2 / Force 2 leaves 3 Influence at 1", () => {
+    const initial = setup();
+    if (initial.state.phase.kind !== "ACTIVE_TURN") throw new Error("expected active");
+    const attacker = initial.state.phase.activePlayerId;
+    const target = initial.state.seatOrder.find((id) => id !== attacker);
+    if (target === undefined) throw new Error("missing target");
+
+    const committed = play(initial.state, strike(attacker, target, 2, 2));
+    const resolved = play(committed.state, react(target, "challenge"));
+    expect(findPlayer(resolved.state, target).influence).toBe(1);
+    expect(resolved.state.phase.kind).not.toBe("FINISHED");
+  });
+
+  it("makes Yield a controlled 1 Influence loss regardless of Threat", () => {
+    const initial = setup();
+    if (initial.state.phase.kind !== "ACTIVE_TURN") throw new Error("expected active");
+    const attacker = initial.state.phase.activePlayerId;
+    const target = initial.state.seatOrder.find((id) => id !== attacker);
+    if (target === undefined) throw new Error("missing target");
+
+    const committed = play(initial.state, strike(attacker, target, 2, 2));
+    const resolved = play(committed.state, react(target, "yield"));
+    expect(findPlayer(resolved.state, target).influence).toBe(2);
+  });
+
+  it("allows Guard 1 + Challenge as a hybrid defense when the target has 2 Power", () => {
+    const initial = setup();
+    if (initial.state.phase.kind !== "ACTIVE_TURN") throw new Error("expected active");
+    const attacker = initial.state.phase.activePlayerId;
+    const target = initial.state.seatOrder.find((id) => id !== attacker);
+    if (target === undefined) throw new Error("missing target");
+
+    const committed = play(initial.state, strike(attacker, target, 2, 2));
+    const resolved = play(committed.state, react(target, { guard: 1, challenge: true }));
+    expect(findPlayer(resolved.state, target).power).toBe(0);
+    expect(findPlayer(resolved.state, target).influence).toBe(2);
+  });
+
+  it("hybrid defense catches a partial bluff while still paying both commitments", () => {
+    const initial = setup();
+    if (initial.state.phase.kind !== "ACTIVE_TURN") throw new Error("expected active");
+    const attacker = initial.state.phase.activePlayerId;
+    const target = initial.state.seatOrder.find((id) => id !== attacker);
+    if (target === undefined) throw new Error("missing target");
+
+    const committed = play(initial.state, strike(attacker, target, 2, 1));
+    const resolved = play(committed.state, react(target, { guard: 1, challenge: true }));
+    expect(findPlayer(resolved.state, target).power).toBe(0);
+    expect(findPlayer(resolved.state, target).influence).toBe(3);
+    expect(findPlayer(resolved.state, attacker).influence).toBe(2);
+  });
+
+  it("rejects a defense plan whose Guard plus Challenge cost exceeds Power", () => {
+    const initial = setup();
+    if (initial.state.phase.kind !== "ACTIVE_TURN") throw new Error("expected active");
+    const attacker = initial.state.phase.activePlayerId;
+    const target = initial.state.seatOrder.find((id) => id !== attacker);
+    if (target === undefined) throw new Error("missing target");
+
+    const committed = play(initial.state, strike(attacker, target, 2, 2));
+    const result = decide(committed.state, react(target, { guard: 2, challenge: true }), provider);
+    expect(result.ok).toBe(false);
+    expect(result.ok ? undefined : result.error.code).toBe("InsufficientPower");
+  });
 
   it("keeps funding private in state until reaction and rejects non-target reaction", () => {
     const initial = setup();

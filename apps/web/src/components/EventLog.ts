@@ -8,7 +8,16 @@ const escapeHtml = (value: string): string =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 
-const formatReactionChoice = (choice: unknown): string => {
+export const formatReactionChoice = (choice: unknown): string => {
+  if (typeof choice === "object" && choice !== null && "guard" in choice && "challenge" in choice) {
+    const guard = Number(choice.guard);
+    const challenge = choice.challenge === true;
+    if (guard > 0 && challenge) return t("reaction.modeHybrid", { guard });
+    if (challenge) return t("reaction.modeChallenge");
+    if (guard > 0) return t("reaction.modeGuard", { guard });
+    return t("reaction.modeYield");
+  }
+
   if (typeof choice === "object" && choice !== null && "type" in choice) {
     const obj = choice as { type: string; amount?: number };
     if (obj.type === "guard") {
@@ -93,7 +102,7 @@ export const renderEventLog = (
 
   return `
     <section class="event-log chronicle-drawer my-4" aria-label="${t("log.title")}">
-      <details class="event-log__details bg-neutral-900/60 border border-neutral-800 rounded-lg p-3" open>
+      <details class="event-log__details bg-neutral-900/60 border border-neutral-800 rounded-lg p-3">
         <summary class="event-log__summary cursor-pointer font-bold text-sm text-neutral-300">
           <span class="event-log__summary-main">📜 ${t("log.title")}</span>
           ${latestEventText ? `<span class="event-log__summary-preview ml-2 font-normal text-xs text-neutral-400">(${t("log.latest")}: ${latestEventText})</span>` : ""}

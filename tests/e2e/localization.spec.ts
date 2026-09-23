@@ -120,21 +120,15 @@ test.describe("Browser E2E: Thai Localization & Language Switcher", () => {
     await declareStrike(active.page, targetId, 0);
 
     // Attacker sees Thai threat commitment banner
-    await expect(active.page.locator(".turn-banner--threat")).toContainText("บลัฟ (ใช้ 0 พลัง)");
+    await expect(active.page.locator(".turn-banner--threat")).toContainText("บลัฟ");
 
-    // Target sees Thai UNDER ATTACK banner and Thai reaction buttons
+    // Target sees Thai UNDER ATTACK banner and the Thai Defense Planner.
     await expect(target.page.locator(".turn-banner__badge--danger")).toHaveText("ถูกจู่โจม");
-    await expect(target.page.locator('.reaction-btn[data-choice="guard"]')).toContainText(
-      "ป้องกัน",
-    );
-    await expect(target.page.locator('.reaction-btn[data-choice="challenge"]')).toContainText(
-      "ท้าพิสูจน์",
-    );
-    await expect(target.page.locator('.reaction-btn[data-choice="yield"]')).toContainText(
-      "ยอมจำนน",
-    );
+    await expect(target.page.locator(".defense-planner")).toBeVisible();
+    await expect(target.page.locator("#defense-form")).toContainText("แผนตั้งรับ");
+    await expect(target.page.locator("label.challenge-toggle")).toContainText("จับบลัฟ");
 
-    // Target reacts with Challenge ("ท้าพิสูจน์")
+    // Target reacts with Challenge ("จับบลัฟ")
     await reactToStrike(target.page, "challenge");
 
     // Both players observe Bluff Caught reveal in Thai
@@ -174,7 +168,10 @@ test.describe("Browser E2E: Thai Localization & Language Switcher", () => {
     await expect(
       host.page.locator('.player-card--self .stat-row[data-stat="influence"] .stat-label'),
     ).toHaveText("Influence (Survival):");
-    await expect(host.page.locator(".app-header #btn-rules-open")).toContainText("Rules");
+    await expect(host.page.locator(".app-header #btn-rules-open")).toHaveAttribute(
+      "aria-label",
+      /Rules/,
+    );
 
     // Guest remains independently in Thai
     await expect(guest.page.locator("html")).toHaveAttribute("lang", "th");

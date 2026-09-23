@@ -1,114 +1,199 @@
-# MVP rules — Gameplay Rules v0.2
+# MVP rules — Gameplay Rules v0.2.3
 
-These are authoritative gameplay rules for Shadow Council v0.2. [MATCH_STATE_MACHINE.md](MATCH_STATE_MACHINE.md) defines execution; this file owns balance numbers and outcomes.
+These are the authoritative playtest rules for Shadow Council. [MATCH_STATE_MACHINE.md](MATCH_STATE_MACHINE.md) defines execution; this file owns balance numbers and outcomes.
 
 ## Teach the game
 
-Keep your Influence above zero (0–3). Power is private (0–3). On your turn, execute one of three actions:
-1. **Strike**: Publicly declare a **Threat level (1–3)** against a living target and privately commit hidden **Force (0–3)**.
-2. **Recover**: Gain **+2 Power** (capped at maximum 3 Power) and end your turn.
-3. **Scheme**: Privately prepare a secret posture (**Ambush** or **Bulwark**) costing 1 Power. Opponents only see that you Schemed. Triggered when you are attacked.
+Keep your **Influence** above zero. Influence is public; **Power** is private.
 
-When attacked, the target chooses one of three tactical reactions:
-1. **Yield**: Lose Influence equal to the attacker's Threat. Costs 0 Power.
-2. **Challenge**: Call the attacker's bluff.
-   - If `Force < Threat` (Bluff): Attacker loses 1 Influence, and target takes 0 damage.
-   - If `Force >= Threat` (Honest/Overpowered): Target loses `Threat + 1` Influence, and attacker takes 0 damage.
-3. **Guard(X)**: Spend `X` Power (1–3) to absorb up to `X` damage.
-   - Effective incoming strike power is `min(Threat, Force)`.
-   - Damage dealt to target: `max(0, min(Threat, Force) - Guard)`. Attacker takes 0 damage.
+On your turn choose one action:
 
-The last surviving player with Influence wins the Council.
+1. **Strike** — publicly declare Threat 1–3 and secretly commit Force.
+2. **Recover** — gain +2 Power, up to 3.
+3. **Scheme** — spend 1 Power to secretly prepare Ambush or Bulwark.
 
-## Setup and rounds
+When attacked you build a **Defense Plan**: choose Guard 0–3 and optionally add a Challenge. The last living player wins.
 
-- Start with 2–6 players, each at 3 Influence and 2 Power. Influence is public (0–3). Power is private (0–3): each player sees only their own Power reserve; opponents' Power balances are hidden (`🔒 ?`).
-- Seeded shuffle fixes seat order once at setup. No roles, hands, decks, or additional random draws.
-- At round start, queue all living players in seat order. Each gets one turn. Skip anyone eliminated before their queued turn. A round ends when this queue is exhausted.
-- Starting with round two, use the same order. There is no automatic resource income or healing.
-- At zero Influence, a player is eliminated and cannot act or react. Connected eliminated players may watch public state.
-- Prepared Schemes persist across rounds until triggered when attacked, or overwritten by a new Scheme.
+## Setup
 
-## Primary actions
+- 2–6 players.
+- Each player starts at **3 Influence** and **2 Power**.
+- Influence range: 0–3 and public.
+- Power range: 0–3 and visible only to its owner.
+- Seat order is seeded once at setup.
+- Zero Influence eliminates the player immediately.
 
-| Action | Intent and validation | Effect |
-| --- | --- | --- |
-| **Strike** | Choose a different living target, publicly declare `threat: 1 \| 2 \| 3`, and privately commit `force: 0 \| 1 \| 2 \| 3`. Requires `actor.power >= force`. | Announce attacker, target, and public Threat level. Force remains strictly concealed. Target enters Reaction phase. Attacker's committed Force power is deducted at resolution. |
-| **Recover** | No target; requires `actor.power < 3`. | Gain +2 Power (clamped at cap 3) and end the turn. |
-| **Scheme** | Privately choose `schemeType: "ambush" \| "bulwark"`. Requires `actor.power >= 1`. | Costs 1 Power immediately. Sets the player's active Scheme posture secretly. Publicly emits that the player Schemed (without leaking posture type). Passes turn. |
+## Strike: Threat vs Force
 
-### Strike Mechanics: Threat vs Force
-- **Threat (1–3)**: The public claim of attack magnitude.
-- **Force (0–3)**: The actual Power committed in secret.
-- **Pure Bluff**: `Force = 0` (even when Threat is 2 or 3).
-- **Partial Bluff**: `Force > 0` but `Force < Threat` (e.g. Threat 3 with Force 1).
-- **Honest Attack**: `Force == Threat`.
-- **Overpowered Strike**: `Force > Threat` (e.g. Threat 1 with Force 2). Counts as genuine against Challenge.
+A Strike commits target, public Threat, and secret Force at the same time.
 
-### Scheme Mechanics: Ambush vs Bulwark
-- Costs 1 Power when set.
-- Only one active Scheme posture can be held at a time. Setting a new Scheme replaces any existing one.
-- **Ambush**: When attacked, if the target chooses **Challenge** and catches the attacker bluffing (`Force < Threat`), the attacker loses an **extra +1 Influence** (total 2 Influence lost by attacker). Discarded after triggering.
-- **Bulwark**: When attacked, grants **+1 free Guard absorption** on any Guard reaction (e.g. Guard 1 with Bulwark absorbs 2 damage). Discarded after triggering.
-- If the target reacts with an incompatible reaction (e.g. Yields, or Guards while holding Ambush, or Challenges while holding Bulwark), the Scheme is revealed and consumed without providing its special effect.
+- **Threat**: 1, 2, or 3. This is the public claim.
+- **Force**: 0 through Threat, limited by the attacker's current Power.
+- Invariant: `0 <= Force <= Threat`.
+- **Pure bluff**: Force = 0.
+- **Partial bluff**: 0 < Force < Threat.
+- **Fully backed**: Force = Threat.
+- Force above Threat is illegal.
 
-## Reactions and exact resolution
+The attacker spends committed Force at resolution. Other players never receive the pending Force before reveal.
 
-Only the named living target may react, once, within the reaction window. Guard requires at least `X` Power (`1 <= X <= 3`) and costs `X` Power. Challenge and Yield cost 0 Power.
+## Recover
 
-### Base Resolution Matrix (Before Scheme Modifiers)
+- Legal below 3 Power.
+- Gain +2 Power, capped at 3.
+- Ends the turn.
 
-| Target Choice | If Attacker Bluffed (`Force < Threat`) | If Attacker Honest/Overpowered (`Force >= Threat`) |
-| --- | --- | --- |
-| **Yield** | Attacker pays `Force` Power. Target loses `Threat` Influence. Attacker loses 0. | Attacker pays `Force` Power. Target loses `Threat` Influence. Attacker loses 0. |
-| **Challenge** | Attacker pays `Force` Power. Attacker loses 1 Influence. Target takes 0 damage. | Attacker pays `Force` Power. Target loses `Threat + 1` Influence. Attacker takes 0 damage. |
-| **Guard(X)** | Attacker pays `Force` Power; target pays `X` Power. Damage to target = `max(0, min(Threat, Force) - X)`. Attacker takes 0. | Attacker pays `Force` Power; target pays `X` Power. Damage to target = `max(0, Threat - X)`. Attacker takes 0. |
+## Scheme
 
-*(Note: When Force is 0, `min(Threat, 0) = 0`, so Guard(X) takes 0 damage.)*
+Spend 1 Power and secretly prepare one Scheme. Other players know a Scheme is armed but not its type.
 
-### Scheme Modifiers During Resolution
-If the target had an active Scheme when attacked, the Scheme triggers and is revealed during clash resolution:
-- **Ambush Trigger**: Target chose `Challenge` AND attacker bluffed (`Force < Threat`) $\to$ Attacker loses 2 Influence total (1 base + 1 Ambush). Target takes 0.
-- **Bulwark Trigger**: Target chose `Guard(X)` $\to$ Absorption becomes `X + 1`. Damage to target = `max(0, min(Threat, Force) - (X + 1))`.
-- In all cases where a clash resolves against a target with an active Scheme, the Scheme is consumed and cleared.
+- **Ambush** — when you Challenge and correctly catch an underfunded Strike, attacker loses 2 Influence total instead of 1.
+- **Bulwark** — when you use Guard, effective Guard is increased by +1.
+- Maximum one armed Scheme.
+- Ambush is consumed when Challenge is used.
+- Bulwark is consumed when Guard is used.
+- An unrelated reaction does not consume the Scheme.
 
-### Resolution Protocol
-- Reveal attacker's committed Force and target's Scheme (if any) atomically when reaction is committed.
-- Deduct attacker's committed `Force` Power.
-- Deduct target's `Guard(X)` Power (if Guard chosen).
-- Clamp all Influence losses at 0.
-- Check eliminations and victory atomically. If exactly one survivor remains, finish match immediately.
+## Defense Plan
 
-## Timing, room settings, disconnections, and invalid input
+The target submits one plan:
 
-- **Configurable Room Turn Timer**:
-  - The room host may configure whether decision time is limited in the Lobby before match start.
-  - **When Enabled**: Configured duration (30s, 45s default, 60s, or 90s) applies to player decision phases (`ACTIVE_TURN` and `REACTION`). The server is authoritative over deadlines.
-  - **When Disabled**: No deadlines are scheduled (`deadlineAt` is `undefined`), the client displays `⏱️ No Time Limit` (`⏱️ ไม่จำกัดเวลา`), and matches allow deliberate, untimed play.
-  - Settings are snapshotted at match start and preserved across rematches.
-- **Expiry Fallbacks** (when timer is enabled):
-  - Action deadline expiry passes the turn with no resource effect; Pass is a system fallback, not a player action.
-  - Reaction deadline expiry chooses **Yield**, even if Guard was affordable.
-- **Disconnections**: Disconnect does not pause, eliminate, or choose an action. The configured deadline continues to apply. Reconnect restores seat and permitted private view.
-- Invalid intents change nothing and do not extend deadlines.
+```text
+Guard: 0 | 1 | 2 | 3
+Challenge: yes | no
+```
 
-## Worked exchanges
+Power cost:
 
-1. **Partial Bluff Punished**:
-   - A (3 Inf, 2 Power) declares Strike on B with Threat 3, committing Force 1.
-   - B (3 Inf, 1 Power) Challenges.
-   - Resolution: `Force (1) < Threat (3)`. A is caught bluffing!
-   - A pays 1 Power and loses 1 Influence (now 2 Inf, 1 Power). B takes 0 damage and retains 1 Power.
+```text
+Guard + (Challenge ? 1 : 0)
+```
 
-2. **Ambush Scheme Counter**:
-   - B previously Schemed (Ambush, paid 1 Power).
-   - A declares Strike on B with Threat 2, committing Force 0 (pure bluff).
-   - B Challenges.
-   - Resolution: Bluff caught. B's Ambush triggers! A loses 2 Influence (1 base + 1 Ambush).
+The total cost cannot exceed the target's current Power.
 
-3. **Bulwark Guard**:
-   - B previously Schemed (Bulwark).
-   - A declares Strike on B with Threat 3, committing Force 3.
-   - B plays Guard(1) (paying 1 Power).
-   - Resolution: Effective attack is 3. B's Guard is 1 + 1 (Bulwark) = 2. Damage = `3 - 2 = 1`. B loses only 1 Influence instead of 2.
+This creates four strategic forms:
 
+- Guard 0 + no Challenge = **Yield**
+- Guard > 0 + no Challenge = **pure Guard**
+- Guard 0 + Challenge = **pure Challenge**
+- Guard > 0 + Challenge = **hybrid defense**
+
+All commitments are locked before Force is revealed.
+
+## Resolution
+
+### Yield
+
+`Guard 0 + Challenge off`
+
+- Cost: 0 Power.
+- Target loses exactly **1 Influence**, regardless of Threat or Force.
+- This is the predictable, resource-saving option.
+
+### Pure Guard
+
+`Guard G + Challenge off`
+
+- Target spends G Power.
+- Attacker spends Force.
+- Effective Guard is G, or G+1 when Bulwark triggers.
+- Target damage: `max(0, Force - effectiveGuard)`.
+
+### Pure Challenge
+
+`Guard 0 + Challenge on`
+
+Challenge means: **"I believe Force is lower than Threat."**
+
+- Cost: 1 Power.
+- If `Force < Threat`: attack is caught as a bluff; target takes 0, attacker loses 1 Influence. Ambush makes this 2 total.
+- If `Force == Threat`: Challenge fails; target loses exactly **2 Influence**.
+
+A normal failed Challenge never deals Threat+1 damage.
+
+### Hybrid Guard + Challenge
+
+`Guard G + Challenge on`
+
+- Target spends G + 1 Power.
+- If `Force < Threat`: Challenge succeeds; target takes 0, attacker is punished. The Guard commitment is still spent.
+- If `Force == Threat`: Challenge fails, but Guard cushions the fixed 2-damage punishment.
+- Damage on failed hybrid Challenge: `max(0, 2 - effectiveGuard)`.
+
+Example: target has 3 Influence and 2 Power, chooses Guard 1 + Challenge against Threat 2 / Force 2. The call is wrong, but Guard absorbs 1 of the 2 danger: target loses only 1 Influence and ends at 2.
+
+## Information model
+
+### Public
+
+- Influence
+- alive/eliminated
+- active player and target
+- declared Threat
+- whether a Scheme is armed
+- revealed historical Threat/Force/reactions
+- public outcomes
+
+### Private
+
+- current Power balance
+- pending Force
+- Scheme type before it triggers
+- uncommitted player choices
+
+Bots must obey the same information boundary. Bot difficulty changes policy only, never access to hidden truth or resolution.
+
+## Timing
+
+The room host configures whether decision timers are enabled and, when enabled, their duration.
+
+- Timer enabled: server-authoritative deadlines apply to ACTIVE_TURN and REACTION.
+- Timer disabled: no automatic phase deadline.
+- Active-turn expiry passes the turn.
+- Reaction expiry submits Yield: Guard 0, Challenge off.
+- Reconnect restores the same permitted public/private projection.
+
+## Resolution protocol
+
+1. Lock attacker Threat + Force.
+2. Lock defender Guard + Challenge.
+3. Reveal Force.
+4. Spend committed Power.
+5. Resolve Challenge if present.
+6. Apply Guard mitigation.
+7. Apply matching Scheme modifier.
+8. Apply Influence loss.
+9. Check elimination and victory atomically.
+10. Advance the turn if the match continues.
+
+Invalid input changes nothing.
+
+## Worked examples
+
+### Partial bluff caught
+
+A declares Threat 3 / Force 1. B chooses Guard 0 + Challenge.
+
+- A spends 1 Power.
+- B spends 1 Power for Challenge.
+- Force < Threat, so A loses 1 Influence.
+- B loses no Influence.
+
+### Wrong read with insurance
+
+A declares Threat 2 / Force 2. B has 2 Power and chooses Guard 1 + Challenge.
+
+- B spends 2 Power total.
+- Force == Threat, so Challenge fails.
+- Base danger is 2.
+- Guard 1 reduces it to 1.
+- B loses 1 Influence.
+
+### Bluff wastes defense
+
+A declares Threat 3 / Force 0. B chooses Guard 2 without Challenge.
+
+- A spends 0.
+- B spends 2.
+- Damage is 0.
+- The bluff gained economic value even though it dealt no Influence damage.

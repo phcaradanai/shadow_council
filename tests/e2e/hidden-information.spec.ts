@@ -21,7 +21,7 @@ test.describe("Browser E2E: Hidden Information Protection", () => {
     await player3?.context?.close();
   });
 
-  test("Target and Bystander DOM and client storage leak NO attacker funding data during pending strike", async ({
+  test("Target and Bystander DOM and client storage leak NO committed Force during pending strike", async ({
     browser,
   }) => {
     // 1. Initialize 3 isolated browser contexts
@@ -54,9 +54,8 @@ test.describe("Browser E2E: Hidden Information Protection", () => {
     // 2. Attacker commits a SECRET Bluff (0 Power) against Target
     await declareStrike(attacker.page, targetId, 0);
 
-    // 3. Verify Attacker CAN see their own commitment
+    // 3. Verify attacker can see their own private commitment
     await expect(attacker.page.locator(".turn-banner--threat")).toBeVisible();
-    await expect(attacker.page.locator(".turn-banner--threat")).toContainText("BLUFF (0 Power)");
 
     // 4. Verify Target receives REACTION phase but ZERO funding information
     await expect(target.page.locator(".turn-banner--targeted")).toBeVisible();
@@ -64,15 +63,15 @@ test.describe("Browser E2E: Hidden Information Protection", () => {
 
     // Inspect Target's complete DOM content
     const targetHtml = await target.page.content();
-    expect(targetHtml).not.toContain("BLUFF (0 Power)");
-    expect(targetHtml).not.toContain("GENUINE ATTACK (1 Power)");
+    expect(targetHtml).not.toContain('"pendingForce"');
+    expect(targetHtml).not.toContain("pendingForce");
     expect(targetHtml).not.toContain('"pendingFunding"');
     expect(targetHtml).not.toContain("pendingFunding");
 
     // Inspect Target's sessionStorage
     const targetStorage = await target.page.evaluate(() => JSON.stringify(sessionStorage));
+    expect(targetStorage).not.toContain("pendingForce");
     expect(targetStorage).not.toContain("pendingFunding");
-    expect(targetStorage).not.toContain("funding");
 
     // 5. Verify Bystander observes clash without funding information
     await expect(
@@ -81,15 +80,15 @@ test.describe("Browser E2E: Hidden Information Protection", () => {
 
     // Inspect Bystander's complete DOM content
     const bystanderHtml = await bystander.page.content();
-    expect(bystanderHtml).not.toContain("BLUFF (0 Power)");
-    expect(bystanderHtml).not.toContain("GENUINE ATTACK (1 Power)");
+    expect(bystanderHtml).not.toContain('"pendingForce"');
+    expect(bystanderHtml).not.toContain("pendingForce");
     expect(bystanderHtml).not.toContain('"pendingFunding"');
     expect(bystanderHtml).not.toContain("pendingFunding");
 
     // Inspect Bystander's sessionStorage
     const bystanderStorage = await bystander.page.evaluate(() => JSON.stringify(sessionStorage));
+    expect(bystanderStorage).not.toContain("pendingForce");
     expect(bystanderStorage).not.toContain("pendingFunding");
-    expect(bystanderStorage).not.toContain("funding");
   });
 
   test("Opponent Power is strictly hidden from DOM, client storage, and target options", async ({

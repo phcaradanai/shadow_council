@@ -1,6 +1,7 @@
 import type { RuleError } from "../errors.js";
 import type { DomainEventData } from "../events.js";
 import type {
+  DefensePlan,
   Force,
   Funding,
   PlayerId,
@@ -65,6 +66,12 @@ export const validateStrike = (
     return failure({ code: "InvalidThreat", message: "Threat and Force must be specified." });
   }
 
+  if (force > threat) {
+    return failure({
+      code: "InvalidForce",
+      message: `Committed Force (${force}) cannot exceed declared Threat (${threat}).`,
+    });
+  }
   if (actor.power < force) {
     return failure({
       code: "InsufficientPower",
@@ -75,10 +82,24 @@ export const validateStrike = (
   return success({ threat, force });
 };
 
+export const normalizeDefensePlan = (reaction: ReactionChoice): DefensePlan => {
+  if (reaction === "yield") return { guard: 0, challenge: false };
+  if (reaction === "challenge") return { guard: 0, challenge: true };
+  if (reaction === "guard") return { guard: 1, challenge: false };
+  if (typeof reaction === "object" && "type" in reaction && reaction.type === "guard") {
+    return { guard: reaction.amount, challenge: false };
+  }
+  if (typeof reaction === "object" && "guard" in reaction && "challenge" in reaction) {
+    return { guard: reaction.guard, challenge: reaction.challenge };
+  }
+  throw new Error("Unsupported reaction shape after validation.");
+};
+
 export interface StrikeResolution {
   readonly players: readonly PlayerState[];
   readonly events: readonly DomainEventData[];
   readonly eliminated: readonly PlayerId[];
+  readonly triggeredScheme?: SchemeType;
 }
 
 const clampInfluence = (value: number): number => Math.max(0, value);
@@ -97,76 +118,41 @@ export const resolveStrike = (
     throw new Error("strike participants must exist after validation");
   }
 
+  const plan = normalizeDefensePlan(reaction);
   const attackerPowerCost = force;
-  let targetPowerCost = 0;
+  const targetPowerCost = plan.guard + (plan.challenge ? 1 : 0);
   let attackerInfluenceLoss = 0;
   let targetInfluenceLoss = 0;
   let damageAbsorbed = 0;
   let ambushDamage = 0;
 
   const targetScheme: SchemeType | undefined = target.activeScheme;
-  let triggeredScheme: SchemeType | undefined = undefined;
+  const usesAmbush = targetScheme === "ambush" && plan.challenge;
+  const usesBulwark = targetScheme === "bulwark" && plan.guard > 0;
+  const triggeredScheme: SchemeType | undefined = usesAmbush
+    ? "ambush"
+    : usesBulwark
+      ? "bulwark"
+      : undefined;
 
-  // Bulwark: if target has activeScheme === "bulwark", absorbs 1 damage from incoming strike (unless challenge backfires)
-  // Ambush: if reaction === "challenge" and force === 0 (bluff caught), ambush deals +1 damage to attacker!
+  const effectiveGuard = plan.guard + (usesBulwark ? 1 : 0);
 
-  if (reaction === "yield") {
-    // Yield: Target takes Threat damage. If target has Bulwark, absorb 1 damage.
-    let effectiveDamage: number = threat;
-    if (targetScheme === "bulwark") {
-      triggeredScheme = "bulwark";
-      damageAbsorbed = 1;
-      effectiveDamage = Math.max(0, effectiveDamage - 1);
-    }
-    targetInfluenceLoss = effectiveDamage;
-  } else if (reaction === "challenge") {
-    if (force >= threat) {
-      // Genuine Strike: Target takes (Threat + 1) damage. Bulwark absorbs 1 damage.
-      let effectiveDamage: number = threat + 1;
-      if (targetScheme === "bulwark") {
-        triggeredScheme = "bulwark";
-        damageAbsorbed = 1;
-        effectiveDamage = Math.max(0, effectiveDamage - 1);
-      }
-      targetInfluenceLoss = effectiveDamage;
+  if (plan.challenge) {
+    if (force < threat) {
+      // Successful bluff call cancels incoming damage. Ambush increases the attacker's penalty.
+      attackerInfluenceLoss = usesAmbush ? 2 : 1;
+      ambushDamage = usesAmbush ? 1 : 0;
     } else {
-      // Bluff caught: Attacker takes 1 damage.
-      // If target had Ambush active, Ambush triggers: Attacker takes +1 damage (total 2).
-      let attackerDamage = 1;
-      if (targetScheme === "ambush") {
-        triggeredScheme = "ambush";
-        ambushDamage = 1;
-        attackerDamage += 1;
-      }
-      attackerInfluenceLoss = attackerDamage;
+      // Wrong call has fixed danger 2, while committed Guard still mitigates it.
+      targetInfluenceLoss = Math.max(0, 2 - effectiveGuard);
+      damageAbsorbed = Math.min(2, effectiveGuard);
     }
-  } else if (typeof reaction === "object" && reaction.type === "guard") {
-    // Guard (G): Target spends G Power (1-3).
-    // Target absorbs G damage.
-    // If target has Bulwark, Bulwark absorbs an additional 1 damage!
-    const guardAmount = reaction.amount;
-    targetPowerCost = guardAmount;
-
-    let totalDefense = guardAmount;
-    if (targetScheme === "bulwark") {
-      triggeredScheme = "bulwark";
-      damageAbsorbed = 1;
-      totalDefense += 1;
-    }
-
-    const netDamage = Math.max(0, force - totalDefense);
-    targetInfluenceLoss = netDamage;
-  } else if ((reaction as unknown) === "guard") {
-    // Backward compatibility for legacy "guard" string (amount 1)
-    targetPowerCost = 1;
-    let totalDefense = 1;
-    if (targetScheme === "bulwark") {
-      triggeredScheme = "bulwark";
-      damageAbsorbed = 1;
-      totalDefense += 1;
-    }
-    const netDamage = Math.max(0, force - totalDefense);
-    targetInfluenceLoss = netDamage;
+  } else if (plan.guard > 0) {
+    targetInfluenceLoss = Math.max(0, force - effectiveGuard);
+    damageAbsorbed = Math.min(force, effectiveGuard);
+  } else {
+    // Yield: controlled loss, no Power spent.
+    targetInfluenceLoss = 1;
   }
 
   const attackerPower = attacker.power - attackerPowerCost;
@@ -174,7 +160,7 @@ export const resolveStrike = (
   const attackerInfluence = clampInfluence(attacker.influence - attackerInfluenceLoss);
   const targetInfluence = clampInfluence(target.influence - targetInfluenceLoss);
 
-  // If target's scheme triggered (or consumed upon being attacked), reset target's activeScheme
+  // Only the matching Scheme trigger is consumed. Unrelated reactions preserve the armed Scheme.
   const nextTargetScheme = triggeredScheme ? undefined : target.activeScheme;
 
   const nextPlayers = players.map((player) => {
@@ -196,7 +182,7 @@ export const resolveStrike = (
   if (attacker.influence > 0 && attackerInfluence === 0) eliminated.push(attackerId);
   if (target.influence > 0 && targetInfluence === 0) eliminated.push(targetId);
 
-  const genuine = force >= threat;
+  const genuine = force === threat;
 
   const events: DomainEventData[] = [
     {
@@ -217,17 +203,13 @@ export const resolveStrike = (
     },
   ];
 
-  const isGuardReaction =
-    (typeof reaction === "object" && reaction.type === "guard") ||
-    (reaction as unknown) === "guard";
-
-  if (!genuine && (isGuardReaction || reaction === "yield")) {
+  if (!genuine && !plan.challenge) {
     events.push({
       type: "BluffSucceeded",
       attackerId,
       targetId,
-      reaction,
-      outcome: reaction === "yield" ? "yield" : "guard",
+      reaction: plan,
+      outcome: plan.guard > 0 ? "guard" : "yield",
     });
   }
 
@@ -235,5 +217,10 @@ export const resolveStrike = (
     events.push({ type: "PlayerEliminated", playerId });
   }
 
-  return { players: nextPlayers, events, eliminated };
+  return {
+    players: nextPlayers,
+    events,
+    eliminated,
+    ...(triggeredScheme !== undefined ? { triggeredScheme } : {}),
+  };
 };

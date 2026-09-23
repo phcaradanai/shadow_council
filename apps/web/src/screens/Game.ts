@@ -11,6 +11,7 @@ import { renderRulesModal, attachRulesModalListeners } from "../components/Rules
 import { t, getLocale, renderLanguageSwitcher, getLocalizedErrorMessage } from "../i18n/index.js";
 import { mountStatsDashboard } from "../components/StatsDashboard.js";
 import { matchStatsTracker } from "../presentation/match-stats.js";
+import { attachStrikePlanner } from "../presentation/strike-planner.js";
 
 const escapeHtml = (value: string): string =>
   value
@@ -23,7 +24,7 @@ export interface GameCallbacks {
   onStrike: (targetId: string, threat: 1 | 2 | 3, force: 0 | 1 | 2 | 3) => void;
   onRecover: () => void;
   onScheme: (schemeType: "ambush" | "bulwark") => void;
-  onReact: (choice: { type: "guard"; amount: 1 | 2 | 3 } | "challenge" | "yield") => void;
+  onReact: (plan: { guard: 0 | 1 | 2 | 3; challenge: boolean }) => void;
   onLeaveRoom: () => void;
 }
 
@@ -60,11 +61,11 @@ export const renderGameScreen = (
           <button type="button" class="btn btn--icon" id="btn-sound-toggle" aria-label="${isMuted ? t("common.soundUnmute") : t("common.soundMute")}">
             ${isMuted ? "🔇" : "🔊"}
           </button>
-          <button type="button" class="btn btn--secondary btn--sm" id="btn-stats-open">
-            📊 ${t("game.stats")}
+          <button type="button" class="btn btn--icon utility-action" id="btn-stats-open" aria-label="${t("game.stats")}" title="${t("game.stats")}">
+            📊
           </button>
-          <button type="button" class="btn btn--secondary btn--sm" id="btn-rules-open">
-            📜 ${t("common.rules")}
+          <button type="button" class="btn btn--icon utility-action" id="btn-rules-open" aria-label="${t("common.rules")}" title="${t("common.rules")}">
+            📜
           </button>
           <button type="button" class="btn btn--danger btn--sm" id="btn-leave-room" ${isSubmitting ? "disabled" : ""}>
             ${t("common.leave")}
@@ -145,7 +146,9 @@ export const renderGameScreen = (
     }
   };
 
-  container.querySelector<HTMLButtonElement>("#btn-stats-close")?.addEventListener("click", closeStats);
+  container
+    .querySelector<HTMLButtonElement>("#btn-stats-close")
+    ?.addEventListener("click", closeStats);
   statsModal?.addEventListener("click", (e) => {
     if (e.target === statsModal) {
       closeStats();
@@ -175,87 +178,7 @@ export const renderGameScreen = (
     callbacks.onLeaveRoom();
   });
 
-  // Direct card-click targeting & synchronization
-  const targetSelect = container.querySelector<HTMLSelectElement>("#strike-target");
-  const targetableCards = container.querySelectorAll<HTMLElement>(
-    ".player-card[data-targetable='true']",
-  );
-
-  const syncTargetHighlights = (selectedId?: string) => {
-    targetableCards.forEach((c) => {
-      const isSelected = Boolean(selectedId && c.dataset.playerId === selectedId);
-      c.classList.toggle("player-card--selected-target", isSelected);
-      if (isSelected) {
-        c.setAttribute("aria-selected", "true");
-      } else {
-        c.removeAttribute("aria-selected");
-      }
-    });
-  };
-
-  targetableCards.forEach((card) => {
-    card.setAttribute("tabindex", "0");
-    card.setAttribute("role", "button");
-    card.addEventListener("click", () => {
-      const targetId = card.dataset.playerId;
-      if (!targetId || !targetSelect) return;
-      targetSelect.value = targetId;
-      syncTargetHighlights(targetId);
-      targetSelect.dispatchEvent(new Event("change", { bubbles: true }));
-      sounds.click();
-    });
-    card.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        card.click();
-      }
-    });
-  });
-
-  if (targetSelect?.value) {
-    syncTargetHighlights(targetSelect.value);
-  }
-
-  targetSelect?.addEventListener("change", () => {
-    syncTargetHighlights(targetSelect.value);
-  });
-
-  // Threat & Force radio buttons sounds
-  container.querySelectorAll<HTMLInputElement>('input[name="threat"], input[name="force"]').forEach((radio) => {
-    radio.addEventListener("change", () => {
-      sounds.click();
-    });
-  });
-
-  // Strike form validation and submit
-  const strikeForm = container.querySelector<HTMLFormElement>("#strike-form");
-  if (strikeForm) {
-    const updateStrikeButtonState = () => {
-      const submitBtn = strikeForm.querySelector<HTMLButtonElement>("#btn-strike");
-      if (!submitBtn) return;
-      const targetVal = targetSelect?.value ?? "";
-      const canSubmit = Boolean(targetVal && !isSubmitting);
-      submitBtn.disabled = !canSubmit;
-    };
-
-    strikeForm.addEventListener("change", updateStrikeButtonState);
-    strikeForm.addEventListener("input", updateStrikeButtonState);
-    updateStrikeButtonState();
-
-    strikeForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      if (isSubmitting) return;
-      const fd = new FormData(strikeForm);
-      const targetId = String(fd.get("targetId") ?? "");
-      const threatVal = Number(fd.get("threat") ?? 1);
-      const forceVal = Number(fd.get("force") ?? 0);
-      if (!targetId) return;
-      const threat = (threatVal >= 1 && threatVal <= 3 ? threatVal : 1) as 1 | 2 | 3;
-      const force = (forceVal >= 0 && forceVal <= 3 ? forceVal : 0) as 0 | 1 | 2 | 3;
-      sounds.threat();
-      callbacks.onStrike(targetId, threat, force);
-    });
-  }
+  attachStrikePlanner(container, isSubmitting, callbacks.onStrike);
 
   // Scheme click
   const schemeBtn = container.querySelector<HTMLButtonElement>("#btn-scheme");
@@ -279,33 +202,106 @@ export const renderGameScreen = (
     callbacks.onRecover();
   });
 
-  // Reaction clicks
-  container.querySelectorAll<HTMLButtonElement>(".btn-guard-amount").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      if (isSubmitting) return;
-      const amount = Number(btn.dataset.amount ?? 1) as 1 | 2 | 3;
-      sounds.click();
-      callbacks.onReact({ type: "guard", amount });
-    });
-  });
+  // Defense Planner: Guard and Challenge can be committed together.
+  const defensePlanner = container.querySelector<HTMLElement>(".defense-planner");
+  const defenseForm = container.querySelector<HTMLFormElement>("#defense-form");
+  if (defensePlanner && defenseForm) {
+    const legalPlans = new Set(
+      (defensePlanner.dataset.legalPlans ?? "").split(",").filter(Boolean),
+    );
+    const challengeCost = Number(defensePlanner.dataset.challengeCost ?? "1");
+    const ownPower = Number(defensePlanner.dataset.power ?? "0");
+    const influence = Number(defensePlanner.dataset.influence ?? "0");
+    const hasBulwark = defensePlanner.dataset.bulwark === "1";
 
-  container.querySelectorAll<HTMLButtonElement>(".reaction-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      if (isSubmitting) return;
-      const choice = btn.dataset.choice as "guard" | "challenge" | "yield" | undefined;
-      if (choice === "guard") {
-        const amount = Number(btn.dataset.amount ?? 1) as 1 | 2 | 3;
-        sounds.click();
-        callbacks.onReact({ type: "guard", amount });
-      } else if (choice === "challenge") {
-        sounds.challenge();
-        callbacks.onReact("challenge");
-      } else if (choice === "yield") {
-        sounds.click();
-        callbacks.onReact("yield");
+    const selectedPlan = (): { guard: 0 | 1 | 2 | 3; challenge: boolean } | undefined => {
+      const guardInput = defenseForm.querySelector<HTMLInputElement>(
+        'input[name="defenseGuard"]:checked',
+      );
+      if (!guardInput) return undefined;
+      const guard = Number(guardInput.value) as 0 | 1 | 2 | 3;
+      const challenge =
+        defenseForm.querySelector<HTMLInputElement>("#defense-challenge")?.checked ?? false;
+      return { guard, challenge };
+    };
+
+    const updateDefensePlan = () => {
+      const plan = selectedPlan();
+      const submit = defenseForm.querySelector<HTMLButtonElement>("#btn-lock-defense");
+      const mode = defenseForm.querySelector<HTMLElement>("#defense-plan-mode");
+      const costEl = defenseForm.querySelector<HTMLElement>("#defense-plan-cost");
+      const preview = defenseForm.querySelector<HTMLElement>("#defense-plan-preview");
+      if (!submit || !mode || !costEl || !preview) return;
+
+      if (!plan) {
+        submit.disabled = true;
+        mode.textContent = t("reaction.selectDefense");
+        costEl.textContent = "0";
+        preview.innerHTML = `<p>${t("reaction.selectDefenseHint")}</p>`;
+        return;
       }
+
+      const key = `${plan.guard}:${plan.challenge ? 1 : 0}`;
+      const cost = plan.guard + (plan.challenge ? challengeCost : 0);
+      const legal = legalPlans.has(key) && cost <= ownPower;
+      const effectiveGuard = plan.guard + (hasBulwark && plan.guard > 0 ? 1 : 0);
+      const failedChallengeDamage = Math.max(0, 2 - effectiveGuard);
+      const remainingIfWrong = Math.max(0, influence - failedChallengeDamage);
+
+      costEl.textContent = String(cost);
+      submit.disabled = !legal || isSubmitting;
+
+      if (plan.guard === 0 && !plan.challenge) {
+        mode.textContent = t("reaction.modeYield");
+        preview.innerHTML = `<p>${t("reaction.previewYield", { influence: Math.max(0, influence - 1) })}</p>`;
+      } else if (plan.guard > 0 && !plan.challenge) {
+        mode.textContent = t("reaction.modeGuard", { guard: plan.guard });
+        preview.innerHTML = `<p>${t("reaction.previewGuard", { guard: effectiveGuard })}</p>`;
+      } else if (plan.guard === 0) {
+        mode.textContent = t("reaction.modeChallenge");
+        preview.innerHTML = `
+          <p class="preview-good">${t("reaction.previewBluffCaught")}</p>
+          <p class="${remainingIfWrong === 0 ? "preview-lethal" : "preview-risk"}">
+            ${t("reaction.previewChallengeWrong", { damage: failedChallengeDamage, influence: remainingIfWrong })}
+          </p>
+        `;
+      } else {
+        mode.textContent = t("reaction.modeHybrid", { guard: plan.guard });
+        preview.innerHTML = `
+          <p class="preview-good">${t("reaction.previewBluffCaught")}</p>
+          <p class="${remainingIfWrong === 0 ? "preview-lethal" : "preview-risk"}">
+            ${t("reaction.previewHybridWrong", {
+              guard: effectiveGuard,
+              damage: failedChallengeDamage,
+              influence: remainingIfWrong,
+            })}
+          </p>
+        `;
+      }
+
+      if (!legal) {
+        preview.innerHTML += `<p class="preview-lethal">${t("reaction.planTooExpensive")}</p>`;
+      }
+    };
+
+    defenseForm.addEventListener("change", () => {
+      sounds.click();
+      updateDefensePlan();
     });
-  });
+    updateDefensePlan();
+
+    defenseForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (isSubmitting) return;
+      const plan = selectedPlan();
+      if (!plan) return;
+      const key = `${plan.guard}:${plan.challenge ? 1 : 0}`;
+      if (!legalPlans.has(key)) return;
+      if (plan.challenge) sounds.challenge();
+      else sounds.click();
+      callbacks.onReact(plan);
+    });
+  }
 
   // Start ticker
   const stopTicker = startCountdownTicker(container);

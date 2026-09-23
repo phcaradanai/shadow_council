@@ -9,6 +9,7 @@ import {
   type StartMatchBody,
   type UpdateSettingsBody,
   type WireIntent,
+  type WireDefensePlan,
   type WireReactionChoice,
 } from "./types.js";
 
@@ -111,9 +112,19 @@ export const parseUpdateSettingsBody = (value: unknown): ParseResult<UpdateSetti
   };
 };
 
-const parseReactionChoice = (value: unknown): ParseResult<WireReactionChoice> => {
+const parseReactionChoice = (value: unknown): ParseResult<WireReactionChoice | WireDefensePlan> => {
   if (value === "yield" || value === "challenge" || value === "guard") {
     return { ok: true, value };
+  }
+  if (
+    isRecord(value) &&
+    (value.guard === 0 || value.guard === 1 || value.guard === 2 || value.guard === 3) &&
+    typeof value.challenge === "boolean"
+  ) {
+    return {
+      ok: true,
+      value: { guard: value.guard, challenge: value.challenge },
+    };
   }
   if (isRecord(value) && value.type === "guard") {
     const amount = value.amount;
@@ -154,12 +165,7 @@ const parseIntent = (value: unknown): ParseResult<WireIntent> => {
           error: { code: "InvalidPayload", message: "threat must be 1, 2, or 3." },
         };
       }
-      if (
-        value.force !== 0 &&
-        value.force !== 1 &&
-        value.force !== 2 &&
-        value.force !== 3
-      ) {
+      if (value.force !== 0 && value.force !== 1 && value.force !== 2 && value.force !== 3) {
         return {
           ok: false,
           error: { code: "InvalidPayload", message: "force must be 0, 1, 2, or 3." },
@@ -180,7 +186,10 @@ const parseIntent = (value: unknown): ParseResult<WireIntent> => {
     if (value.funding !== 0 && value.funding !== 1) {
       return {
         ok: false,
-        error: { code: "InvalidPayload", message: "funding must be 0 or 1, or provide threat/force." },
+        error: {
+          code: "InvalidPayload",
+          message: "funding must be 0 or 1, or provide threat/force.",
+        },
       };
     }
     const f = value.funding;
