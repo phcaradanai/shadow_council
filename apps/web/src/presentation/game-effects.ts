@@ -16,20 +16,21 @@ const eventNumber = (event: WireDomainEvent | undefined, key: string): number =>
 
 const eventKey = (event: WireDomainEvent | undefined): string | undefined => {
   if (!event) return undefined;
-  const revision = typeof event.revision === "number" ? event.revision : "?";
-  const ordinal = typeof event.ordinal === "number" ? event.ordinal : "?";
-  return `${event.type}:${revision}:${ordinal}`;
+  if (typeof event.revision === "number" && typeof event.ordinal === "number") {
+    return `${event.type}:${event.revision}:${event.ordinal}`;
+  }
+  return JSON.stringify(event);
 };
 
 let lastRevealKey: string | undefined;
 let lastReactionKey: string | undefined;
 
-const centerOf = (element: HTMLElement, root: HTMLElement): Point => {
+const centerOf = (element: HTMLElement, surface: SVGSVGElement): Point => {
   const rect = element.getBoundingClientRect();
-  const rootRect = root.getBoundingClientRect();
+  const surfaceRect = surface.getBoundingClientRect();
   return {
-    x: rect.left - rootRect.left + rect.width / 2,
-    y: rect.top - rootRect.top + rect.height / 2,
+    x: rect.left - surfaceRect.left + rect.width / 2,
+    y: rect.top - surfaceRect.top + rect.height / 2,
   };
 };
 
@@ -46,9 +47,9 @@ const drawAttackLink = (
   if (!svg || !attacker || !target) return () => {};
 
   const render = () => {
-    const bounds = root.getBoundingClientRect();
-    const from = centerOf(attacker, root);
-    const to = centerOf(target, root);
+    const bounds = svg.getBoundingClientRect();
+    const from = centerOf(attacker, svg);
+    const to = centerOf(target, svg);
     svg.setAttribute("viewBox", `0 0 ${Math.max(1, bounds.width)} ${Math.max(1, bounds.height)}`);
     svg.innerHTML = `
       <defs>
@@ -217,12 +218,12 @@ export const attachGameEffects = (
     const seat = root.querySelector<HTMLElement>(`#player-${CSS.escape(viewerId)}`);
     if (!seat) return;
     const seatRect = seat.getBoundingClientRect();
-    const rootRect = root.getBoundingClientRect();
+    const layerRect = layer.getBoundingClientRect();
     const aura = document.createElement("div");
     aura.className = `vfx-defense-aura ${challenge ? "vfx-defense-aura--challenge" : ""}`;
     aura.dataset.guard = String(guard);
-    aura.style.left = `${seatRect.left - rootRect.left + seatRect.width / 2}px`;
-    aura.style.top = `${seatRect.top - rootRect.top + seatRect.height / 2}px`;
+    aura.style.left = `${seatRect.left - layerRect.left + seatRect.width / 2}px`;
+    aura.style.top = `${seatRect.top - layerRect.top + seatRect.height / 2}px`;
     aura.innerHTML = `
       <span class="vfx-defense-aura__ring"></span>
       <span class="vfx-defense-aura__ring vfx-defense-aura__ring--two"></span>
