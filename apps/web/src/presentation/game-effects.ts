@@ -195,13 +195,7 @@ export const attachGameEffects = (
     previewLinkCleanup?.();
     previewLinkCleanup = undefined;
     if (!detail?.targetId) return;
-    previewLinkCleanup = drawAttackLink(
-      root,
-      viewerId,
-      detail.targetId,
-      detail.threat ?? 1,
-      true,
-    );
+    previewLinkCleanup = drawAttackLink(root, viewerId, detail.targetId, detail.threat ?? 1, true);
   };
   root.addEventListener("sc:target-preview", onTargetPreview as EventListener);
   cleanup.push(() => {

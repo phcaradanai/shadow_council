@@ -245,9 +245,11 @@ export const renderGameScreen = (
         mode.textContent = t("reaction.selectDefense");
         costEl.textContent = "0";
         preview.innerHTML = `<p>${t("reaction.selectDefenseHint")}</p>`;
-        container.querySelector<HTMLElement>(".screen--game")?.dispatchEvent(
-          new CustomEvent("sc:defense-preview", { detail: { guard: 0, challenge: false } }),
-        );
+        container
+          .querySelector<HTMLElement>(".screen--game")
+          ?.dispatchEvent(
+            new CustomEvent("sc:defense-preview", { detail: { guard: 0, challenge: false } }),
+          );
         return;
       }
 
