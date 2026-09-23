@@ -189,7 +189,15 @@ test.describe("Browser E2E: Playtest Improvements (Turn Timer & Private Power)",
     await declareStrike(designatedWinner.page, loserTargetId, 1);
     await reactToStrike(designatedLoser.page, "yield");
 
-    // Turn 3 (Loser): Loser bluffs, Winner challenges -> Loser drops to 0 Influence (Eliminated!)
+    // Challenge now costs 1 Power. The winner spent their second Power on the genuine Strike,
+    // so both players take an economy turn before the final bluff call.
+    await findActivePlayer([designatedLoser]);
+    await designatedLoser.page.locator("#btn-recover").click();
+
+    await findActivePlayer([designatedWinner]);
+    await designatedWinner.page.locator("#btn-recover").click();
+
+    // Final turn: Loser bluffs, Winner spends 1 Power to Challenge and eliminates them.
     await findActivePlayer([designatedLoser]);
     await declareStrike(designatedLoser.page, winnerTargetId, 0);
     await reactToStrike(designatedWinner.page, "challenge");
