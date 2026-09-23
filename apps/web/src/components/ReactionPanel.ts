@@ -72,7 +72,7 @@ export const renderReactionControls = (
             ${guardAmounts
               .map(
                 (amount) => `
-                  <label class="guard-token ${amount === 0 ? "guard-token--yield" : ""}">
+                  <label class="guard-token defense-choice ${amount === 0 ? "guard-token--yield" : ""}">
                     <input
                       type="radio"
                       name="defenseGuard"

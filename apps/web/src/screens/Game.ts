@@ -6,6 +6,7 @@ import { renderCountdown, startCountdownTicker } from "../components/Countdown.j
 import { renderActionControls } from "../components/ActionSelector.js";
 import { renderReactionControls } from "../components/ReactionPanel.js";
 import { renderEventLog } from "../components/EventLog.js";
+import { renderRevealPanel } from "../components/RevealPanel.js";
 import { renderRulesModal, attachRulesModalListeners } from "../components/RulesModal.js";
 import { t, getLocale, renderLanguageSwitcher, getLocalizedErrorMessage } from "../i18n/index.js";
 import { mountStatsDashboard } from "../components/StatsDashboard.js";
@@ -88,15 +89,15 @@ export const renderGameScreen = (
         : "chamber-conn--offline";
 
   container.innerHTML = `
-    <div class="chamber" data-phase="${phase}" data-connection="${escapeHtml(connectionStatus)}">
-      <div class="chamber-vfx" aria-hidden="true">
+    <div class="screen screen--game chamber" data-phase="${phase}" data-connection="${escapeHtml(connectionStatus)}">
+      <div class="chamber-vfx game-vfx-layer" aria-hidden="true">
         <div class="chamber-vfx__ambient chamber-vfx__ambient--far"></div>
         <div class="chamber-vfx__ambient chamber-vfx__ambient--near"></div>
         <svg class="chamber-vfx__connections" preserveAspectRatio="none"></svg>
         <div class="chamber-vfx__vignette"></div>
       </div>
 
-      <div class="chamber-utility">
+      <header class="chamber-utility app-header">
         <button type="button" class="util-btn" id="btn-sound-toggle" aria-label="${isMuted ? t("common.soundUnmute") : t("common.soundMute")}">
           ${isMuted ? svgIcon("icon-sound-off") : svgIcon("icon-sound-on")}
         </button>
@@ -106,18 +107,22 @@ export const renderGameScreen = (
         <button type="button" class="util-btn" id="btn-rules-open" aria-label="${t("common.rules")}" title="${t("common.rules")}">
           ${svgIcon("icon-rules")}
         </button>
-        <span class="chamber-meta">${escapeHtml(room.roomCode)} · R${match.round}</span>
+        <span class="chamber-meta">
+          <span class="meta-tag meta-tag--room">${t("game.room")} ${escapeHtml(room.roomCode)}</span>
+          <span class="meta-tag meta-tag--round">${t("game.round")} ${match.round}</span>
+        </span>
         <span class="chamber-conn ${connectionClass}" title="${escapeHtml(connectionLabel)}" role="status" aria-label="${escapeHtml(connectionLabel)}"></span>
         ${renderLanguageSwitcher(getLocale())}
         <button type="button" class="util-btn util-btn--leave" id="btn-leave-room" ${isSubmitting ? "disabled" : ""}>
           ${t("common.leave")}
         </button>
-      </div>
+      </header>
 
       ${errorMessage ? `<div class="chamber-alert" role="alert">${escapeHtml(getLocalizedErrorMessage(errorMessage))}</div>` : ""}
 
       <main class="chamber-stage">
         ${renderPlayerGrid(match, viewerId)}
+        ${renderRevealPanel(recentEvents, match.players)}
       </main>
 
       <aside class="self-deck" aria-label="${escapeHtml(phase === "reaction" ? t("reaction.title") : t("action.title"))}">

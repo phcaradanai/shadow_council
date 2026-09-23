@@ -109,7 +109,7 @@ export const attachStrikePlanner = (
     if (targetEl) targetEl.textContent = targetName || "—";
     if (threatEl) threatEl.textContent = threat === undefined ? "—" : String(threat);
     if (forceEl) forceEl.textContent = force === undefined ? "—" : String(force);
-    if (powerEl) powerEl.textContent = String(Math.max(0, currentPower - (force ?? 0)));
+    if (powerEl) powerEl.textContent = `${Math.max(0, currentPower - (force ?? 0))} ⚡`;
 
     if (!plan) {
       if (styleEl) styleEl.textContent = t("action.planAwaiting");

@@ -82,7 +82,7 @@ export const renderActionControls = (
                 ${threats
                   .map(
                     (threat) => `
-                      <label class="threat-token">
+                      <label class="threat-token threat-seal">
                         <input
                           type="radio"
                           name="threat"
@@ -113,7 +113,7 @@ export const renderActionControls = (
                   .map((force) => {
                     const affordable = forces.includes(force as 0 | 1 | 2 | 3);
                     return `
-                      <label class="force-token ${!affordable ? "force-token--unaffordable" : ""}">
+                      <label class="force-token force-stone ${!affordable ? "force-token--unaffordable" : ""}">
                         <input
                           type="radio"
                           name="force"

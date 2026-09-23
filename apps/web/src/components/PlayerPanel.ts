@@ -100,6 +100,8 @@ export const renderPlayerCard = (
   const classes = [
     "seat",
     "council-seat",
+    "player-card",
+    isSelf ? "player-card--self" : "",
     isActive ? "seat--active" : "",
     isTarget ? "seat--target" : "",
     isEliminated ? "seat--eliminated" : "",
@@ -137,17 +139,29 @@ export const renderPlayerCard = (
       </div>
 
       <div class="seat__identity">
-        <h3 class="seat__name">${escapeHtml(player.displayName)}</h3>
+        <h3 class="seat__name player-card__name">${escapeHtml(player.displayName)}</h3>
       </div>
 
       <div class="seat__resources" role="status" aria-label="${escapeHtml(`${influenceAria}; ${powerAria}`)}">
-        <span class="seat__resource-row seat__resource-row--influence">
+        <span class="seat__resource-row seat__resource-row--influence stat-row" data-stat="influence">
+          <span class="stat-label sr-only">${t("player.influenceLabel")}</span>
           ${svgIcon("icon-influence")}
           ${renderInfluencePips(player.influence)}
+          <span class="stat-num sr-only">(${player.influence}/3)</span>
         </span>
-        <span class="seat__resource-row seat__resource-row--power">
+        <span class="seat__resource-row seat__resource-row--power stat-row" data-stat="power">
+          <span class="stat-label sr-only">${t("player.powerLabel")}</span>
           ${svgIcon("icon-power")}
-          ${powerKnown ? renderPowerPips(player.power!) : '<span class="power-hidden">?</span>'}
+          ${
+            powerKnown
+              ? renderPowerPips(player.power!)
+              : `<span class="stat-value--private" aria-label="${escapeHtml(t("player.powerUnknownAria"))}"><span class="power-hidden">🔒 ?</span></span>`
+          }
+          ${
+            isSelf
+              ? `<span class="stat-num sr-only">(${player.power ?? 0}/3)</span><span class="stat-note sr-only">${t("player.powerPrivate")}</span>`
+              : '<span class="stat-num sr-only">(🔒 ?/3)</span>'
+          }
         </span>
       </div>
 

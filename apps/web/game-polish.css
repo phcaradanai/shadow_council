@@ -957,3 +957,24 @@
     animation: none;
   }
 }
+
+/* Reveal Panel in Stage */
+.chamber-stage .reveal-section {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 40;
+  width: min(92%, 520px);
+  max-height: 85vh;
+  overflow-y: auto;
+  pointer-events: auto;
+}
+
+@media (max-width: 768px) {
+  .chamber-stage .reveal-section {
+    width: 95%;
+    top: 45%;
+  }
+}
+
