@@ -88,7 +88,7 @@ export const renderReactionControls = (
           />
           <span class="challenge-toggle__body">
             <span class="challenge-toggle__eye">👁</span>
-            <strong>${t("reaction.challengeTitle")}</strong>
+            <strong>${t("reaction.modeChallenge")}</strong>
             <small>-${challengeCost} ⚡</small>
           </span>
         </label>
