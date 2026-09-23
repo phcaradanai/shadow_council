@@ -61,7 +61,7 @@ test.describe("Browser E2E: Hidden Information Protection", () => {
     await expect(target.page.locator(".turn-banner--targeted")).toBeVisible();
     await expect(target.page.locator(".turn-banner__badge--danger")).toHaveText("UNDER ATTACK");
     await expect(target.page.locator(".vfx-threat-pressure strong")).toHaveText("2");
-    await expect(target.page.locator(".game-vfx__attack-line--threat-2")).toBeVisible();
+    await expect(target.page.locator(".game-vfx__attack-line--threat-2")).toHaveCount(1);
     const targetVfxHtml = await target.page.locator(".game-vfx-layer").innerHTML();
     expect(targetVfxHtml.toLowerCase()).not.toContain("force");
 

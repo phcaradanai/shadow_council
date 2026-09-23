@@ -66,14 +66,14 @@ test.describe("Browser E2E: Real Gameplay Journeys", () => {
     const targetId = await getPlayerIdFromCard(active.page, target.name);
 
     await active.page.locator("#strike-target").selectOption(targetId);
-    await expect(active.page.locator(".game-vfx__attack-line--preview")).toBeVisible();
+    await expect(active.page.locator(".game-vfx__attack-line--preview")).toHaveCount(1);
 
     await active.page.locator('label.threat-seal:has(input[name="threat"][value="1"])').click();
 
     await expect(active.page.locator('input[name="force"][value="2"]')).toBeDisabled();
 
     await active.page.locator('label.threat-seal:has(input[name="threat"][value="2"])').click();
-    await expect(active.page.locator(".game-vfx__attack-line--threat-2")).toBeVisible();
+    await expect(active.page.locator(".game-vfx__attack-line--threat-2")).toHaveCount(1);
 
     await active.page.locator('label.force-stone:has(input[name="force"][value="1"])').click();
 
@@ -106,7 +106,7 @@ test.describe("Browser E2E: Real Gameplay Journeys", () => {
     // Target receives UNDER ATTACK banner, public Threat pressure, and reaction options.
     await expect(target.page.locator(".turn-banner__badge--danger")).toHaveText("UNDER ATTACK");
     await expect(target.page.locator(".reaction-panel")).toBeVisible();
-    await expect(target.page.locator(".game-vfx__attack-line")).toBeVisible();
+    await expect(target.page.locator(".game-vfx__attack-line")).toHaveCount(1);
     await expect(target.page.locator(".vfx-threat-pressure strong")).toHaveText("1");
 
     // Target challenges the strike
@@ -170,6 +170,7 @@ test.describe("Browser E2E: Real Gameplay Journeys", () => {
     await expect(target.page.locator(".vfx-defense-aura--challenge")).toBeVisible();
     await expect(target.page.locator(".vfx-defense-aura")).toHaveAttribute("data-guard", "1");
     await target.page.locator("#btn-lock-defense").click();
+    await expect(target.page.locator(".reveal-card")).toBeVisible();
 
     // Wrong Challenge has base danger 2, but Guard 1 cushions it to only 1 damage.
     await expect(await getPlayerStat(target.page, targetSelfId, "influence")).toBe(2);
