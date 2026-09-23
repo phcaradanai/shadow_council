@@ -1,5 +1,13 @@
 import type { WireDomainEvent, WireMatchView } from "@shadow-council/protocol";
 import { sounds } from "./sound.js";
+import { t } from "../i18n/index.js";
+
+const escapeHtml = (value: string): string =>
+  value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
 
 interface Point {
   readonly x: number;
@@ -42,7 +50,7 @@ const drawAttackLink = (
   threat: number,
   preview = false,
 ): (() => void) => {
-  const svg = root.querySelector<SVGSVGElement>(".game-vfx__connections");
+  const svg = root.querySelector<SVGSVGElement>(".chamber-vfx__connections");
   const attacker = root.querySelector<HTMLElement>(`#player-${CSS.escape(attackerId)}`);
   const target = root.querySelector<HTMLElement>(`#player-${CSS.escape(targetId)}`);
   if (!svg || !attacker || !target) return () => {};
@@ -103,6 +111,7 @@ const spawnParticles = (
 const triggerRevealEffects = (
   root: HTMLElement,
   layer: HTMLElement,
+  crestStage: HTMLElement | null,
   events: readonly WireDomainEvent[],
 ): void => {
   const revealed = [...events].reverse().find((event) => event.type === "ActionRevealed");
@@ -122,6 +131,26 @@ const triggerRevealEffects = (
   root.classList.add("vfx-reveal-flash");
   if (totalLoss > 0 && !prefersReducedMotion()) root.classList.add("vfx-screen-shake");
   spawnParticles(layer, tone, totalLoss > 0 ? 18 : 12);
+
+  if (crestStage) {
+    crestStage.classList.add("crest-content--revealing");
+    window.setTimeout(() => crestStage.classList.remove("crest-content--revealing"), 1000);
+  }
+
+  const attackerEl = root.querySelector<HTMLElement>(
+    `#player-${CSS.escape(String(revealed.attackerId))}`,
+  );
+  const targetEl = root.querySelector<HTMLElement>(
+    `#player-${CSS.escape(String(revealed.targetId))}`,
+  );
+  if (attackerEl) {
+    attackerEl.classList.add("seat--revealed");
+    window.setTimeout(() => attackerEl.classList.remove("seat--revealed"), 600);
+  }
+  if (targetEl && targetLoss > 0) {
+    targetEl.classList.add("seat--damaged");
+    window.setTimeout(() => targetEl.classList.remove("seat--damaged"), 700);
+  }
 
   sounds.reveal();
   if (events.some((event) => event.type === "PlayerEliminated")) sounds.elimination();
@@ -146,34 +175,86 @@ export const attachGameEffects = (
   viewerId: string,
   events: readonly WireDomainEvent[],
 ): (() => void) => {
-  const root = container.querySelector<HTMLElement>(".screen--game");
-  const layer = container.querySelector<HTMLElement>(".game-vfx-layer");
+  const root = container.querySelector<HTMLElement>(".chamber");
+  const layer = container.querySelector<HTMLElement>(".chamber-vfx");
   if (!root || !layer) return () => {};
+  const crestStage = root.querySelector<HTMLElement>("#crest-stage");
 
   const cleanup: Array<() => void> = [];
   const phase = match.phase;
+  const updateCrestStage = () => {
+    if (!crestStage) return;
+    const phase = match.phase;
+
+    if (phase.kind === "ACTIVE_TURN") {
+      const actorName =
+        match.players.find((player) => player.playerId === phase.activePlayerId)?.displayName ?? "";
+      const isActor = phase.activePlayerId === viewerId;
+      crestStage.innerHTML = isActor
+        ? `<div class="crest-content crest-content--ready"><span class="crest-badge">${t("game.turnYourTurn")}</span></div>`
+        : `<div class="crest-content crest-content--waiting"><span class="crest-name">${escapeHtml(actorName)}</span><span class="crest-label">${t("game.turnWaitingFor", { player: "" }).replace("...", "").trim()}</span></div>`;
+    } else if (phase.kind === "REACTION") {
+      const threat = phase.threat ?? 1;
+      crestStage.innerHTML = `
+        <div class="crest-content crest-content--clash">
+          <div class="crest-threat-display">
+            <svg class="sc-icon crest-icon" aria-hidden="true"><use href="#icon-threat"/></svg>
+            <span class="crest-threat-num">${threat}</span>
+          </div>
+          <span class="crest-label">Threat</span>
+        </div>`;
+    } else if (phase.kind === "FINISHED") {
+      const winnerName =
+        match.players.find((player) => player.playerId === phase.winnerId)?.displayName ?? "";
+      crestStage.innerHTML = `
+        <div class="crest-content crest-content--victory">
+          <svg class="sc-icon crest-icon" aria-hidden="true"><use href="#icon-crown"/></svg>
+          <span class="crest-name">${escapeHtml(winnerName)}</span>
+        </div>`;
+    } else {
+      crestStage.innerHTML = "";
+    }
+  };
+  updateCrestStage();
+  cleanup.push(() => {
+    if (crestStage) crestStage.innerHTML = "";
+  });
 
   root.dataset.phase = phase.kind.toLowerCase();
   root.classList.toggle(
-    "game-view--actor",
+    "chamber--actor",
     phase.kind === "ACTIVE_TURN" && phase.activePlayerId === viewerId,
   );
   root.classList.toggle(
-    "game-view--target",
+    "chamber--target",
     phase.kind === "REACTION" && phase.targetId === viewerId,
   );
   root.classList.toggle(
-    "game-view--attacker",
+    "chamber--attacker",
     phase.kind === "REACTION" && phase.attackerId === viewerId,
   );
+  match.players.forEach((player) => {
+    if (!player.eliminated) return;
+    const seat = root.querySelector<HTMLElement>(`#player-${CSS.escape(player.playerId)}`);
+    if (!seat || seat.dataset.eliminatedAnimDone) return;
+
+    seat.dataset.eliminatedAnimDone = "1";
+    const wasEliminated = events.some(
+      (event) => event.type === "PlayerEliminated" && event.playerId === player.playerId,
+    );
+    if (wasEliminated) {
+      seat.classList.add("seat--eliminating");
+      window.setTimeout(() => seat.classList.remove("seat--eliminating"), 1200);
+    }
+  });
 
   if (phase.kind === "ACTIVE_TURN" && phase.activePlayerId === viewerId) {
     const turnKey = `${match.matchId}:${match.revision}:${viewerId}`;
     if (turnKey !== lastTurnKey) {
       lastTurnKey = turnKey;
-      root.classList.add("game-turn-enter");
+      root.classList.add("chamber-turn-enter");
       sounds.turn();
-      window.setTimeout(() => root.classList.remove("game-turn-enter"), 520);
+      window.setTimeout(() => root.classList.remove("chamber-turn-enter"), 520);
     }
   }
 
@@ -191,13 +272,13 @@ export const attachGameEffects = (
     const reactionKey = `${match.revision}:${phase.attackerId}:${phase.targetId}`;
     if (phase.targetId === viewerId && reactionKey !== lastReactionKey) {
       lastReactionKey = reactionKey;
-      root.classList.add("vfx-under-attack");
+      root.classList.add("chamber-under-attack");
       vibrate([28, 24, 42]);
-      window.setTimeout(() => root.classList.remove("vfx-under-attack"), 800);
+      window.setTimeout(() => root.classList.remove("chamber-under-attack"), 800);
     }
   }
 
-  triggerRevealEffects(root, layer, events);
+  triggerRevealEffects(root, layer, crestStage, events);
 
   let previewLinkCleanup: (() => void) | undefined;
   const onTargetPreview = (event: Event) => {

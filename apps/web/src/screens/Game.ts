@@ -5,7 +5,6 @@ import { renderTurnIndicator } from "../components/TurnIndicator.js";
 import { renderCountdown, startCountdownTicker } from "../components/Countdown.js";
 import { renderActionControls } from "../components/ActionSelector.js";
 import { renderReactionControls } from "../components/ReactionPanel.js";
-import { renderRevealPanel } from "../components/RevealPanel.js";
 import { renderEventLog } from "../components/EventLog.js";
 import { renderRulesModal, attachRulesModalListeners } from "../components/RulesModal.js";
 import { t, getLocale, renderLanguageSwitcher, getLocalizedErrorMessage } from "../i18n/index.js";
@@ -20,6 +19,25 @@ const escapeHtml = (value: string): string =>
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+const ICON_SPRITE = `<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <symbol id="icon-influence" viewBox="0 0 24 24"><path d="M12 2 22 12 12 22 2 12 12 2Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" /></symbol>
+  <symbol id="icon-power" viewBox="0 0 24 24"><path d="m13 2-8 12h6l-1 8 9-13h-6l1-7Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" /></symbol>
+  <symbol id="icon-threat" viewBox="0 0 24 24"><path d="m4 20 16-16M20 20 4 4M2 18l4 4m12-20 4 4M2 6l4-4m12 20 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+  <symbol id="icon-force" viewBox="0 0 24 24"><path d="M5 6 7 9M12 2v5m7-1-2 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /><circle cx="12" cy="15" r="6" fill="currentColor" stroke="currentColor" stroke-width="2" /></symbol>
+  <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 3 20 6v6c0 4.5-3.1 7.2-8 9-4.9-1.8-8-4.5-8-9V6l8-3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" /></symbol>
+  <symbol id="icon-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" /><circle cx="12" cy="12" r="2.5" fill="none" stroke="currentColor" stroke-width="2" /></symbol>
+  <symbol id="icon-scheme" viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="3" fill="none" stroke="currentColor" stroke-width="2" /><path d="M10 8.5c0 3-3.4 4.5-4 9h12c-.6-4.5-4-6-4-9M4 21h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+  <symbol id="icon-recover" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0 1 4M20 4v7h-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+  <symbol id="icon-sound-on" viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6l-5 4H4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" /><path d="M16 9a5 5 0 0 1 0 6m3-9a9 9 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></symbol>
+  <symbol id="icon-sound-off" viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6l-5 4H4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" /><path d="m17 9 5 6m0-6-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></symbol>
+  <symbol id="icon-rules" viewBox="0 0 24 24"><path d="M3 5.5c3.4-1.8 6.4-1.4 9 .4 2.6-1.8 5.6-2.2 9-.4v13c-3.4-1.8-6.4-1.4-9 .4-2.6-1.8-5.6-2.2-9-.4v-13Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d="M12 5.9v13" fill="none" stroke="currentColor" stroke-width="2" /></symbol>
+  <symbol id="icon-stats" viewBox="0 0 24 24"><path d="M4 20V13h4v7m3 0V8h4v12m3 0V4h4v16M2 20h20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></symbol>
+  <symbol id="icon-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></symbol>
+  <symbol id="icon-crown" viewBox="0 0 24 24"><path d="m3 8 5 4 4-8 4 8 5-4-2 12H5L3 8Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" /><path d="M6 17h12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></symbol>
+</svg>`;
+
+const svgIcon = (id: string, label?: string): string =>
+  `<svg class="sc-icon" aria-hidden="${label ? "false" : "true"}"${label ? ` aria-label="${escapeHtml(label)}"` : ""} focusable="false"><use href="#${id}"/></svg>`;
 
 export interface GameCallbacks {
   onStrike: (targetId: string, threat: 1 | 2 | 3, force: 0 | 1 | 2 | 3) => void;
@@ -40,78 +58,83 @@ export const renderGameScreen = (
   isSubmitting = false,
   connectionStatus = "connected",
 ): (() => void) => {
+  if (!document.getElementById("sc-icons")) {
+    const div = document.createElement("div");
+    div.id = "sc-icons";
+    div.style.cssText = "display:none;position:absolute";
+    div.innerHTML = ICON_SPRITE;
+    document.body.prepend(div);
+  }
+
   const isMuted = sounds.isMuted();
   const deadlineAt = match.phase.kind !== "FINISHED" ? match.phase.deadlineAt : undefined;
+  const phase =
+    match.phase.kind === "ACTIVE_TURN"
+      ? "active_turn"
+      : match.phase.kind === "REACTION"
+        ? "reaction"
+        : "finished";
+  const connectionLabel =
+    connectionStatus === "connected"
+      ? t("game.connected")
+      : connectionStatus === "connecting"
+        ? t("game.reconnecting")
+        : t("game.offline");
+  const connectionClass =
+    connectionStatus === "connected"
+      ? ""
+      : connectionStatus === "connecting"
+        ? "chamber-conn--warning"
+        : "chamber-conn--offline";
 
   container.innerHTML = `
-    <div class="screen screen--game">
-      <div class="game-vfx-layer" aria-hidden="true">
-        <div class="game-vfx__ambient game-vfx__ambient--far"></div>
-        <div class="game-vfx__ambient game-vfx__ambient--near"></div>
-        <svg class="game-vfx__connections" preserveAspectRatio="none"></svg>
-        <div class="game-vfx__vignette"></div>
+    <div class="chamber" data-phase="${phase}" data-connection="${escapeHtml(connectionStatus)}">
+      <div class="chamber-vfx" aria-hidden="true">
+        <div class="chamber-vfx__ambient chamber-vfx__ambient--far"></div>
+        <div class="chamber-vfx__ambient chamber-vfx__ambient--near"></div>
+        <svg class="chamber-vfx__connections" preserveAspectRatio="none"></svg>
+        <div class="chamber-vfx__vignette"></div>
       </div>
-      <!-- Header -->
-      <header class="app-header">
-        <div class="app-header__brand">
-          <h1 class="app-title">${t("common.title")}</h1>
-          <div class="app-header__meta">
-            <span class="meta-tag">${t("game.room")} <strong>${escapeHtml(room.roomCode)}</strong></span>
-            <span class="meta-tag">${t("game.round")} <strong>${match.round}</strong></span>
-            <span class="meta-tag meta-tag--conn ${connectionStatus !== "connected" ? "meta-tag--warning" : ""}">
-              ${connectionStatus === "connected" ? t("game.connected") : connectionStatus === "connecting" ? t("game.reconnecting") : t("game.offline")}
-            </span>
-          </div>
-        </div>
-        <div class="app-header__actions">
-          ${renderLanguageSwitcher(getLocale())}
-          <button type="button" class="btn btn--icon" id="btn-sound-toggle" aria-label="${isMuted ? t("common.soundUnmute") : t("common.soundMute")}">
-            ${isMuted ? "🔇" : "🔊"}
-          </button>
-          <button type="button" class="btn btn--icon utility-action" id="btn-stats-open" aria-label="${t("game.stats")}" title="${t("game.stats")}">
-            📊
-          </button>
-          <button type="button" class="btn btn--icon utility-action" id="btn-rules-open" aria-label="${t("common.rules")}" title="${t("common.rules")}">
-            📜
-          </button>
-          <button type="button" class="btn btn--danger btn--sm" id="btn-leave-room" ${isSubmitting ? "disabled" : ""}>
-            ${t("common.leave")}
-          </button>
-        </div>
-      </header>
 
-      ${errorMessage ? `<div class="alert alert--error" role="alert"><span class="alert__icon">⚠️</span> ${escapeHtml(getLocalizedErrorMessage(errorMessage))}</div>` : ""}
+      <div class="chamber-utility">
+        <button type="button" class="util-btn" id="btn-sound-toggle" aria-label="${isMuted ? t("common.soundUnmute") : t("common.soundMute")}">
+          ${isMuted ? svgIcon("icon-sound-off") : svgIcon("icon-sound-on")}
+        </button>
+        <button type="button" class="util-btn" id="btn-stats-open" aria-label="${t("game.stats")}" title="${t("game.stats")}">
+          ${svgIcon("icon-stats")}
+        </button>
+        <button type="button" class="util-btn" id="btn-rules-open" aria-label="${t("common.rules")}" title="${t("common.rules")}">
+          ${svgIcon("icon-rules")}
+        </button>
+        <span class="chamber-meta">${escapeHtml(room.roomCode)} · R${match.round}</span>
+        <span class="chamber-conn ${connectionClass}" title="${escapeHtml(connectionLabel)}" role="status" aria-label="${escapeHtml(connectionLabel)}"></span>
+        ${renderLanguageSwitcher(getLocale())}
+        <button type="button" class="util-btn util-btn--leave" id="btn-leave-room" ${isSubmitting ? "disabled" : ""}>
+          ${t("common.leave")}
+        </button>
+      </div>
 
-      <!-- 3-Zone Council Chamber Layout -->
-      <main class="game-main council-chamber">
-        <!-- Zone 1: Situation & Verdict (Top) -->
-        <section class="chamber-zone chamber-zone--situation" aria-label="Situation">
-          ${renderTurnIndicator(match, viewerId)}
-          ${renderCountdown(deadlineAt)}
-          ${renderRevealPanel(recentEvents, match.players)}
-        </section>
+      ${errorMessage ? `<div class="chamber-alert" role="alert">${escapeHtml(getLocalizedErrorMessage(errorMessage))}</div>` : ""}
 
-        <!-- Zone 2: Council Table Seats (Center) -->
-        <section class="chamber-zone chamber-zone--table" aria-label="Council Table">
-          ${renderPlayerGrid(match, viewerId)}
-        </section>
-
-        <!-- Zone 3: Decision Tray & Chronicle Drawer (Bottom) -->
-        <section class="chamber-zone chamber-zone--decision decision-tray-zone" aria-label="Decision Tray">
-          ${renderActionControls(match, viewerId, isSubmitting)}
-          ${renderReactionControls(match, viewerId, isSubmitting)}
-          ${renderEventLog(recentEvents, match.players)}
-        </section>
+      <main class="chamber-stage">
+        ${renderPlayerGrid(match, viewerId)}
       </main>
+
+      <aside class="self-deck" aria-label="${escapeHtml(phase === "reaction" ? t("reaction.title") : t("action.title"))}">
+        ${renderTurnIndicator(match, viewerId)}
+        ${renderCountdown(deadlineAt)}
+        ${renderActionControls(match, viewerId, isSubmitting)}
+        ${renderReactionControls(match, viewerId, isSubmitting)}
+        ${renderEventLog(recentEvents, match.players)}
+      </aside>
 
       ${renderRulesModal()}
 
-      <!-- In-Game Stats Modal -->
       <div class="modal-backdrop" id="stats-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="stats-modal-title">
         <div class="modal-dialog modal-dialog--lg">
           <header class="modal-header">
-            <h2 class="modal-title" id="stats-modal-title">📊 ${t("game.stats")}</h2>
-            <button type="button" class="modal-close" id="btn-stats-close" aria-label="Close">✕</button>
+            <h2 class="modal-title" id="stats-modal-title">${svgIcon("icon-stats")} ${t("game.stats")}</h2>
+            <button type="button" class="modal-close" id="btn-stats-close" aria-label="Close">${svgIcon("icon-x")}</button>
           </header>
           <div class="modal-body" id="game-stats-modal-container"></div>
         </div>
@@ -246,7 +269,7 @@ export const renderGameScreen = (
         costEl.textContent = "0";
         preview.innerHTML = `<p>${t("reaction.selectDefenseHint")}</p>`;
         container
-          .querySelector<HTMLElement>(".screen--game")
+          .querySelector<HTMLElement>(".chamber")
           ?.dispatchEvent(
             new CustomEvent("sc:defense-preview", { detail: { guard: 0, challenge: false } }),
           );
@@ -262,7 +285,7 @@ export const renderGameScreen = (
 
       costEl.textContent = String(cost);
       submit.disabled = !legal || isSubmitting;
-      container.querySelector<HTMLElement>(".screen--game")?.dispatchEvent(
+      container.querySelector<HTMLElement>(".chamber")?.dispatchEvent(
         new CustomEvent("sc:defense-preview", {
           detail: { guard: effectiveGuard, challenge: plan.challenge },
         }),

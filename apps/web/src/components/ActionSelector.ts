@@ -7,6 +7,8 @@ const escapeHtml = (value: string): string =>
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+const stripLeadingGameIcon = (value: string): string =>
+  value.replace(/^(?:⚔|♟|⚡|🛡)\uFE0F?\s*/u, "");
 
 export const renderActionControls = (
   match: WireMatchView,
@@ -32,21 +34,23 @@ export const renderActionControls = (
   const currentPower = selfPlayer.power ?? 0;
 
   return `
-    <section class="action-panel decision-tray command-deck" aria-label="${t("action.title")}">
-      <div class="command-deck__rail" aria-hidden="true">
-        <span class="command-deck__pulse"></span>
+    <section class="action-panel decision-tray action-dock" aria-label="${t("action.title")}">
+      <div class="action-dock__header">
         <strong>${t("game.turnYourTurn")}</strong>
-        <span>⚡ ${currentPower}</span>
+        <span class="action-dock__power">
+          <svg class="sc-icon" aria-hidden="true"><use href="#icon-power"/></svg>
+          <span>${currentPower}</span>
+        </span>
       </div>
 
-      <div class="command-deck__primary">
-        <form id="strike-form" class="strike-planner strike-console" data-current-power="${currentPower}">
+      <div class="action-dock__main">
+        <form id="strike-form" class="strike-console" data-current-power="${currentPower}">
           <div class="strike-console__target">
-            <span class="strike-console__label">⌖ ${t("action.planTarget")}</span>
+            <label class="sr-only" for="strike-target">${t("action.planTarget")}</label>
             <select
               id="strike-target"
               name="targetId"
-              class="form-select strike-target-select"
+              class="sr-only strike-target-select"
               required
               ${isSubmitting ? "disabled" : ""}
             >
@@ -65,19 +69,29 @@ export const renderActionControls = (
                 )
                 .join("")}
             </select>
+            <div class="strike-target-prompt" id="strike-target-prompt" aria-live="polite">
+              <span>${t("action.planTarget")}</span>
+              <strong id="strike-plan-target">—</strong>
+            </div>
           </div>
 
           <div class="strike-console__choices">
             <div class="strike-console__group">
               <span class="strike-console__label">${t("action.threatLabel")}</span>
-              <div class="threat-seals" role="radiogroup" aria-label="${t("action.threatLabel")}">
+              <div class="threat-tokens" role="radiogroup" aria-label="${t("action.threatLabel")}">
                 ${threats
                   .map(
                     (threat) => `
-                      <label class="threat-seal">
-                        <input type="radio" name="threat" value="${threat}" ${isSubmitting ? "disabled" : ""} />
-                        <span class="threat-seal__body">
-                          <span class="threat-seal__icon">⚔</span>
+                      <label class="threat-token">
+                        <input
+                          type="radio"
+                          name="threat"
+                          value="${threat}"
+                          aria-label="${t("action.threatLabel")} ${threat}"
+                          ${isSubmitting ? "disabled" : ""}
+                        />
+                        <span class="threat-token__body">
+                          <svg class="sc-icon threat-token__icon" aria-hidden="true"><use href="#icon-threat"/></svg>
                           <strong>${threat}</strong>
                         </span>
                       </label>
@@ -90,23 +104,29 @@ export const renderActionControls = (
             <div class="strike-console__versus" aria-hidden="true">VS</div>
 
             <div class="strike-console__group strike-console__group--secret">
-              <span class="strike-console__label">🔒 ${t("action.planSecret")}</span>
-              <div class="force-stones" role="radiogroup" aria-label="${t("action.forceLabel")}">
+              <span class="strike-console__label">
+                <svg class="sc-icon" aria-hidden="true"><use href="#icon-eye"/></svg>
+                ${t("action.planSecret")}
+              </span>
+              <div class="force-tokens" role="radiogroup" aria-label="${t("action.forceLabel")}">
                 ${[0, 1, 2, 3]
                   .map((force) => {
                     const affordable = forces.includes(force as 0 | 1 | 2 | 3);
                     return `
-                      <label class="force-stone ${!affordable ? "force-stone--unaffordable" : ""}">
+                      <label class="force-token ${!affordable ? "force-token--unaffordable" : ""}">
                         <input
                           type="radio"
                           name="force"
                           value="${force}"
                           data-force="${force}"
                           data-affordable="${affordable ? "1" : "0"}"
+                          aria-label="${t("action.forceLabel")} ${force}"
                           ${!affordable || isSubmitting ? "disabled" : ""}
                         />
-                        <span class="force-stone__body">
-                          <span class="force-stone__icon">${force === 0 ? "🎭" : "◆"}</span>
+                        <span class="force-token__body">
+                          <svg class="sc-icon force-token__icon" aria-hidden="true">
+                            <use href="${force === 0 ? "#icon-eye" : "#icon-force"}"/>
+                          </svg>
                           <strong>${force}</strong>
                         </span>
                       </label>
@@ -118,15 +138,16 @@ export const renderActionControls = (
           </div>
 
           <div class="strike-console__footer">
-            <div class="strike-plan-summary" aria-live="polite">
-              <div class="strike-plan-summary__header">
+            <div class="strike-verdict" aria-live="polite">
+              <div class="strike-verdict__header">
                 <strong id="strike-plan-style">${t("action.planAwaiting")}</strong>
+                <span class="strike-verdict__power">
+                  <span id="strike-plan-power">${currentPower}</span>
+                </span>
               </div>
-              <div class="strike-plan-summary__grid">
-                <div><span>${t("action.planTarget")}</span><strong id="strike-plan-target">—</strong></div>
-                <div><span>${t("action.planClaim")}</span><strong id="strike-plan-threat">—</strong></div>
-                <div class="strike-plan-summary__secret"><span>🔒 ${t("action.planSecret")}</span><strong id="strike-plan-force">—</strong></div>
-                <div><span>${t("action.planRemaining")}</span><strong id="strike-plan-power">${currentPower} ⚡</strong></div>
+              <div class="strike-verdict__detail">
+                <span>${t("action.planClaim")} <strong id="strike-plan-threat">—</strong></span>
+                <span id="strike-plan-force" class="sr-only">—</span>
               </div>
               <p id="strike-plan-read" class="strike-plan-read">${t("action.planHint")}</p>
             </div>
@@ -134,21 +155,21 @@ export const renderActionControls = (
             <button
               type="submit"
               id="btn-strike"
-              class="btn btn--primary btn--large btn--strike strike-lock-btn"
+              class="commit-btn commit-btn--strike btn--strike strike-lock-btn"
               disabled
             >
-              <span class="strike-lock-btn__icon">⚔</span>
-              <span>${isSubmitting ? t("action.declaringStrike") : t("action.declareStrike")}</span>
+              <svg class="sc-icon commit-btn__icon" aria-hidden="true"><use href="#icon-threat"/></svg>
+              <span>${stripLeadingGameIcon(isSubmitting ? t("action.declaringStrike") : t("action.declareStrike"))}</span>
             </button>
           </div>
         </form>
       </div>
 
-      <div class="command-deck__secondary">
-        <div class="quick-command quick-command--scheme" data-action="scheme">
-          <div class="quick-command__icon">♟</div>
-          <div class="quick-command__body">
-            <strong>${t("action.schemeTitle")}</strong>
+      <div class="action-dock__secondary side-actions">
+        <div class="side-action side-action--scheme" data-action="scheme">
+          <svg class="sc-icon side-action__icon" aria-hidden="true"><use href="#icon-scheme"/></svg>
+          <div class="side-action__body">
+            <strong>${stripLeadingGameIcon(t("action.schemeTitle"))}</strong>
             <div class="scheme-types">
               <label class="scheme-card">
                 <input type="radio" name="schemeType" value="ambush" checked ${!canScheme || isSubmitting ? "disabled" : ""} />
@@ -156,19 +177,22 @@ export const renderActionControls = (
               </label>
               <label class="scheme-card">
                 <input type="radio" name="schemeType" value="bulwark" ${!canScheme || isSubmitting ? "disabled" : ""} />
-                <span>${t("action.schemeBulwarkTitle")}</span>
+                <span>
+                  <svg class="sc-icon scheme-card__icon" aria-hidden="true"><use href="#icon-shield"/></svg>
+                  ${stripLeadingGameIcon(t("action.schemeBulwarkTitle"))}
+                </span>
               </label>
             </div>
           </div>
-          <button type="button" id="btn-scheme" class="btn quick-command__button" ${!canScheme || isSubmitting ? "disabled" : ""}>
-            ${!canScheme ? t("action.schemeBtnDisabled") : t("action.schemeBtn")}
+          <button type="button" id="btn-scheme" class="side-action__button" ${!canScheme || isSubmitting ? "disabled" : ""}>
+            ${stripLeadingGameIcon(!canScheme ? t("action.schemeBtnDisabled") : t("action.schemeBtn"))}
           </button>
         </div>
 
-        <div class="quick-command quick-command--recover ${!canRecover ? "action-card--disabled" : ""}" data-action="recover">
-          <div class="quick-command__icon">⚡</div>
-          <div class="quick-command__body">
-            <strong>${t("action.recoverTitle")}</strong>
+        <div class="side-action side-action--recover ${!canRecover ? "side-action--disabled" : ""}" data-action="recover">
+          <svg class="sc-icon side-action__icon" aria-hidden="true"><use href="#icon-recover"/></svg>
+          <div class="side-action__body">
+            <strong>${stripLeadingGameIcon(t("action.recoverTitle"))}</strong>
             <div class="recover-meter" aria-hidden="true">
               ${[1, 2, 3]
                 .map(
@@ -178,8 +202,8 @@ export const renderActionControls = (
                 .join("")}
             </div>
           </div>
-          <button type="button" id="btn-recover" class="btn quick-command__button" ${!canRecover || isSubmitting ? "disabled" : ""}>
-            ${!canRecover ? t("action.recoverBtnDisabled") : t("action.recoverBtn")}
+          <button type="button" id="btn-recover" class="side-action__button" ${!canRecover || isSubmitting ? "disabled" : ""}>
+            ${stripLeadingGameIcon(!canRecover ? t("action.recoverBtnDisabled") : t("action.recoverBtn"))}
           </button>
         </div>
       </div>

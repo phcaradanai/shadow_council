@@ -23,7 +23,7 @@ export const attachStrikePlanner = (
   const targetSelect = root.querySelector<HTMLSelectElement>("#strike-target");
   if (!form || !targetSelect) return;
 
-  const targetCards = root.querySelectorAll<HTMLElement>(".player-card[data-targetable='true']");
+  const targetCards = root.querySelectorAll<HTMLElement>(".seat[data-targetable='true']");
   const submit = form.querySelector<HTMLButtonElement>("#btn-strike");
   const styleEl = form.querySelector<HTMLElement>("#strike-plan-style");
   const targetEl = form.querySelector<HTMLElement>("#strike-plan-target");
@@ -67,12 +67,12 @@ export const attachStrikePlanner = (
     const selectedId = targetSelect.value;
     targetCards.forEach((card) => {
       const selected = card.dataset.playerId === selectedId;
-      card.classList.toggle("player-card--selected-target", selected);
+      card.classList.toggle("seat--selected-target", selected);
       if (selected) card.setAttribute("aria-selected", "true");
       else card.removeAttribute("aria-selected");
     });
 
-    root.querySelector<HTMLElement>(".screen--game")?.dispatchEvent(
+    root.querySelector<HTMLElement>(".chamber")?.dispatchEvent(
       new CustomEvent("sc:target-preview", {
         detail: {
           targetId: selectedId || undefined,
@@ -90,8 +90,8 @@ export const attachStrikePlanner = (
       const legal = threat !== undefined && force <= threat;
       input.disabled = isSubmitting || !affordable || !legal;
 
-      const label = input.closest<HTMLLabelElement>(".force-stone");
-      label?.classList.toggle("force-stone--disabled", !affordable || !legal);
+      const label = input.closest<HTMLLabelElement>(".force-token");
+      label?.classList.toggle("force-token--disabled", !affordable || !legal);
       if (input.checked && input.disabled) input.checked = false;
     });
   };
@@ -109,7 +109,7 @@ export const attachStrikePlanner = (
     if (targetEl) targetEl.textContent = targetName || "—";
     if (threatEl) threatEl.textContent = threat === undefined ? "—" : String(threat);
     if (forceEl) forceEl.textContent = force === undefined ? "—" : String(force);
-    if (powerEl) powerEl.textContent = `${Math.max(0, currentPower - (force ?? 0))} ⚡`;
+    if (powerEl) powerEl.textContent = String(Math.max(0, currentPower - (force ?? 0)));
 
     if (!plan) {
       if (styleEl) styleEl.textContent = t("action.planAwaiting");

@@ -8,18 +8,25 @@ const escapeHtml = (value: string): string =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 
+const svgIcon = (id: string): string =>
+  `<svg class="sc-icon" aria-hidden="true" focusable="false"><use href="#${id}"/></svg>`;
+
 const renderInfluencePips = (influence: number): string =>
-  Array.from({ length: 3 }, (_, index) =>
-    index < influence
-      ? '<span class="pip pip--influence" aria-hidden="true">◆</span>'
-      : '<span class="pip pip--empty" aria-hidden="true">◇</span>',
+  Array.from(
+    { length: 3 },
+    (_, index) =>
+      `<span class="pip pip--influence ${index < influence ? "pip--filled" : "pip--empty"}" aria-hidden="true">
+      ${svgIcon("icon-influence")}
+    </span>`,
   ).join("");
 
 const renderPowerPips = (power: number): string =>
-  Array.from({ length: 3 }, (_, index) =>
-    index < power
-      ? '<span class="pip pip--power" aria-hidden="true">⚡</span>'
-      : '<span class="pip pip--empty" aria-hidden="true">○</span>',
+  Array.from(
+    { length: 3 },
+    (_, index) =>
+      `<span class="pip pip--power ${index < power ? "pip--filled" : "pip--empty"}" aria-hidden="true">
+      ${svgIcon("icon-power")}
+    </span>`,
   ).join("");
 
 const visualSeatOrder = (
@@ -40,17 +47,26 @@ const characterVariant = (player: WirePlayerView): number => {
   return hash % 6;
 };
 
-const renderCouncilPortrait = (player: WirePlayerView): string => {
-  const initial = player.displayName.trim().charAt(0).toUpperCase() || "C";
+const ARCHETYPES = [
+  { key: "shade", hue: 270, mask: true },
+  { key: "phantom", hue: 200, mask: false },
+  { key: "oracle", hue: 50, mask: false },
+  { key: "warden", hue: 120, mask: true },
+  { key: "envoy", hue: 20, mask: false },
+  { key: "regent", hue: 340, mask: true },
+] as const;
+
+const renderPortrait = (player: WirePlayerView): string => {
   const variant = characterVariant(player);
+  const archetype = ARCHETYPES[variant]!;
+  const initial = player.displayName.trim().charAt(0).toUpperCase() || "C";
 
   return `
-    <div class="council-portrait council-portrait--${variant}" aria-hidden="true">
-      <span class="council-portrait__halo"></span>
-      <span class="council-portrait__shoulders"></span>
-      <span class="council-portrait__head"></span>
-      <span class="council-portrait__mask"></span>
-      <span class="council-portrait__monogram">${escapeHtml(initial)}</span>
+    <div class="portrait portrait--${archetype.key}" data-archetype="${archetype.key}" aria-hidden="true">
+      <span class="portrait__ring"></span>
+      <span class="portrait__bust"></span>
+      <span class="portrait__sigil">${escapeHtml(initial)}</span>
+      ${archetype.mask ? '<span class="portrait__mask"></span>' : ""}
     </div>
   `;
 };
@@ -74,96 +90,74 @@ export const renderPlayerCard = (
   const isOffline = !player.connected;
   const isSelectableTarget = isTurnActor && !isSelf && !isEliminated;
   const isSelectedTarget = selectedTargetId === player.playerId;
+  const archetype = ARCHETYPES[characterVariant(player)]!;
+  const influenceAria = t("player.influenceAria", { current: player.influence, max: 3 });
+  const powerKnown = player.power !== undefined;
+  const powerAria = powerKnown
+    ? t("player.powerAria", { current: player.power!, max: 3 })
+    : t("player.powerUnknownAria");
 
   const classes = [
-    "player-card",
+    "seat",
     "council-seat",
-    isSelf ? "player-card--self" : "",
-    isActive ? "player-card--active" : "",
-    isTarget ? "player-card--target" : "",
-    isEliminated ? "player-card--eliminated" : "",
-    isOffline ? "player-card--offline" : "",
-    isSelectableTarget ? "player-card--selectable" : "",
-    isSelectedTarget ? "player-card--selected-target" : "",
+    isActive ? "seat--active" : "",
+    isTarget ? "seat--target" : "",
+    isEliminated ? "seat--eliminated" : "",
+    isOffline ? "seat--offline" : "",
+    isSelectableTarget ? "seat--selectable" : "",
+    isSelectedTarget ? "seat--selected-target" : "",
   ]
     .filter(Boolean)
     .join(" ");
 
-  const statusBadges = [
-    isSelf ? `<span class="badge badge--self" data-badge="self">${t("common.you")}</span>` : "",
-    isActive
-      ? `<span class="badge badge--active" data-badge="active">${t("player.badgeActive")}</span>`
-      : "",
-    isTarget
-      ? `<span class="badge badge--target" data-badge="target">${t("player.badgeTarget")}</span>`
-      : "",
-    isOffline
-      ? `<span class="badge badge--offline" data-badge="offline">${t("common.offline")}</span>`
-      : "",
-  ]
-    .filter(Boolean)
-    .join("");
-
   const schemeBadge = player.hasScheme
-    ? `<span class="seat-scheme" title="${t("player.schemeHidden")}">♟</span>`
+    ? `<span class="seat__scheme" role="img" aria-label="${escapeHtml(t("player.schemeHidden"))}" title="${escapeHtml(t("player.schemeHidden"))}">${svgIcon("icon-scheme")}</span>`
     : "";
+  const selfLabel = isSelf ? `${escapeHtml(t("common.you"))}: ` : "";
+  const selectedSuffix = isSelectedTarget ? ` (${escapeHtml(t("player.selectedTarget"))})` : "";
+  const schemeText =
+    player.activeScheme === "ambush" ? t("player.schemeAmbush") : t("player.schemeBulwark");
 
   return `
     <article
       class="${classes}"
       id="player-${escapeHtml(player.playerId)}"
       data-seat-role="${isSelf ? "self" : "opponent"}"
-      data-character-variant="${characterVariant(player)}"
+      data-archetype="${archetype.key}"
       ${isSelectableTarget ? `data-targetable="true" data-player-id="${escapeHtml(player.playerId)}" role="button" tabindex="0"` : `tabindex="0"`}
-      aria-label="Player ${escapeHtml(player.displayName)}${isSelectedTarget ? ` (${t("player.selectedTarget")})` : ""}"
+      ${isSelectedTarget ? 'aria-selected="true"' : ""}
+      aria-label="${selfLabel}${escapeHtml(player.displayName)}${selectedSuffix}"
     >
-      <div class="seat-target-ring" aria-hidden="true"></div>
-      <div class="council-seat__sigil" aria-hidden="true">
-        ${renderCouncilPortrait(player)}
+      <div class="seat__target-ring" aria-hidden="true"></div>
+
+      <div class="seat__portrait-wrap">
+        ${renderPortrait(player)}
         ${schemeBadge}
-        ${isSelectedTarget ? '<span class="council-seat__target-crosshair">⌖</span>' : ""}
+        ${isSelectedTarget ? '<span class="seat__crosshair" aria-hidden="true"></span>' : ""}
       </div>
 
-      <div class="council-seat__body">
-        <div class="seat-identity">
-          <h3 class="player-card__name">${escapeHtml(player.displayName)}</h3>
-          <div class="player-card__badges">${statusBadges}</div>
-        </div>
-
-        <div class="player-card__stats seat-resources">
-          <div class="stat-row seat-resource" data-stat="influence">
-            <span class="seat-resource__icon" aria-hidden="true">◆</span>
-            <span class="stat-label seat-resource__sr-label">${t("player.influenceLabel")}</span>
-            <span class="stat-value" aria-label="${t("player.influenceAria", { current: player.influence, max: 3 })}">
-              ${renderInfluencePips(player.influence)}
-              <span class="stat-num">(${player.influence}/3)</span>
-            </span>
-          </div>
-          <div class="stat-row seat-resource seat-resource--power" data-stat="power">
-            <span class="seat-resource__icon" aria-hidden="true">⚡</span>
-            <span class="stat-label seat-resource__sr-label">${t("player.powerLabel")}</span>
-            ${
-              player.power !== undefined
-                ? `<span class="stat-value" aria-label="${t("player.powerAria", { current: player.power, max: 3 })}">
-                    ${renderPowerPips(player.power)}
-                    <span class="stat-num">(${player.power}/3)</span>
-                    <span class="stat-note">${t("player.powerPrivate")}</span>
-                  </span>`
-                : `<span class="stat-value stat-value--private" aria-label="${t("player.powerUnknownAria")}">
-                    <span class="power-hidden">🔒 ?</span>
-                  </span>`
-            }
-          </div>
-        </div>
-
-        ${
-          isSelf && player.hasScheme && player.activeScheme
-            ? `<div class="seat-secret">${player.activeScheme === "ambush" ? t("player.schemeAmbush") : t("player.schemeBulwark")}</div>`
-            : ""
-        }
+      <div class="seat__identity">
+        <h3 class="seat__name">${escapeHtml(player.displayName)}</h3>
       </div>
 
-      ${isSelectableTarget && !isSelectedTarget ? `<div class="council-seat__prompt" aria-hidden="true">⌖</div>` : ""}
+      <div class="seat__resources" role="status" aria-label="${escapeHtml(`${influenceAria}; ${powerAria}`)}">
+        <span class="seat__resource-row seat__resource-row--influence">
+          ${svgIcon("icon-influence")}
+          ${renderInfluencePips(player.influence)}
+        </span>
+        <span class="seat__resource-row seat__resource-row--power">
+          ${svgIcon("icon-power")}
+          ${powerKnown ? renderPowerPips(player.power!) : '<span class="power-hidden">?</span>'}
+        </span>
+      </div>
+
+      ${
+        isSelf && player.hasScheme && player.activeScheme
+          ? `<div class="seat__scheme-info">${escapeHtml(schemeText)}</div>`
+          : ""
+      }
+
+      ${isSelectableTarget && !isSelectedTarget ? '<div class="seat__prompt" aria-hidden="true"></div>' : ""}
     </article>
   `;
 };
@@ -179,15 +173,19 @@ export const renderPlayerGrid = (
   return `
     <section
       class="players-section council-table council-stage"
-      aria-label="Council Chamber Table"
       data-player-count="${match.players.length}"
       data-opponent-count="${opponents}"
     >
       <div class="council-table__arena">
-        <div class="council-table__surface" aria-hidden="true">
+        <div class="council-table__surface">
           <div class="council-table__crest">
-            <span class="council-table__crest-mark">SC</span>
-            <span class="council-table__crest-ring"></span>
+            <svg class="crest-seal" viewBox="0 0 120 120" aria-hidden="true">
+              <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(212,175,55,0.15)" stroke-width="1"/>
+              <circle cx="60" cy="60" r="40" fill="none" stroke="rgba(212,175,55,0.08)" stroke-width="1"/>
+              <path d="M60 10 L67 35 L95 35 L73 52 L81 78 L60 62 L39 78 L47 52 L25 35 L53 35 Z"
+                fill="none" stroke="rgba(212,175,55,0.12)" stroke-width="1" stroke-linejoin="round"/>
+            </svg>
+            <div class="crest-action-stage" id="crest-stage" aria-live="polite"></div>
           </div>
         </div>
 

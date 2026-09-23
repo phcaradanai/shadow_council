@@ -37,7 +37,7 @@ export const startCountdownTicker = (container: HTMLElement): (() => void) => {
   const secondsEl = el.querySelector<HTMLElement>(".countdown__seconds");
   const fillEl = el.querySelector<HTMLElement>(".countdown__bar-fill");
 
-  const screen = container.querySelector<HTMLElement>(".screen--game");
+  const screen = container.querySelector<HTMLElement>(".chamber");
   let hapticTriggered = false;
 
   const interval = setInterval(() => {

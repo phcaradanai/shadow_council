@@ -53,22 +53,35 @@ export const renderReactionControls = (
       <div class="reaction-console__incoming">
         <span class="reaction-console__warning">${t("reaction.incomingClaim")}</span>
         <div class="reaction-console__threat-orb">
-          <span>⚔</span>
+          <svg class="sc-icon" aria-hidden="true"><use href="#icon-threat"/></svg>
           <strong>${currentThreat}</strong>
         </div>
-        <small>⚡ ${ownPower}</small>
+        <small class="reaction-console__power">
+          <svg class="sc-icon" aria-hidden="true"><use href="#icon-power"/></svg>
+          <span>${ownPower}</span>
+        </small>
       </div>
 
       <form id="defense-form" class="defense-planner__form reaction-console__form">
         <div class="reaction-console__guard">
-          <span class="reaction-console__label">🛡 ${t("reaction.guardAmountLabel")}</span>
+          <span class="reaction-console__label">
+            <svg class="sc-icon" aria-hidden="true"><use href="#icon-shield"/></svg>
+            ${t("reaction.guardAmountLabel")}
+          </span>
           <div class="defense-guard-options" role="radiogroup" aria-label="${t("reaction.guardAmountLabel")}">
             ${guardAmounts
               .map(
                 (amount) => `
-                  <label class="defense-choice ${amount === 0 ? "defense-choice--yield" : ""}">
-                    <input type="radio" name="defenseGuard" value="${amount}" ${isSubmitting ? "disabled" : ""} />
-                    <span class="defense-choice__body">
+                  <label class="guard-token ${amount === 0 ? "guard-token--yield" : ""}">
+                    <input
+                      type="radio"
+                      name="defenseGuard"
+                      value="${amount}"
+                      aria-label="${t("reaction.guardAmountLabel")} ${amount}"
+                      ${isSubmitting ? "disabled" : ""}
+                    />
+                    <span class="guard-token__body">
+                      ${amount === 0 ? "" : '<svg class="sc-icon guard-token__icon" aria-hidden="true"><use href="#icon-shield"/></svg>'}
                       <strong>${amount}</strong>
                       <small>${amount === 0 ? t("reaction.noGuard") : "Guard"}</small>
                     </span>
@@ -87,24 +100,31 @@ export const renderReactionControls = (
             ${isSubmitting ? "disabled" : ""}
           />
           <span class="challenge-toggle__body">
-            <span class="challenge-toggle__eye">👁</span>
+            <svg class="sc-icon challenge-toggle__icon" aria-hidden="true"><use href="#icon-eye"/></svg>
             <strong>${t("reaction.modeChallenge")}</strong>
-            <small>-${challengeCost} ⚡</small>
+            <small>
+              -${challengeCost}
+              <svg class="sc-icon" aria-hidden="true"><use href="#icon-power"/></svg>
+            </small>
           </span>
         </label>
 
-        <div class="defense-plan-summary reaction-console__summary" aria-live="polite">
-          <div class="defense-plan-summary__header">
+        <div class="defense-verdict reaction-console__summary" aria-live="polite">
+          <div class="defense-verdict__header">
             <strong id="defense-plan-mode">${t("reaction.selectDefense")}</strong>
-            <span><span id="defense-plan-cost">0</span> / ${ownPower} ⚡</span>
+            <span class="defense-verdict__cost">
+              <svg class="sc-icon" aria-hidden="true"><use href="#icon-power"/></svg>
+              <span id="defense-plan-cost">0</span> / ${ownPower}
+            </span>
           </div>
           <div id="defense-plan-preview" class="defense-plan-preview">
             <p>${t("reaction.selectDefenseHint")}</p>
           </div>
         </div>
 
-        <button type="submit" id="btn-lock-defense" class="btn btn--primary btn--large defense-lock-btn" disabled>
-          ${isSubmitting ? t("reaction.lockingPlan") : t("reaction.lockPlan")}
+        <button type="submit" id="btn-lock-defense" class="commit-btn commit-btn--defense defense-lock-btn" disabled>
+          <svg class="sc-icon commit-btn__icon" aria-hidden="true"><use href="#icon-shield"/></svg>
+          <span>${isSubmitting ? t("reaction.lockingPlan") : t("reaction.lockPlan")}</span>
         </button>
       </form>
     </section>
