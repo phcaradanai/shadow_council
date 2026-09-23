@@ -66,18 +66,12 @@ test.describe("Browser E2E: Real Gameplay Journeys", () => {
     const targetId = await getPlayerIdFromCard(active.page, target.name);
 
     await active.page.locator("#strike-target").selectOption(targetId);
-    await active.page
-      .locator('label.threat-seal:has(input[name="threat"][value="1"])')
-      .click();
+    await active.page.locator('label.threat-seal:has(input[name="threat"][value="1"])').click();
 
     await expect(active.page.locator('input[name="force"][value="2"]')).toBeDisabled();
 
-    await active.page
-      .locator('label.threat-seal:has(input[name="threat"][value="2"])')
-      .click();
-    await active.page
-      .locator('label.force-stone:has(input[name="force"][value="1"])')
-      .click();
+    await active.page.locator('label.threat-seal:has(input[name="threat"][value="2"])').click();
+    await active.page.locator('label.force-stone:has(input[name="force"][value="1"])').click();
 
     await expect(active.page.locator("#strike-plan-style")).toContainText("Partial Bluff");
     await expect(active.page.locator("#strike-plan-power")).toHaveText("1 ⚡");

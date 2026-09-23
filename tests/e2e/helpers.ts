@@ -67,9 +67,7 @@ export const declareStrike = async (
 
   const forceInput = page.locator(`input[name="force"][value="${force}"]`);
   await expect(forceInput).toBeEnabled();
-  await page
-    .locator(`label.force-stone:has(input[name="force"][value="${force}"])`)
-    .click();
+  await page.locator(`label.force-stone:has(input[name="force"][value="${force}"])`).click();
 
   await expect(strikeBtn).toBeEnabled();
   await strikeBtn.click();
