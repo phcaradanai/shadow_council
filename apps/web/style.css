@@ -3774,7 +3774,7 @@ h4 {
 
 .vfx-defense-aura__ring--two {
   inset: 4%;
-  opacity: calc(.18 + min(var(--guard-level, 0), 3) * .18);
+  opacity: 0.36;
   animation-delay: -0.7s;
 }
 
@@ -3946,4 +3946,14 @@ h4 {
   .reveal-card::before {
     animation: none !important;
   }
+}
+
+
+.vfx-defense-aura[data-guard="2"] .vfx-defense-aura__ring--two {
+  opacity: 0.62;
+}
+
+.vfx-defense-aura[data-guard="3"] .vfx-defense-aura__ring--two,
+.vfx-defense-aura[data-guard="4"] .vfx-defense-aura__ring--two {
+  opacity: 0.82;
 }

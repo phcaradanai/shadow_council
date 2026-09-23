@@ -51,15 +51,19 @@ test.describe("Browser E2E: Hidden Information Protection", () => {
 
     const targetId = await getPlayerIdFromCard(attacker.page, target.name);
 
-    // 2. Attacker commits a SECRET Bluff (0 Power) against Target
-    await declareStrike(attacker.page, targetId, 0);
+    // 2. Attacker commits a SECRET partial bluff: public Threat 2, private Force 1.
+    await declareStrike(attacker.page, targetId, 1, 2);
 
     // 3. Verify attacker can see their own private commitment
     await expect(attacker.page.locator(".turn-banner--threat")).toBeVisible();
 
-    // 4. Verify Target receives REACTION phase but ZERO funding information
+    // 4. Target receives only public Threat pressure; the VFX layer must not encode private Force.
     await expect(target.page.locator(".turn-banner--targeted")).toBeVisible();
     await expect(target.page.locator(".turn-banner__badge--danger")).toHaveText("UNDER ATTACK");
+    await expect(target.page.locator(".vfx-threat-pressure strong")).toHaveText("2");
+    await expect(target.page.locator(".game-vfx__attack-line--threat-2")).toBeVisible();
+    const targetVfxHtml = await target.page.locator(".game-vfx-layer").innerHTML();
+    expect(targetVfxHtml.toLowerCase()).not.toContain("force");
 
     // Inspect Target's complete DOM content
     const targetHtml = await target.page.content();
@@ -73,10 +77,13 @@ test.describe("Browser E2E: Hidden Information Protection", () => {
     expect(targetStorage).not.toContain("pendingForce");
     expect(targetStorage).not.toContain("pendingFunding");
 
-    // 5. Verify Bystander observes clash without funding information
+    // 5. Bystander sees the same public Threat presentation and no private Force.
     await expect(
       bystander.page.locator(".turn-banner__badge:has-text('CLASH IN PROGRESS')"),
     ).toBeVisible();
+    await expect(bystander.page.locator(".vfx-threat-pressure strong")).toHaveText("2");
+    const bystanderVfxHtml = await bystander.page.locator(".game-vfx-layer").innerHTML();
+    expect(bystanderVfxHtml.toLowerCase()).not.toContain("force");
 
     // Inspect Bystander's complete DOM content
     const bystanderHtml = await bystander.page.content();

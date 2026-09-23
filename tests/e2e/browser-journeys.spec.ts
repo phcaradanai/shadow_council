@@ -66,11 +66,15 @@ test.describe("Browser E2E: Real Gameplay Journeys", () => {
     const targetId = await getPlayerIdFromCard(active.page, target.name);
 
     await active.page.locator("#strike-target").selectOption(targetId);
+    await expect(active.page.locator(".game-vfx__attack-line--preview")).toBeVisible();
+
     await active.page.locator('label.threat-seal:has(input[name="threat"][value="1"])').click();
 
     await expect(active.page.locator('input[name="force"][value="2"]')).toBeDisabled();
 
     await active.page.locator('label.threat-seal:has(input[name="threat"][value="2"])').click();
+    await expect(active.page.locator(".game-vfx__attack-line--threat-2")).toBeVisible();
+
     await active.page.locator('label.force-stone:has(input[name="force"][value="1"])').click();
 
     await expect(active.page.locator("#strike-plan-style")).toContainText("Partial Bluff");
@@ -99,9 +103,11 @@ test.describe("Browser E2E: Real Gameplay Journeys", () => {
     // Active player declares Bluff (0 Power) on target
     await declareStrike(active.page, targetId, 0);
 
-    // Target receives UNDER ATTACK banner and reaction options
+    // Target receives UNDER ATTACK banner, public Threat pressure, and reaction options.
     await expect(target.page.locator(".turn-banner__badge--danger")).toHaveText("UNDER ATTACK");
     await expect(target.page.locator(".reaction-panel")).toBeVisible();
+    await expect(target.page.locator(".game-vfx__attack-line")).toBeVisible();
+    await expect(target.page.locator(".vfx-threat-pressure strong")).toHaveText("1");
 
     // Target challenges the strike
     await reactToStrike(target.page, "challenge");
@@ -156,8 +162,14 @@ test.describe("Browser E2E: Real Gameplay Journeys", () => {
     // Threat 2 is fully backed by Force 2.
     await declareStrike(active.page, targetId, 2, 2);
 
-    // Target spends both starting Power: Guard 1 + Challenge 1.
-    await defendStrike(target.page, { guard: 1, challenge: true });
+    // Target composes Guard 1 + Challenge 1 and receives a live digital defense aura.
+    await target.page
+      .locator('label.defense-choice:has(input[name="defenseGuard"][value="1"])')
+      .click();
+    await target.page.locator("label.challenge-toggle").click();
+    await expect(target.page.locator(".vfx-defense-aura--challenge")).toBeVisible();
+    await expect(target.page.locator(".vfx-defense-aura")).toHaveAttribute("data-guard", "1");
+    await target.page.locator("#btn-lock-defense").click();
 
     // Wrong Challenge has base danger 2, but Guard 1 cushions it to only 1 damage.
     await expect(await getPlayerStat(target.page, targetSelfId, "influence")).toBe(2);
