@@ -167,6 +167,15 @@ export const attachGameEffects = (
 
   if (phase.kind === "REACTION") {
     cleanup.push(drawAttackLink(root, phase.attackerId, phase.targetId, phase.threat ?? 1));
+
+    const pressure = document.createElement("div");
+    pressure.className = "vfx-threat-pressure";
+    pressure.innerHTML = `
+      <span aria-hidden="true">⚔</span>
+      <strong>${phase.threat ?? 1}</strong>
+    `;
+    layer.append(pressure);
+    cleanup.push(() => pressure.remove());
     const reactionKey = `${match.revision}:${phase.attackerId}:${phase.targetId}`;
     if (phase.targetId === viewerId && reactionKey !== lastReactionKey) {
       lastReactionKey = reactionKey;

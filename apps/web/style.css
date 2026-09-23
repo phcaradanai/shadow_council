@@ -3846,3 +3846,104 @@ h4 {
     animation: none !important;
   }
 }
+
+
+/* Cinematic focus during a clash: public Threat only, no secret Force */
+.screen--game[data-phase="reaction"] .council-seat:not(.player-card--active):not(.player-card--target) {
+  opacity: 0.58;
+  filter: saturate(0.55) brightness(0.78);
+  transform:
+    perspective(800px)
+    rotateX(var(--seat-tilt-x, 0deg))
+    rotateY(var(--seat-tilt-y, 0deg))
+    scale(.985);
+}
+
+.screen--game[data-phase="reaction"] .player-card--active,
+.screen--game[data-phase="reaction"] .player-card--target {
+  opacity: 1;
+  z-index: 4;
+}
+
+.vfx-threat-pressure {
+  position: absolute;
+  left: 50%;
+  top: 24%;
+  translate: -50% -50%;
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(239,68,68,.28);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(127,29,29,.26), rgba(15,8,12,.18) 60%, transparent 72%);
+  box-shadow:
+    0 0 42px rgba(239,68,68,.13),
+    inset 0 0 25px rgba(239,68,68,.08);
+  animation: vfx-threat-pressure 1.6s ease-in-out infinite;
+}
+
+.vfx-threat-pressure span {
+  position: absolute;
+  top: 16px;
+  color: rgba(252,165,165,.72);
+  font-size: .9rem;
+}
+
+.vfx-threat-pressure strong {
+  color: #fff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2.2rem;
+  line-height: 1;
+  text-shadow:
+    0 0 12px rgba(239,68,68,.55),
+    0 2px 12px rgba(0,0,0,.8);
+}
+
+@keyframes vfx-threat-pressure {
+  0%,100% { transform: scale(.94); opacity: .72; }
+  50% { transform: scale(1.04); opacity: 1; }
+}
+
+.player-card--eliminated {
+  overflow: hidden;
+}
+
+.player-card--eliminated::before {
+  content: "";
+  position: absolute;
+  inset: -35%;
+  z-index: 6;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 46%, rgba(239,68,68,.22) 49%, rgba(255,255,255,.18) 50%, rgba(239,68,68,.22) 51%, transparent 54%);
+  transform: rotate(-8deg);
+}
+
+.reveal-card {
+  overflow: hidden;
+}
+
+.reveal-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 -35%;
+  width: 28%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.055), transparent);
+  transform: skewX(-16deg);
+  animation: reveal-sweep 2.8s ease-in-out infinite;
+}
+
+@keyframes reveal-sweep {
+  0%, 62% { left: -35%; }
+  100% { left: 125%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vfx-threat-pressure,
+  .reveal-card::before {
+    animation: none !important;
+  }
+}
